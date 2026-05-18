@@ -1,0 +1,15 @@
+.wp-block-cns-map-suite-map {
+	position: relative;
+	width: 100%;
+
+	.cns-map-canvas-wrap {
+		position: relative;
+		width: 100%;
+		overflow: hidden;
+	}
+
+	canvas {
+		display: block;
+		max-width: 100%;
+	}
+}
