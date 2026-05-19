@@ -16,17 +16,29 @@ $meta = $map_id ? [
 	'image_x'      => (float) get_post_meta($map_id, '_cns_map_image_x', true),
 	'image_y'      => (float) get_post_meta($map_id, '_cns_map_image_y', true),
 	'image_width'  => (float) (get_post_meta($map_id, '_cns_map_image_width', true) ?: 1.0),
+	'bg_type'      => get_post_meta($map_id, '_cns_map_bg_type', true) ?: 'color',
+	'bg_color'     => get_post_meta($map_id, '_cns_map_bg_color', true) ?: '#1a1a2e',
+	'bg_image_id'  => (int) get_post_meta($map_id, '_cns_map_bg_image_id', true),
 ] : [
 	'featured' => false, 'width' => 1000, 'aspect_ratio' => 1.0,
 	'time' => 0, 'image_id' => 0, 'image_x' => 0.0, 'image_y' => 0.0, 'image_width' => 1.0,
+	'bg_type' => 'color', 'bg_color' => '#1a1a2e', 'bg_image_id' => 0,
 ];
 
-$image_url = $meta['image_id'] ? wp_get_attachment_image_url($meta['image_id'], 'large') : '';
+$image_url    = $meta['image_id'] ? wp_get_attachment_image_url($meta['image_id'], 'large') : '';
+$bg_image_url = $meta['bg_image_id'] ? wp_get_attachment_image_url($meta['bg_image_id'], 'large') : '';
 $overview_url = add_query_arg(
 	['page' => get_template() === 'clouds-and-spaceships' ? 'cns-settings-maps' : 'cns-maps'],
 	admin_url('admin.php')
 );
 ?>
+<script>
+window.cnsMapEditor = {
+	imageUrl:   <?php echo wp_json_encode($image_url ?: ''); ?>,
+	bgImageUrl: <?php echo wp_json_encode($bg_image_url ?: ''); ?>,
+};
+</script>
+
 <div class="cns-map-editor wrap" data-map-id="<?php echo esc_attr($map_id); ?>">
 
 	<div class="cns-map-editor__header">
@@ -73,90 +85,146 @@ $overview_url = add_query_arg(
 
 			<!-- Settings -->
 			<div class="cns-tab-panel cns-tab-panel--active" data-panel="settings" role="tabpanel">
-				<div class="cns-settings-panel">
-					<div class="cns-form-grid">
+				<div class="cns-settings-layout">
 
-						<div class="cns-form-row cns-form-row--full">
-							<label for="cns-map-title"><?php esc_html_e('Map Title', 'cns-map-suite'); ?></label>
-							<input
-								type="text"
-								id="cns-map-title"
-								class="large-text"
-								value="<?php echo esc_attr($map ? $map->post_title : ''); ?>"
-								placeholder="<?php esc_attr_e('Enter map title…', 'cns-map-suite'); ?>"
-							/>
-						</div>
+					<div class="cns-settings-form">
+						<div class="cns-form-grid">
 
-						<div class="cns-form-row">
-							<label for="cns-map-width"><?php esc_html_e('Max Width (px)', 'cns-map-suite'); ?></label>
-							<input type="number" id="cns-map-width" class="small-text" value="<?php echo esc_attr($meta['width']); ?>" min="100" step="10" />
-						</div>
-
-						<div class="cns-form-row">
-							<label for="cns-map-aspect-ratio"><?php esc_html_e('Aspect Ratio', 'cns-map-suite'); ?></label>
-							<input type="number" id="cns-map-aspect-ratio" class="small-text" value="<?php echo esc_attr($meta['aspect_ratio']); ?>" step="0.01" min="0.1" />
-							<p class="description"><?php esc_html_e('Width ÷ Height (e.g. 1.77 for 16∶9)', 'cns-map-suite'); ?></p>
-						</div>
-
-						<div class="cns-form-row">
-							<label for="cns-map-time"><?php esc_html_e('Map Time', 'cns-map-suite'); ?></label>
-							<input type="number" id="cns-map-time" class="small-text" value="<?php echo esc_attr($meta['time']); ?>" />
-							<p class="description"><?php esc_html_e('In-world timeline value.', 'cns-map-suite'); ?></p>
-						</div>
-
-						<div class="cns-form-row cns-form-row--full">
-							<label><?php esc_html_e('Base Map Image', 'cns-map-suite'); ?></label>
-							<input type="hidden" id="cns-map-image-id" value="<?php echo esc_attr($meta['image_id']); ?>" />
-							<div class="cns-image-picker">
-								<div class="cns-image-picker__preview" id="cns-image-preview">
-									<?php if ($image_url) : ?>
-										<img src="<?php echo esc_url($image_url); ?>" alt="" />
-									<?php else : ?>
-										<span><?php esc_html_e('No image selected', 'cns-map-suite'); ?></span>
-									<?php endif; ?>
-								</div>
-								<button type="button" class="button" id="cns-select-image">
-									<?php esc_html_e('Select Image', 'cns-map-suite'); ?>
-								</button>
-								<button type="button" class="button <?php echo $image_url ? '' : 'cns-hidden'; ?>" id="cns-remove-image">
-									<?php esc_html_e('Remove', 'cns-map-suite'); ?>
-								</button>
+							<div class="cns-form-row cns-form-row--full">
+								<label for="cns-map-title"><?php esc_html_e('Map Title', 'cns-map-suite'); ?></label>
+								<input
+									type="text"
+									id="cns-map-title"
+									class="large-text"
+									value="<?php echo esc_attr($map ? $map->post_title : ''); ?>"
+									placeholder="<?php esc_attr_e('Enter map title…', 'cns-map-suite'); ?>"
+								/>
 							</div>
-						</div>
 
-						<div class="cns-form-row">
-							<label for="cns-map-image-x"><?php esc_html_e('Image X offset (0–1)', 'cns-map-suite'); ?></label>
-							<input type="number" id="cns-map-image-x" class="small-text" value="<?php echo esc_attr($meta['image_x']); ?>" step="0.01" min="0" max="1" />
-						</div>
+							<div class="cns-form-row">
+								<label for="cns-map-width"><?php esc_html_e('Max Width (px)', 'cns-map-suite'); ?></label>
+								<input type="number" id="cns-map-width" class="small-text" value="<?php echo esc_attr($meta['width']); ?>" min="100" step="10" />
+							</div>
 
-						<div class="cns-form-row">
-							<label for="cns-map-image-y"><?php esc_html_e('Image Y offset (0–1)', 'cns-map-suite'); ?></label>
-							<input type="number" id="cns-map-image-y" class="small-text" value="<?php echo esc_attr($meta['image_y']); ?>" step="0.01" min="0" max="1" />
-						</div>
+							<div class="cns-form-row">
+								<label for="cns-map-aspect-ratio"><?php esc_html_e('Aspect Ratio', 'cns-map-suite'); ?></label>
+								<div class="cns-range-wrap">
+									<input type="range" id="cns-map-aspect-ratio" min="0.25" max="4" step="0.01" value="<?php echo esc_attr($meta['aspect_ratio']); ?>" />
+									<output class="cns-range-value" for="cns-map-aspect-ratio"><?php echo esc_html(number_format($meta['aspect_ratio'], 2)); ?></output>
+								</div>
+								<p class="description"><?php esc_html_e('Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)', 'cns-map-suite'); ?></p>
+							</div>
 
-						<div class="cns-form-row">
-							<label for="cns-map-image-width"><?php esc_html_e('Image Width (0–1 relative)', 'cns-map-suite'); ?></label>
-							<input type="number" id="cns-map-image-width" class="small-text" value="<?php echo esc_attr($meta['image_width']); ?>" step="0.01" min="0.01" max="2" />
-							<p class="description"><?php esc_html_e('1.0 = full canvas width. Height follows image ratio.', 'cns-map-suite'); ?></p>
-						</div>
+							<div class="cns-form-row">
+								<label for="cns-map-time"><?php esc_html_e('Map Time', 'cns-map-suite'); ?></label>
+								<input type="number" id="cns-map-time" class="small-text" value="<?php echo esc_attr($meta['time']); ?>" />
+								<p class="description"><?php esc_html_e('In-world timeline value.', 'cns-map-suite'); ?></p>
+							</div>
 
-						<div class="cns-form-row">
-							<label>
-								<input type="checkbox" id="cns-map-is-master" <?php checked($is_master); ?> />
-								<?php esc_html_e('MasterMap mode', 'cns-map-suite'); ?>
-							</label>
-							<p class="description"><?php esc_html_e('Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy.', 'cns-map-suite'); ?></p>
-						</div>
+							<div class="cns-form-row cns-form-row--full">
+								<label><?php esc_html_e('Base Map Image', 'cns-map-suite'); ?></label>
+								<input type="hidden" id="cns-map-image-id" value="<?php echo esc_attr($meta['image_id']); ?>" />
+								<div class="cns-image-picker">
+									<div class="cns-image-picker__preview" id="cns-image-preview">
+										<?php if ($image_url) : ?>
+											<img src="<?php echo esc_url($image_url); ?>" alt="" />
+										<?php else : ?>
+											<span><?php esc_html_e('No image selected', 'cns-map-suite'); ?></span>
+										<?php endif; ?>
+									</div>
+									<button type="button" class="button" id="cns-select-image">
+										<?php esc_html_e('Select Image', 'cns-map-suite'); ?>
+									</button>
+									<button type="button" class="button <?php echo $image_url ? '' : 'cns-hidden'; ?>" id="cns-remove-image">
+										<?php esc_html_e('Remove', 'cns-map-suite'); ?>
+									</button>
+								</div>
+							</div>
 
-						<div class="cns-form-row">
-							<label>
-								<input type="checkbox" id="cns-map-featured" <?php checked($meta['featured']); ?> />
-								<?php esc_html_e('Featured', 'cns-map-suite'); ?>
-							</label>
-						</div>
+							<div class="cns-form-row">
+								<label for="cns-map-image-x"><?php esc_html_e('Image X offset', 'cns-map-suite'); ?></label>
+								<div class="cns-range-wrap">
+									<input type="range" id="cns-map-image-x" min="0" max="1" step="0.01" value="<?php echo esc_attr($meta['image_x']); ?>" />
+									<output class="cns-range-value" for="cns-map-image-x"><?php echo esc_html(number_format($meta['image_x'], 2)); ?></output>
+								</div>
+							</div>
 
+							<div class="cns-form-row">
+								<label for="cns-map-image-y"><?php esc_html_e('Image Y offset', 'cns-map-suite'); ?></label>
+								<div class="cns-range-wrap">
+									<input type="range" id="cns-map-image-y" min="0" max="1" step="0.01" value="<?php echo esc_attr($meta['image_y']); ?>" />
+									<output class="cns-range-value" for="cns-map-image-y"><?php echo esc_html(number_format($meta['image_y'], 2)); ?></output>
+								</div>
+							</div>
+
+							<div class="cns-form-row">
+								<label for="cns-map-image-width"><?php esc_html_e('Image Width', 'cns-map-suite'); ?></label>
+								<div class="cns-range-wrap">
+									<input type="range" id="cns-map-image-width" min="0.1" max="2" step="0.01" value="<?php echo esc_attr($meta['image_width']); ?>" />
+									<output class="cns-range-value" for="cns-map-image-width"><?php echo esc_html(number_format($meta['image_width'], 2)); ?></output>
+								</div>
+								<p class="description"><?php esc_html_e('1.0 = full canvas width. Height follows image ratio.', 'cns-map-suite'); ?></p>
+							</div>
+
+							<div class="cns-form-row cns-form-row--full">
+								<label><?php esc_html_e('Background', 'cns-map-suite'); ?></label>
+								<div class="cns-bg-type-toggle">
+									<label>
+										<input type="radio" name="cns-map-bg-type" value="color" <?php checked($meta['bg_type'], 'color'); ?> />
+										<?php esc_html_e('Color', 'cns-map-suite'); ?>
+									</label>
+									<label>
+										<input type="radio" name="cns-map-bg-type" value="image" <?php checked($meta['bg_type'], 'image'); ?> />
+										<?php esc_html_e('Image', 'cns-map-suite'); ?>
+									</label>
+								</div>
+								<div class="cns-bg-section cns-bg-section--color<?php echo $meta['bg_type'] === 'image' ? ' cns-hidden' : ''; ?>">
+									<input type="text" id="cns-map-bg-color" class="cns-color-picker" value="<?php echo esc_attr($meta['bg_color']); ?>" />
+								</div>
+								<div class="cns-bg-section cns-bg-section--image<?php echo $meta['bg_type'] !== 'image' ? ' cns-hidden' : ''; ?>">
+									<input type="hidden" id="cns-map-bg-image-id" value="<?php echo esc_attr($meta['bg_image_id']); ?>" />
+									<div class="cns-image-picker">
+										<div class="cns-image-picker__preview" id="cns-bg-image-preview">
+											<?php if ($bg_image_url) : ?>
+												<img src="<?php echo esc_url($bg_image_url); ?>" alt="" />
+											<?php else : ?>
+												<span><?php esc_html_e('No image selected', 'cns-map-suite'); ?></span>
+											<?php endif; ?>
+										</div>
+										<button type="button" class="button" id="cns-select-bg-image">
+											<?php esc_html_e('Select Image', 'cns-map-suite'); ?>
+										</button>
+										<button type="button" class="button <?php echo $bg_image_url ? '' : 'cns-hidden'; ?>" id="cns-remove-bg-image">
+											<?php esc_html_e('Remove', 'cns-map-suite'); ?>
+										</button>
+									</div>
+								</div>
+							</div>
+
+							<div class="cns-form-row">
+								<label>
+									<input type="checkbox" id="cns-map-is-master" <?php checked($is_master); ?> />
+									<?php esc_html_e('MasterMap mode', 'cns-map-suite'); ?>
+								</label>
+								<p class="description"><?php esc_html_e('Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy.', 'cns-map-suite'); ?></p>
+							</div>
+
+							<div class="cns-form-row">
+								<label>
+									<input type="checkbox" id="cns-map-featured" <?php checked($meta['featured']); ?> />
+									<?php esc_html_e('Featured', 'cns-map-suite'); ?>
+								</label>
+							</div>
+
+						</div>
+					</div><!-- /.cns-settings-form -->
+
+					<div class="cns-settings-canvas">
+						<canvas id="cns-editor-canvas"></canvas>
+						<p class="description"><?php esc_html_e('Live preview — updates as you edit settings.', 'cns-map-suite'); ?></p>
 					</div>
-				</div>
+
+				</div><!-- /.cns-settings-layout -->
 			</div>
 
 			<!-- Objects (placeholder) -->
@@ -192,8 +260,7 @@ $overview_url = add_query_arg(
 			<!-- Preview -->
 			<div class="cns-tab-panel" data-panel="preview" role="tabpanel">
 				<div class="cns-canvas-wrap">
-					<canvas id="cns-map-canvas" class="cns-map-canvas"></canvas>
-					<p class="cns-placeholder__tag"><?php esc_html_e('Interactive canvas preview — Coming soon', 'cns-map-suite'); ?></p>
+					<canvas id="cns-preview-canvas"></canvas>
 				</div>
 			</div>
 

@@ -99,7 +99,7 @@ function cns_map_suite_enqueue_admin_assets(): void {
 	wp_enqueue_script(
 		'cns-map-admin',
 		CNS_MAP_SUITE_URL . 'assets/admin/admin.js',
-		[],
+		['wp-color-picker'],
 		CNS_MAP_SUITE_VERSION,
 		true
 	);
@@ -109,9 +109,10 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		'nonce'   => wp_create_nonce('wp_rest'),
 	]);
 
-	// Make WP media library available on the editor page.
+	// Make WP media library and color picker available on the editor page.
 	if ($page === 'cns-map-editor') {
 		wp_enqueue_media();
+		wp_enqueue_style('wp-color-picker');
 	}
 }
 

@@ -216,6 +216,9 @@ One row per parent→child relationship. A parent with multiple children has mul
 | `_cns_map_image_y` | float | Image vertical offset as fraction of canvas height (0–1) |
 | `_cns_map_image_width` | float | Image width as fraction of canvas width (1.0 = full width) |
 | `_cns_map_is_master` | bool | `true` = MasterMap mode (links to child maps, not posts) |
+| `_cns_map_bg_type` | string | `color` — solid fill; `image` — attachment fills the canvas |
+| `_cns_map_bg_color` | string | Hex colour used when `bg_type` is `color` (default `#1a1a2e`) |
+| `_cns_map_bg_image_id` | int | WP attachment ID used when `bg_type` is `image` |
 
 Image position and size are stored as fractions rather than pixels so the layout remains correct at any responsive canvas width.
 
@@ -232,7 +235,13 @@ Lists all maps in a WP-style list table. Each row shows the base map thumbnail, 
 Omitting `map_id` creates a new map. Including it loads the existing map's meta into the form fields.
 
 **Tab — Settings**
-Full form for all map-level properties: title, canvas dimensions, aspect ratio, base image picker (WP media library), image position/scale, MasterMap toggle, and featured flag. The MasterMap toggle is wired in JS: checking it hides the Objects and Areas tabs and shows the Hierarchy tab. The **Save Map** button POSTs to `POST /wp-json/cns-map-suite/v1/maps` via `fetch` with a WP REST nonce. Creating a new map redirects to the editor URL with the returned `map_id`; updating an existing map shows a transient "Saved." confirmation.
+Two-column layout: form on the left, live canvas preview on the right (sticky).
+
+The form covers all map-level properties: title, canvas max-width, aspect ratio, base image picker (WP media library), image position and scale, background, MasterMap toggle, and featured flag. Aspect ratio, image X/Y offset, and image width are range sliders with a live numeric readout. The background section has a Color / Image radio toggle: Color mode uses the WP iris colour picker; Image mode uses a media picker and renders the image with cover scaling (fills the canvas, preserves aspect ratio, crops edges — equivalent to `background-size: cover`).
+
+The live canvas redraws immediately on every input change. It uses a modular draw pipeline: `collectDrawState()` reads the current form values into a plain object; `drawMapCanvas(canvasEl, state)` is a reusable async function that renders any canvas from that state; `drawEditorCanvas()` and `drawPreviewCanvas()` are thin wrappers that select their respective canvas elements.
+
+The MasterMap toggle hides the Objects and Areas tabs and shows the Hierarchy tab. The **Save Map** button POSTs to `POST /wp-json/cns-map-suite/v1/maps` via `fetch` with a WP REST nonce. Creating a new map redirects to the editor URL with the returned `map_id`; updating an existing map shows a transient "Saved." confirmation.
 
 **Tab — Objects** *(placeholder)*
 Will contain a canvas drawing surface in "place icons" mode. Clicking the canvas places an SVG icon marker; clicking an existing marker opens a right-side drawer to edit its properties and infobox content.
@@ -243,8 +252,8 @@ Same canvas surface in "draw areas" mode with a sub-mode selector for Polygon, B
 **Tab — Hierarchy** *(placeholder, MasterMap only)*
 Canvas surface for drawing regions that link to child maps. Only visible when MasterMap mode is active.
 
-**Tab — Preview** *(placeholder)*
-Read-only canvas render showing the map as it will appear on the frontend.
+**Tab — Preview**
+Read-only canvas render of the current map state (background + base image). Redraws using the same `drawMapCanvas` pipeline as the Settings preview whenever the tab is activated.
 
 ---
 
@@ -280,6 +289,7 @@ See the task list in the project session for the full breakdown. High-level phas
 
 1. ~~**Best practices**~~ ✅ Done. `manage_maps` capability, REST `permission_callback`, `wp_localize_script`, `$wpdb->prepare()` standard, `.pot` file, `readme.txt`, uninstall opt-in.
 2. ~~**Editor — save**~~ ✅ Done. Settings tab fully saves via REST.
-3. **Editor — canvas tools** — object placement, area drawing, hierarchy region drawing, property drawers.
-4. **Frontend — canvas render** — REST endpoint for map data, draw image/objects/areas on `<canvas>`, hit detection.
-5. **Frontend — interactivity** — infobox component, post links, MasterMap hover/navigation, responsive scaling, accessibility.
+3. ~~**Editor — canvas preview**~~ ✅ Done. Live canvas in Settings tab and Preview tab; background color/image; cover-scaled bg image; range sliders for aspect ratio, image position, and scale.
+4. **Editor — canvas tools** — object placement, area drawing, hierarchy region drawing, property drawers.
+5. **Frontend — canvas render** — REST endpoint for map data, draw image/objects/areas on `<canvas>`, hit detection.
+6. **Frontend — interactivity** — infobox component, post links, MasterMap hover/navigation, responsive scaling, accessibility.

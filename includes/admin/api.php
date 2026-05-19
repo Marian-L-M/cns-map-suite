@@ -65,6 +65,21 @@ function cns_map_suite_register_rest_routes(): void {
 				'type'    => 'boolean',
 				'default' => false,
 			],
+			'bg_type' => [
+				'type'    => 'string',
+				'default' => 'color',
+				'enum'    => ['color', 'image'],
+			],
+			'bg_color' => [
+				'type'              => 'string',
+				'default'           => '#1a1a2e',
+				'sanitize_callback' => 'sanitize_hex_color',
+			],
+			'bg_image_id' => [
+				'type'              => 'integer',
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			],
 		],
 	]);
 }
@@ -110,6 +125,9 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 		'_cns_map_image_width'  => (float) $request->get_param('image_width'),
 		'_cns_map_is_master'    => (bool) $request->get_param('is_master'),
 		'_cns_map_featured'     => (bool) $request->get_param('featured'),
+		'_cns_map_bg_type'      => (string) $request->get_param('bg_type'),
+		'_cns_map_bg_color'     => sanitize_hex_color($request->get_param('bg_color')) ?: '#1a1a2e',
+		'_cns_map_bg_image_id'  => (int) $request->get_param('bg_image_id'),
 	];
 
 	foreach ($meta as $key => $value) {

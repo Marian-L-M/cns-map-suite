@@ -40,7 +40,11 @@
 
 ## Editor — Canvas
 
-- [ ] Render base map image on canvas with live position and scale controls
+- [x] Live canvas preview in Settings tab (two-column layout, sticky right column)
+- [x] Render base map image at stored position and relative width via range sliders
+- [x] Background color via WP iris color picker
+- [x] Background image via WP media picker (cover scaling — fills canvas, preserves aspect ratio)
+- [x] Preview tab renders live canvas using shared draw pipeline
 - [ ] Live canvas preview of all placed objects and drawn areas
 
 ## Frontend — Data
@@ -72,3 +76,4 @@
 - ✅ `load_plugin_textdomain()` for i18n
 - ✅ README.md with structure, functionality, and design decisions
 - ✅ All Best Practices items (capability, prepare() standard, .pot, readme.txt, uninstall opt-in)
+- ✅ Editor canvas — live preview, background controls, cover-scaled bg image, range sliders, shared draw pipeline

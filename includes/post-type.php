@@ -59,6 +59,9 @@ function cns_map_suite_register_post_meta(): void {
 		'_cns_map_image_y'      => 'number',
 		'_cns_map_image_width'  => 'number',
 		'_cns_map_is_master'    => 'boolean',
+		'_cns_map_bg_type'      => 'string',
+		'_cns_map_bg_color'     => 'string',
+		'_cns_map_bg_image_id'  => 'integer',
 	];
 
 	foreach ($fields as $key => $type) {
