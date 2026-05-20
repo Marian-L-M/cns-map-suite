@@ -28,6 +28,7 @@ require_once CNS_MAP_SUITE_DIR . 'includes/post-type.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/database.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/admin/menu.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/admin/api.php';
+require_once CNS_MAP_SUITE_DIR . 'includes/admin/icons.php';
 
 // ── Internationalisation ──────────────────────────────────────────────────────
 

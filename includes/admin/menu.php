@@ -13,9 +13,8 @@ function cns_map_suite_register_menus(): void {
 }
 
 /**
- * CNS theme active: overview tab via cns_admin_tabs + hidden editor sub-page.
- * The filter is added here (priority 10 admin_menu) before the theme processes
- * cns_admin_tabs at priority 99, so it's included in the tab list.
+ * CNS theme active: overview + icons tabs via cns_admin_tabs + hidden editor sub-page.
+ * Filter runs at priority 10, before the theme processes tabs at priority 99.
  */
 function cns_map_suite_register_under_cns_theme(): void {
 	add_filter('cns_admin_tabs', function (array $tabs): array {
@@ -25,6 +24,13 @@ function cns_map_suite_register_under_cns_theme(): void {
 			'capability' => 'manage_maps',
 			'callback'   => 'cns_map_suite_render_overview',
 			'priority'   => 30,
+		];
+		$tabs['icons'] = [
+			'menu_title' => __('Icons', 'cns-map-suite'),
+			'title'      => __('Icon Library', 'cns-map-suite'),
+			'capability' => 'manage_maps',
+			'callback'   => 'cns_map_suite_render_icons',
+			'priority'   => 31,
 		];
 		return $tabs;
 	});
@@ -66,6 +72,15 @@ function cns_map_suite_register_standalone(): void {
 
 	add_submenu_page(
 		'cns-maps',
+		__('Icon Library', 'cns-map-suite'),
+		__('Icon Library', 'cns-map-suite'),
+		'manage_maps',
+		'cns-map-icons',
+		'cns_map_suite_render_icons'
+	);
+
+	add_submenu_page(
+		'cns-maps',
 		__('New Map', 'cns-map-suite'),
 		__('New Map', 'cns-map-suite'),
 		'manage_maps',
@@ -82,8 +97,11 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		return;
 	}
 
-	$page = sanitize_key($_GET['page'] ?? '');
-	$is_maps_page = in_array($page, ['cns-maps', 'cns-map-editor', 'cns-settings-maps'], true);
+	$page         = sanitize_key($_GET['page'] ?? '');
+	$is_maps_page = in_array($page, [
+		'cns-maps', 'cns-map-editor', 'cns-map-icons',
+		'cns-settings-maps', 'cns-settings-icons',
+	], true);
 
 	if (! $is_maps_page) {
 		return;
@@ -104,13 +122,16 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		true
 	);
 
+	$icons_page = get_template() === 'clouds-and-spaceships' ? 'cns-settings-icons' : 'cns-map-icons';
+
 	wp_localize_script('cns-map-admin', 'cnsMapSuite', [
-		'restUrl' => rest_url('cns-map-suite/v1'),
-		'nonce'   => wp_create_nonce('wp_rest'),
+		'restUrl'   => rest_url('cns-map-suite/v1'),
+		'wpRestUrl' => rest_url('wp/v2'),
+		'nonce'     => wp_create_nonce('wp_rest'),
+		'iconsUrl'  => add_query_arg(['page' => $icons_page], admin_url('admin.php')),
 	]);
 
-	// Make WP media library and color picker available on the editor page.
-	if ($page === 'cns-map-editor') {
+	if (in_array($page, ['cns-map-editor', 'cns-map-icons', 'cns-settings-icons'], true)) {
 		wp_enqueue_media();
 		wp_enqueue_style('wp-color-picker');
 	}
@@ -122,4 +143,8 @@ function cns_map_suite_render_overview(): void {
 
 function cns_map_suite_render_editor(): void {
 	include CNS_MAP_SUITE_DIR . 'includes/admin/views/editor.php';
+}
+
+function cns_map_suite_render_icons(): void {
+	include CNS_MAP_SUITE_DIR . 'includes/admin/views/icons.php';
 }

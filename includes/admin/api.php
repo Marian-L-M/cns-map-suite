@@ -5,6 +5,9 @@ defined('ABSPATH') || exit;
 add_action('rest_api_init', 'cns_map_suite_register_rest_routes');
 
 function cns_map_suite_register_rest_routes(): void {
+
+	// ── Map settings save ─────────────────────────────────────────────────────
+
 	register_rest_route('cns-map-suite/v1', '/maps', [
 		'methods'             => 'POST',
 		'callback'            => 'cns_map_suite_rest_save_map',
@@ -82,7 +85,77 @@ function cns_map_suite_register_rest_routes(): void {
 			],
 		],
 	]);
+
+	// ── Icon library ──────────────────────────────────────────────────────────
+
+	register_rest_route('cns-map-suite/v1', '/icons', [
+		[
+			'methods'             => 'GET',
+			'callback'            => 'cns_map_suite_rest_list_icons',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_add_icon',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => [
+				'attachment_id' => [
+					'type'              => 'integer',
+					'required'          => true,
+					'sanitize_callback' => 'absint',
+				],
+			],
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/icons/(?P<id>\d+)', [
+		'methods'             => 'DELETE',
+		'callback'            => 'cns_map_suite_rest_remove_icon',
+		'permission_callback' => fn() => current_user_can('manage_maps'),
+	]);
+
+	// ── Map objects ───────────────────────────────────────────────────────────
+
+	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/objects', [
+		[
+			'methods'             => 'GET',
+			'callback'            => 'cns_map_suite_rest_list_objects',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_create_object',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => cns_map_suite_object_rest_args(),
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/objects/(?P<id>\d+)', [
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_update_object',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => cns_map_suite_object_rest_args(),
+		],
+		[
+			'methods'             => 'DELETE',
+			'callback'            => 'cns_map_suite_rest_delete_object',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/objects/(?P<id>\d+)/position', [
+		'methods'             => 'PATCH',
+		'callback'            => 'cns_map_suite_rest_move_object',
+		'permission_callback' => fn() => current_user_can('manage_maps'),
+		'args'                => [
+			'x' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
+			'y' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
+		],
+	]);
 }
+
+// ── Map settings ──────────────────────────────────────────────────────────────
 
 function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response|WP_Error {
 	$map_id = $request->get_param('map_id');
@@ -97,11 +170,7 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 	if ($map_id > 0) {
 		$existing = get_post($map_id);
 		if (! $existing || $existing->post_type !== 'maps') {
-			return new WP_Error(
-				'invalid_map',
-				__('Map not found.', 'cns-map-suite'),
-				['status' => 404]
-			);
+			return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
 		}
 		$post_data['ID'] = $map_id;
 		$result = wp_update_post($post_data, true);
@@ -135,11 +204,306 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 	}
 
 	return new WP_REST_Response([
-		'map_id'  => $map_id,
-		'created' => $request->get_param('map_id') === 0,
+		'map_id'   => $map_id,
+		'created'  => $request->get_param('map_id') === 0,
 		'edit_url' => add_query_arg(
 			['page' => 'cns-map-editor', 'map_id' => $map_id],
 			admin_url('admin.php')
 		),
 	], 200);
+}
+
+// ── Icons ─────────────────────────────────────────────────────────────────────
+
+function cns_map_suite_rest_list_icons(): WP_REST_Response {
+	$attachments = get_posts([
+		'post_type'      => 'attachment',
+		'post_mime_type' => 'image/svg+xml',
+		'post_status'    => 'inherit',
+		'posts_per_page' => -1,
+		'meta_query'     => [['key' => '_cns_map_icon', 'value' => '1']],
+		'orderby'        => 'title',
+		'order'          => 'ASC',
+	]);
+
+	$icons = array_map(fn($att) => [
+		'id'    => $att->ID,
+		'title' => $att->post_title ?: basename(get_attached_file($att->ID) ?: ''),
+		'url'   => wp_get_attachment_url($att->ID),
+	], $attachments);
+
+	return new WP_REST_Response(array_values($icons), 200);
+}
+
+function cns_map_suite_rest_add_icon(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	$id         = $request->get_param('attachment_id');
+	$attachment = get_post($id);
+
+	if (!$attachment || $attachment->post_type !== 'attachment') {
+		return new WP_Error('not_found', __('Attachment not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+	if (get_post_mime_type($id) !== 'image/svg+xml') {
+		return new WP_Error('not_svg', __('Only SVG files can be added to the icon library.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	update_post_meta($id, '_cns_map_icon', '1');
+
+	return new WP_REST_Response([
+		'id'    => $id,
+		'title' => $attachment->post_title ?: basename(get_attached_file($id) ?: ''),
+		'url'   => wp_get_attachment_url($id),
+	], 200);
+}
+
+function cns_map_suite_rest_remove_icon(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	$id = (int) $request->get_param('id');
+	if (!get_post($id)) {
+		return new WP_Error('not_found', __('Icon not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+	delete_post_meta($id, '_cns_map_icon');
+	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+// ── Objects — shared args ─────────────────────────────────────────────────────
+
+function cns_map_suite_object_rest_args(): array {
+	return [
+		'icon_image_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'title' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'type' => [
+			'type'    => 'string',
+			'default' => 'LOCATION',
+			'enum'    => ['LOCATION', 'HISTORY', 'NATURAL', 'EVENT', 'OTHER'],
+		],
+		'x' => [
+			'type'    => 'integer',
+			'default' => 0,
+		],
+		'y' => [
+			'type'    => 'integer',
+			'default' => 0,
+		],
+		'object_time' => [
+			'type'    => 'integer',
+			'default' => 0,
+		],
+		'infobox_source' => [
+			'type'    => 'string',
+			'default' => 'manual',
+			'enum'    => ['manual', 'post'],
+		],
+		'linked_post_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'infobox_title' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'infobox_description' => [
+			'type'    => 'string',
+			'default' => '',
+		],
+		'infobox_image_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'style_size' => [
+			'type'    => 'integer',
+			'default' => 32,
+			'minimum' => 8,
+			'maximum' => 128,
+		],
+		'style_fill' => [
+			'type'    => 'string',
+			'default' => '#ffffff',
+		],
+		'style_stroke' => [
+			'type'    => 'string',
+			'default' => '#2271b1',
+		],
+	];
+}
+
+// ── Objects — helpers ─────────────────────────────────────────────────────────
+
+function cns_map_suite_object_from_args(WP_REST_Request $request): array {
+	return [
+		'canvas_styles' => wp_json_encode([
+			'size'        => (int) $request->get_param('style_size'),
+			'fillStyle'   => (string) $request->get_param('style_fill'),
+			'strokeStyle' => (string) $request->get_param('style_stroke'),
+		]),
+		'infobox_data' => wp_json_encode([
+			'title'       => (string) $request->get_param('infobox_title'),
+			'description' => wp_kses_post($request->get_param('infobox_description')),
+			'image_id'    => (int) $request->get_param('infobox_image_id'),
+		]),
+	];
+}
+
+function cns_map_suite_normalize_object_row(array $row): array {
+	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
+	$row['infobox_data']  = $row['infobox_data']  ? json_decode($row['infobox_data'], true)  : (object) [];
+	$row['icon_url']      = $row['icon_image_id'] ? (wp_get_attachment_url((int) $row['icon_image_id']) ?: '') : '';
+	$row['icon_mime']     = $row['icon_image_id'] ? (get_post_mime_type((int) $row['icon_image_id']) ?: '') : '';
+	foreach (['id', 'map_id', 'linked_post_id', 'icon_image_id', 'x', 'y', 'object_time'] as $k) {
+		$row[$k] = (int) ($row[$k] ?? 0);
+	}
+	return $row;
+}
+
+// ── Objects — CRUD ────────────────────────────────────────────────────────────
+
+function cns_map_suite_rest_list_objects(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE map_id = %d ORDER BY id ASC", $map_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(array_map('cns_map_suite_normalize_object_row', $rows ?: []), 200);
+}
+
+function cns_map_suite_rest_create_object(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$derived = cns_map_suite_object_from_args($request);
+
+	$wpdb->insert(
+		$wpdb->prefix . 'cns_map_objects',
+		[
+			'map_id'         => $map_id,
+			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'type'           => $request->get_param('type'),
+			'svg_slug'       => '',
+			'icon_image_id'  => $request->get_param('icon_image_id') ?: null,
+			'title'          => $request->get_param('title'),
+			'x'              => $request->get_param('x'),
+			'y'              => $request->get_param('y'),
+			'object_time'    => $request->get_param('object_time'),
+			'infobox_source' => $request->get_param('infobox_source'),
+			'infobox_data'   => $derived['infobox_data'],
+			'canvas_styles'  => $derived['canvas_styles'],
+		],
+		['%d', '%d', '%s', '%s', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%s']
+	);
+
+	if (!$wpdb->insert_id) {
+		return new WP_Error('db_error', __('Failed to save object.', 'cns-map-suite'), ['status' => 500]);
+	}
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $wpdb->insert_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_object_row($row), 201);
+}
+
+function cns_map_suite_rest_update_object(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Object not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$derived = cns_map_suite_object_from_args($request);
+
+	$wpdb->update(
+		$wpdb->prefix . 'cns_map_objects',
+		[
+			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'type'           => $request->get_param('type'),
+			'icon_image_id'  => $request->get_param('icon_image_id') ?: null,
+			'title'          => $request->get_param('title'),
+			'x'              => $request->get_param('x'),
+			'y'              => $request->get_param('y'),
+			'object_time'    => $request->get_param('object_time'),
+			'infobox_source' => $request->get_param('infobox_source'),
+			'infobox_data'   => $derived['infobox_data'],
+			'canvas_styles'  => $derived['canvas_styles'],
+		],
+		['id' => $id],
+		['%d', '%s', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%s'],
+		['%d']
+	);
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_object_row($row), 200);
+}
+
+function cns_map_suite_rest_delete_object(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Object not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$wpdb->delete($wpdb->prefix . 'cns_map_objects', ['id' => $id], ['%d']);
+	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+function cns_map_suite_rest_move_object(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Object not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$wpdb->update(
+		$wpdb->prefix . 'cns_map_objects',
+		['x' => (int) $request->get_param('x'), 'y' => (int) $request->get_param('y')],
+		['id' => $id],
+		['%d', '%d'],
+		['%d']
+	);
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_object_row($row), 200);
 }

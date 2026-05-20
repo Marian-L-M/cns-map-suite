@@ -40,6 +40,8 @@ window.cnsMapEditor = {
 </script>
 
 <div class="cns-map-editor wrap" data-map-id="<?php echo esc_attr($map_id); ?>">
+<div class="cns-editor-layout">
+<div class="cns-editor-main">
 
 	<div class="cns-map-editor__header">
 		<a href="<?php echo esc_url($overview_url); ?>" class="cns-back-link">
@@ -227,13 +229,19 @@ window.cnsMapEditor = {
 				</div><!-- /.cns-settings-layout -->
 			</div>
 
-			<!-- Objects (placeholder) -->
+			<!-- Objects -->
 			<div class="cns-tab-panel" data-panel="objects" role="tabpanel">
-				<div class="cns-placeholder">
-					<span class="dashicons dashicons-location-alt cns-placeholder__icon"></span>
-					<h3><?php esc_html_e('Map Objects', 'cns-map-suite'); ?></h3>
-					<p><?php esc_html_e('Place clickable SVG icon markers on the map. Each icon can link to a post or display manual infobox content. Clicking opens an infobox drawer.', 'cns-map-suite'); ?></p>
-					<p class="cns-placeholder__tag"><?php esc_html_e('— Coming soon —', 'cns-map-suite'); ?></p>
+				<div class="cns-objects-layout">
+					<div class="cns-objects-toolbar">
+						<button type="button" class="button button-primary" id="cns-add-object">
+							<?php esc_html_e('Add Object', 'cns-map-suite'); ?>
+						</button>
+						<p class="description"><?php esc_html_e('Or click directly on the canvas to place an object at that position.', 'cns-map-suite'); ?></p>
+					</div>
+					<div class="cns-objects-canvas-wrap">
+						<canvas id="cns-objects-canvas"></canvas>
+					</div>
+					<div id="cns-objects-list"></div>
 				</div>
 			</div>
 
@@ -266,4 +274,53 @@ window.cnsMapEditor = {
 
 		</div><!-- /.cns-map-editor__content -->
 	</div><!-- /.cns-map-editor__body -->
+
+</div><!-- /.cns-editor-main -->
+
+<aside class="cns-editor-context" id="cns-editor-context" aria-label="<?php esc_attr_e('Context panel', 'cns-map-suite'); ?>">
+	<div class="cns-editor-context__empty" id="cns-context-empty">
+		<p><?php esc_html_e('Select an object on the canvas to edit it here.', 'cns-map-suite'); ?></p>
+	</div>
+	<div id="cns-context-form" hidden>
+		<div class="cns-editor-context__header">
+			<span class="cns-editor-context__title" id="cns-context-title"></span>
+			<button type="button" class="button button-small" id="cns-context-reposition"><?php esc_html_e('Reposition', 'cns-map-suite'); ?></button>
+			<button type="button" class="cns-editor-context__close" id="cns-context-close" aria-label="<?php esc_attr_e('Close', 'cns-map-suite'); ?>">&times;</button>
+		</div>
+		<div class="cns-editor-context__body" id="cns-context-body">
+			<!-- populated by JS -->
+		</div>
+		<div class="cns-editor-context__footer">
+			<span class="cns-save-status" id="cns-context-save-status"></span>
+			<button type="button" class="button button-small button-primary" id="cns-context-save"><?php esc_html_e('Save', 'cns-map-suite'); ?></button>
+			<button type="button" class="button button-small" id="cns-context-delete"><?php esc_html_e('Delete', 'cns-map-suite'); ?></button>
+		</div>
+	</div>
+</aside>
+
+</div><!-- /.cns-editor-layout -->
+
+	<!-- ── Object modal ──────────────────────────────────────────────────────── -->
+	<div id="cns-object-modal" class="cns-modal" hidden role="dialog" aria-modal="true" aria-labelledby="cns-object-modal-title">
+		<div class="cns-modal__backdrop"></div>
+		<div class="cns-modal__dialog">
+
+			<div class="cns-modal__header">
+				<h2 class="cns-modal__title" id="cns-object-modal-title"><?php esc_html_e('Add Object', 'cns-map-suite'); ?></h2>
+				<button type="button" class="cns-modal__close" aria-label="<?php esc_attr_e('Close', 'cns-map-suite'); ?>">&times;</button>
+			</div>
+
+			<div class="cns-modal__body" id="cns-object-modal-body">
+				<!-- populated by JS via buildObjectFormHTML() -->
+			</div><!-- /.cns-modal__body -->
+
+			<div class="cns-modal__footer">
+				<span class="cns-save-status" id="cns-object-save-status"></span>
+				<button type="button" class="button button-primary" id="cns-object-save"><?php esc_html_e('Save Object', 'cns-map-suite'); ?></button>
+				<button type="button" class="button" id="cns-object-cancel"><?php esc_html_e('Cancel', 'cns-map-suite'); ?></button>
+			</div>
+
+		</div><!-- /.cns-modal__dialog -->
+	</div><!-- /#cns-object-modal -->
+
 </div><!-- /.cns-map-editor -->

@@ -16,21 +16,26 @@
 
 ## Editor — Objects Tab
 
-- [ ] Build predefined SVG icon picker
-- [ ] Click-to-place icon on canvas at x/y coordinates
-- [ ] Drag-to-reposition existing icon markers
-- [ ] Right-side infobox drawer for editing object properties
-- [ ] Linked post selector (search any CPT)
-- [ ] Manual infobox content editor (title, description, image)
-- [ ] Icon image upload override (replaces SVG with WP attachment)
+- [x] SVG icon picker from icon library (per-object fill/stroke color overrides via DOMParser + Blob URL)
+- [x] Add Object modal (icon, details, infobox, design sections) — shared form component reused in context panel
+- [x] Context panel (25% right column, sticky) — shows selected object's fields, Save/Delete/Reposition buttons
+- [x] Canvas hit detection via `isPointInPath` on per-object rect paths (same approach planned for areas)
+- [x] Click object → select + show context panel; click empty canvas with selection → reposition to click point
+- [x] Explicit reposition mode via panel button — ghost follows cursor, click to drop; Escape to cancel
+- [x] Linked post selector (debounced REST search, any CPT)
+- [x] Manual infobox editor (title, description, image picker)
+- [x] Icon image override (WP media library, raster)
+- [x] Object list with Edit (opens modal) and Delete actions
+- [x] Icon Library page — SVG upload with DOMDocument sanitizer, library grid, add/remove
 
 ## Editor — Areas Tab
 
 - [ ] Polygon drawing mode (click to add nodes, click first node to close path)
 - [ ] Bezier drawing mode (same nodes, rendered with smooth curves)
 - [ ] Circle drawing mode (click center, drag to set radius)
+- [ ] Hit detection via `isPointInPath` — reconstruct area path (`lineTo` / `quadraticCurveTo` / `arc`) and call `ctx.isPointInPath()`, matching the object detection pattern
 - [ ] Node drag-to-reposition editing for existing areas
-- [ ] Area property drawer (type, infobox content, linked post, background image, canvas styles)
+- [ ] Area context panel (reuse `createObjectFormController` pattern — shared form factory for area fields)
 
 ## Editor — Hierarchy Tab (MasterMap)
 
@@ -59,7 +64,7 @@
 
 ## Frontend — Interactivity
 
-- [ ] Hit detection on click — point-radius check for objects, path containment / arc for areas
+- [ ] Hit detection on click — `isPointInPath` with rect paths for objects, reconstructed polygon/arc paths for areas (mirrors editor approach)
 - [ ] Infobox component on object or area click (manual content or pulled from linked post via REST)
 - [ ] Link to related post inside infobox
 - [ ] MasterMap: hover over region shows child map thumbnail and excerpt tooltip
@@ -77,3 +82,4 @@
 - ✅ README.md with structure, functionality, and design decisions
 - ✅ All Best Practices items (capability, prepare() standard, .pot, readme.txt, uninstall opt-in)
 - ✅ Editor canvas — live preview, background controls, cover-scaled bg image, range sliders, shared draw pipeline
+- ✅ Objects tab — full CRUD, context panel (75/25 layout), `isPointInPath` hit detection, click-to-reposition, shared form component, icon library
