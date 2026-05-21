@@ -46,7 +46,7 @@ cns-map-suite/
 │   ├── database.php                # Custom table creation via dbDelta() + prepare() standard
 │   └── admin/
 │       ├── menu.php                # Admin menu registration, asset enqueuing, wp_localize_script
-│       ├── api.php                 # REST routes for maps, objects, and icons
+│       ├── api.php                 # REST routes for maps, objects, areas, and icons
 │       ├── icons.php               # SVG upload allowlist, filetype fix, DOMDocument sanitizer
 │       └── views/
 │           ├── overview.php        # Maps list table with edit/delete actions
@@ -271,8 +271,27 @@ Full-width canvas at the top (same draw pipeline as Settings/Preview), object li
 
 **Shared form component:** `buildObjectFormHTML()` generates the four-section form HTML using `data-field` / `data-section` / `data-action` attributes (no IDs). `createObjectFormController(root)` wraps any container with `populate(obj)`, `collect()`, `renderIconPicker()`, and `initInteractivity()` methods, all scoped to that root via `root.querySelector()`. Radio button name conflicts between the modal and panel instances are avoided by appending a per-call uid (`obj-icon-src-{uid}`). This factory is instantiated once for the modal body and once for the context panel body.
 
-**Tab — Areas** *(placeholder)*
-Same canvas surface in "draw areas" mode with a sub-mode selector for Polygon, Bezier, and Circle.
+**Tab — Areas**
+Full-width canvas at the top (same draw pipeline as other tabs), area list below, **Add Area** button in the toolbar. Areas share the 75/25 split with the same sticky context panel as Objects, but with an area-specific form and a node list replacing the icon/design sections.
+
+**Canvas interaction:**
+- Clicking an area's polygon interior → select it (`isPointInPath` on the reconstructed polygon path, same API as object hit detection).
+- Clicking a node handle on the selected area → enters node repositioning mode: the node ghost (red border) follows the cursor. Click anywhere or press Enter to drop; Escape to cancel.
+- Clicking empty canvas with an area selected → adds a new node at that position. Node is appended to the end of the `nodes` array and the polygon redraws immediately.
+- Clicking empty canvas with nothing selected → deselect.
+
+**Area rendering:**
+- Polygon interior is drawn filled at configurable opacity.
+- Polygon edges are stroked with configurable color and width.
+- Node handles are drawn as border-only rectangles (`NODE_HALF = 5 px`), with no fill, visible only on the selected area. The repositioning node renders with a red border to distinguish it.
+
+**Add Area** creates a new area via REST with four default nodes arranged as a square (`{0.25,0.25} → {0.75,0.25} → {0.75,0.75} → {0.25,0.75}`). The area is immediately selected and the context panel opens.
+
+**Node coordinate system:** all node `{x, y}` values are stored as fractions of the canvas dimensions (0.0–1.0). The canvas multiplies them by `canvas.width` / `canvas.height` at render time, so areas remain correctly positioned regardless of the displayed canvas size. Input fields in the node list show values as percentages (0–100, step 0.1 = 0.1% granularity); the JS converts on read and write.
+
+**Shared form component:** `buildAreaFormHTML()` and `createAreaFormController(root)` follow the same factory pattern as the object form. Field names are identical for shared sections (Details, Infobox) so `initFormPostSearch()` is reused without modification. Area-specific design fields (`area-fill`, `area-fill-opacity`, `area-stroke`, `area-stroke-width`) are prefixed to avoid selector collisions when both forms coexist in the DOM.
+
+**Context panel — dispatcher pattern:** both Objects and Areas share the single `#cns-context-form` panel. Inside `#cns-context-body` there are two sub-containers — `#cns-ctx-obj-body` and `#cns-ctx-area-body` — only one of which is visible at a time. The Save / Delete / Close buttons delegate through a `ctxHandler` object that is set to either `objectsCtxHandler` or `areasCtxHandler` when a selection is made. Switching tabs deselects the previous tab's selection and hides the panel. The Reposition button is hidden when the areas context is active (node repositioning is canvas-driven, not button-driven).
 
 **Tab — Hierarchy** *(placeholder, MasterMap only)*
 Canvas surface for drawing regions that link to child maps. Only visible when MasterMap mode is active.
@@ -329,6 +348,42 @@ All routes are under the namespace `cns-map-suite/v1` (full prefix: `/wp-json/cn
 }
 ```
 
+### Areas
+
+| Method | Route | Description |
+|---|---|---|
+| `GET` | `/maps/{map_id}/areas` | List all areas belonging to a map, ordered by `id` ascending. |
+| `POST` | `/maps/{map_id}/areas` | Create a new area on a map. |
+| `POST` | `/areas/{id}` | Update all fields of an existing area including its full `nodes` array. |
+| `DELETE` | `/areas/{id}` | Delete an area. Returns `{"deleted": true}`. |
+
+**Shared area fields** (for create and full update): `title`, `type`, `shape_type`, `object_time`, `infobox_source`, `linked_post_id`, `infobox_title`, `infobox_description`, `infobox_image_id`, `nodes` (JSON string), `style_fill`, `style_fill_opacity`, `style_stroke`, `style_stroke_width`.
+
+`nodes` is sent and returned as a JSON-encoded array. The server decodes, validates, and re-encodes it before storing; `cns_map_suite_normalize_area_row()` decodes it back to a PHP array on read so the REST response always contains a proper JSON array, not a string.
+
+**Area response shape:**
+
+```json
+{
+  "id": 5,
+  "map_id": 3,
+  "title": "The Northern Reach",
+  "type": "GEOGRAPHY",
+  "shape_type": "POLYGON",
+  "object_time": 0,
+  "linked_post_id": 0,
+  "infobox_source": "manual",
+  "infobox_data": { "title": "The Northern Reach", "description": "…", "image_id": 0 },
+  "nodes": [
+    { "x": 0.25, "y": 0.25 },
+    { "x": 0.75, "y": 0.25 },
+    { "x": 0.75, "y": 0.75 },
+    { "x": 0.25, "y": 0.75 }
+  ],
+  "canvas_styles": { "fill": "#2271b1", "fillOpacity": 0.3, "stroke": "#2271b1", "strokeWidth": 2 }
+}
+```
+
 ### Icons
 
 | Method | Route | Description |
@@ -379,7 +434,7 @@ See the task list in the project session for the full breakdown. High-level phas
 2. ~~**Editor — save**~~ ✅ Done. Settings tab fully saves via REST.
 3. ~~**Editor — canvas preview**~~ ✅ Done. Live canvas in Settings tab and Preview tab; background color/image; cover-scaled bg image; range sliders for aspect ratio, image position, and scale.
 4. ~~**Editor — objects**~~ ✅ Done. Objects tab with live canvas, context panel (75/25 layout), `isPointInPath` hit detection, click-to-reposition, explicit reposition mode, full CRUD (modal for new objects, context panel for editing), objects list with edit/delete. Icon Library with SVG sanitization and per-object fill/stroke. Shared form component (`buildObjectFormHTML` + `createObjectFormController`) used by both modal and panel.
-5. **Editor — areas** — polygon/bezier/circle drawing tool, area property drawer, REST CRUD.
+5. ~~**Editor — areas (polygon)**~~ ✅ Done. Areas tab with node-based polygon editor. Node handles drawn as border-only rectangles. Click node → reposition mode (ghost follows cursor, click/Enter to confirm, Escape to cancel). Click empty space on selected area → add node. Relative node coordinates (0–1 fractions). Node list in context panel with x%/y% inputs (step 0.1), per-node delete, Add Node button. Context panel dispatcher pattern for shared panel across Objects and Areas. REST CRUD for areas. Bezier and Circle modes are roadmap items.
 6. **Editor — hierarchy** — MasterMap region drawing, child map links, REST CRUD.
 7. **Frontend — canvas render** — REST endpoint for map data, draw image/objects/areas on `<canvas>`, hit detection.
 8. **Frontend — interactivity** — infobox component, post links, MasterMap hover/navigation, responsive scaling, accessibility.

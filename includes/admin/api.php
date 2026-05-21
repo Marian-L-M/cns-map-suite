@@ -153,6 +153,36 @@ function cns_map_suite_register_rest_routes(): void {
 			'y' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
 		],
 	]);
+
+	// ── Map areas ─────────────────────────────────────────────────────────────────
+
+	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/areas', [
+		[
+			'methods'             => 'GET',
+			'callback'            => 'cns_map_suite_rest_list_areas',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_create_area',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => cns_map_suite_area_rest_args(),
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/areas/(?P<id>\d+)', [
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_update_area',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => cns_map_suite_area_rest_args(),
+		],
+		[
+			'methods'             => 'DELETE',
+			'callback'            => 'cns_map_suite_rest_delete_area',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+	]);
 }
 
 // ── Map settings ──────────────────────────────────────────────────────────────
@@ -479,6 +509,232 @@ function cns_map_suite_rest_delete_object(WP_REST_Request $request): WP_REST_Res
 	$wpdb->delete($wpdb->prefix . 'cns_map_objects', ['id' => $id], ['%d']);
 	return new WP_REST_Response(['deleted' => true], 200);
 }
+
+// ── Areas — shared args ───────────────────────────────────────────────────────
+
+function cns_map_suite_area_rest_args(): array {
+	return [
+		'title' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'type' => [
+			'type'    => 'string',
+			'default' => 'GEOGRAPHY',
+			'enum'    => ['GEOGRAPHY', 'HISTORY', 'NATURAL', 'EVENT', 'OTHER'],
+		],
+		'shape_type' => [
+			'type'    => 'string',
+			'default' => 'POLYGON',
+			'enum'    => ['POLYGON', 'BEZIER', 'CIRCLE'],
+		],
+		'object_time' => [
+			'type'    => 'integer',
+			'default' => 0,
+		],
+		'linked_post_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'infobox_source' => [
+			'type'    => 'string',
+			'default' => 'manual',
+			'enum'    => ['manual', 'post'],
+		],
+		'infobox_title' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'infobox_description' => [
+			'type'    => 'string',
+			'default' => '',
+		],
+		'infobox_image_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'nodes' => [
+			'type'    => 'string',
+			'default' => '[]',
+		],
+		'style_fill' => [
+			'type'    => 'string',
+			'default' => '#2271b1',
+		],
+		'style_fill_opacity' => [
+			'type'    => 'number',
+			'default' => 0.3,
+			'minimum' => 0.0,
+			'maximum' => 1.0,
+		],
+		'style_stroke' => [
+			'type'    => 'string',
+			'default' => '#2271b1',
+		],
+		'style_stroke_width' => [
+			'type'    => 'integer',
+			'default' => 2,
+			'minimum' => 1,
+			'maximum' => 10,
+		],
+	];
+}
+
+// ── Areas — helpers ───────────────────────────────────────────────────────────
+
+function cns_map_suite_area_styles_from_args(WP_REST_Request $request): string {
+	return wp_json_encode([
+		'fill'        => (string) $request->get_param('style_fill'),
+		'fillOpacity' => (float)  $request->get_param('style_fill_opacity'),
+		'stroke'      => (string) $request->get_param('style_stroke'),
+		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
+	]);
+}
+
+function cns_map_suite_normalize_area_row(array $row): array {
+	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
+	$row['infobox_data']  = $row['infobox_data']  ? json_decode($row['infobox_data'],  true) : (object) [];
+	$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'],          true) : [];
+	foreach (['id', 'map_id', 'linked_post_id', 'background_image_id', 'object_time'] as $k) {
+		$row[$k] = (int) ($row[$k] ?? 0);
+	}
+	return $row;
+}
+
+// ── Areas — CRUD ──────────────────────────────────────────────────────────────
+
+function cns_map_suite_rest_list_areas(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE map_id = %d ORDER BY id ASC", $map_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(array_map('cns_map_suite_normalize_area_row', $rows ?: []), 200);
+}
+
+function cns_map_suite_rest_create_area(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$nodes_raw     = $request->get_param('nodes');
+	$nodes_decoded = json_decode($nodes_raw, true);
+	if (!is_array($nodes_decoded)) $nodes_decoded = [];
+
+	$infobox_data = wp_json_encode([
+		'title'       => (string) $request->get_param('infobox_title'),
+		'description' => wp_kses_post($request->get_param('infobox_description')),
+		'image_id'    => (int) $request->get_param('infobox_image_id'),
+	]);
+
+	$wpdb->insert(
+		$wpdb->prefix . 'cns_map_areas',
+		[
+			'map_id'         => $map_id,
+			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'type'           => $request->get_param('type'),
+			'shape_type'     => $request->get_param('shape_type'),
+			'title'          => $request->get_param('title'),
+			'object_time'    => $request->get_param('object_time'),
+			'nodes'          => wp_json_encode($nodes_decoded),
+			'infobox_source' => $request->get_param('infobox_source'),
+			'infobox_data'   => $infobox_data,
+			'canvas_styles'  => cns_map_suite_area_styles_from_args($request),
+		],
+		['%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s']
+	);
+
+	if (!$wpdb->insert_id) {
+		return new WP_Error('db_error', __('Failed to save area.', 'cns-map-suite'), ['status' => 500]);
+	}
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $wpdb->insert_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_area_row($row), 201);
+}
+
+function cns_map_suite_rest_update_area(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Area not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$nodes_raw     = $request->get_param('nodes');
+	$nodes_decoded = json_decode($nodes_raw, true);
+	if (!is_array($nodes_decoded)) $nodes_decoded = [];
+
+	$infobox_data = wp_json_encode([
+		'title'       => (string) $request->get_param('infobox_title'),
+		'description' => wp_kses_post($request->get_param('infobox_description')),
+		'image_id'    => (int) $request->get_param('infobox_image_id'),
+	]);
+
+	$wpdb->update(
+		$wpdb->prefix . 'cns_map_areas',
+		[
+			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'type'           => $request->get_param('type'),
+			'shape_type'     => $request->get_param('shape_type'),
+			'title'          => $request->get_param('title'),
+			'object_time'    => $request->get_param('object_time'),
+			'nodes'          => wp_json_encode($nodes_decoded),
+			'infobox_source' => $request->get_param('infobox_source'),
+			'infobox_data'   => $infobox_data,
+			'canvas_styles'  => cns_map_suite_area_styles_from_args($request),
+		],
+		['id' => $id],
+		['%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s'],
+		['%d']
+	);
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_area_row($row), 200);
+}
+
+function cns_map_suite_rest_delete_area(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Area not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$wpdb->delete($wpdb->prefix . 'cns_map_areas', ['id' => $id], ['%d']);
+	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+// ── Objects — move ────────────────────────────────────────────────────────────
 
 function cns_map_suite_rest_move_object(WP_REST_Request $request): WP_REST_Response|WP_Error {
 	global $wpdb;

@@ -882,6 +882,60 @@ body.cns-modal-open {
 	grid-column: 1 / -1;
 }
 
+/* ── Areas canvas ───────────────────────────────────────────────────────────── */
+
+#cns-areas-canvas {
+	border: 1px solid #e0e0e0;
+	border-radius: 3px;
+	max-width: 100%;
+	height: auto;
+	display: block;
+	cursor: crosshair;
+}
+
+#cns-areas-canvas.cns-canvas--repositioning {
+	cursor: grabbing;
+	outline: 2px solid #e75252;
+	outline-offset: 2px;
+}
+
+/* ── Nodes table ────────────────────────────────────────────────────────────── */
+
+.cns-nodes-section h3 {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.cns-nodes-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 12px;
+	margin-top: 8px;
+}
+
+.cns-nodes-table th,
+.cns-nodes-table td {
+	padding: 4px 6px;
+	text-align: left;
+	border-bottom: 1px solid #f0f0f1;
+	vertical-align: middle;
+}
+
+.cns-nodes-table th {
+	font-weight: 600;
+	color: #646970;
+}
+
+.cns-node-num {
+	color: #646970;
+	width: 20px;
+}
+
+.cns-nodes-table input[type="number"].small-text {
+	width: 72px;
+}
+
 /* ── Utility ────────────────────────────────────────────────────────────────── */
 
 .cns-hidden {

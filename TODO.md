@@ -30,12 +30,15 @@
 
 ## Editor — Areas Tab
 
-- [ ] Polygon drawing mode (click to add nodes, click first node to close path)
-- [ ] Bezier drawing mode (same nodes, rendered with smooth curves)
+- [x] Polygon drawing mode — click empty canvas on selected area to add node; first 4 nodes default to square arrangement on "Add Area"
+- [x] Hit detection via `isPointInPath` — polygon path tested with `ctx.isPointInPath()` for area selection; node rects tested with `ctx.isPointInPath()` for node selection — both mirror the object hit detection pattern
+- [x] Node repositioning — click node → ghost follows cursor (red border rect); click or Enter to confirm, Escape to cancel
+- [x] Area context panel — `buildAreaFormHTML()` + `createAreaFormController(root)` follow the same factory pattern as the object form; shared fields (`infobox-source`, `post-search`, etc.) reuse the same `data-field` names and helpers
+- [x] Node list in context panel — x%/y% inputs (step 0.1 = 0.1% granularity, stored as 0–1 fractions), per-node delete, Add Node button; input changes mutate `areasList` in memory and trigger live canvas redraw
+- [x] Context panel dispatcher pattern (`ctxHandler`) — Objects and Areas share `#cns-context-form`; sub-containers `#cns-ctx-obj-body` / `#cns-ctx-area-body` toggle on selection; Reposition button hidden for areas
+- [x] REST CRUD for areas — `GET/POST /maps/{id}/areas`, `POST/DELETE /areas/{id}`; nodes normalized to JS array on response
+- [ ] Bezier drawing mode (same nodes, rendered with smooth curves via `quadraticCurveTo`)
 - [ ] Circle drawing mode (click center, drag to set radius)
-- [ ] Hit detection via `isPointInPath` — reconstruct area path (`lineTo` / `quadraticCurveTo` / `arc`) and call `ctx.isPointInPath()`, matching the object detection pattern
-- [ ] Node drag-to-reposition editing for existing areas
-- [ ] Area context panel (reuse `createObjectFormController` pattern — shared form factory for area fields)
 
 ## Editor — Hierarchy Tab (MasterMap)
 
@@ -50,7 +53,9 @@
 - [x] Background color via WP iris color picker
 - [x] Background image via WP media picker (cover scaling — fills canvas, preserves aspect ratio)
 - [x] Preview tab renders live canvas using shared draw pipeline
-- [ ] Live canvas preview of all placed objects and drawn areas
+- [x] Objects tab canvas — live preview of all placed objects with selection rings
+- [x] Areas tab canvas — live preview of all polygons; node handles on selected area
+- [ ] Preview tab and Settings tab canvas show placed objects and areas (currently background + base image only)
 
 ## Frontend — Data
 
@@ -83,3 +88,4 @@
 - ✅ All Best Practices items (capability, prepare() standard, .pot, readme.txt, uninstall opt-in)
 - ✅ Editor canvas — live preview, background controls, cover-scaled bg image, range sliders, shared draw pipeline
 - ✅ Objects tab — full CRUD, context panel (75/25 layout), `isPointInPath` hit detection, click-to-reposition, shared form component, icon library
+- ✅ Areas tab — polygon editor with node handles, node repositioning (click/Enter/Escape), add node by clicking canvas, node list with x%/y% inputs, context panel dispatcher pattern, REST CRUD, relative node coordinates

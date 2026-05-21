@@ -245,13 +245,19 @@ window.cnsMapEditor = {
 				</div>
 			</div>
 
-			<!-- Areas (placeholder) -->
+			<!-- Areas -->
 			<div class="cns-tab-panel" data-panel="areas" role="tabpanel">
-				<div class="cns-placeholder">
-					<span class="dashicons dashicons-editor-expand cns-placeholder__icon"></span>
-					<h3><?php esc_html_e('Map Areas', 'cns-map-suite'); ?></h3>
-					<p><?php esc_html_e('Draw polygon, bezier, or circular areas on the map canvas. Clicking an area opens an infobox and optionally links to a related post.', 'cns-map-suite'); ?></p>
-					<p class="cns-placeholder__tag"><?php esc_html_e('— Coming soon —', 'cns-map-suite'); ?></p>
+				<div class="cns-objects-layout">
+					<div class="cns-objects-toolbar">
+						<button type="button" class="button button-primary" id="cns-add-area">
+							<?php esc_html_e('Add Area', 'cns-map-suite'); ?>
+						</button>
+						<p class="description"><?php esc_html_e('Click a node to reposition it. Click empty space on a selected area to add a node.', 'cns-map-suite'); ?></p>
+					</div>
+					<div class="cns-objects-canvas-wrap">
+						<canvas id="cns-areas-canvas"></canvas>
+					</div>
+					<div id="cns-areas-list"></div>
 				</div>
 			</div>
 
