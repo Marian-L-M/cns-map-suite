@@ -268,10 +268,34 @@
 		return drawMapCanvas(canvas, collectDrawState());
 	}
 
-	function drawPreviewCanvas() {
+	async function drawFullCanvas(canvas, objects, areas) {
+		await drawMapCanvas(canvas, collectDrawState());
+		const ctx = canvas.getContext('2d');
+		for (const area of areas) drawAreaShape(ctx, area, canvas.width, canvas.height, false);
+		for (const obj of objects) await drawObjectMarker(ctx, obj, false);
+	}
+
+	async function loadAndDrawPreview() {
 		const canvas = document.getElementById('cns-preview-canvas');
 		if (!canvas) return;
-		return drawMapCanvas(canvas, collectDrawState());
+		const mapId = parseInt(document.querySelector('.cns-map-editor')?.dataset.mapId, 10) || 0;
+		let objs  = objectsList.slice();
+		let areas = areasList.slice();
+		if (!objectsInitialized && mapId) {
+			try {
+				const res  = await apiFetch('GET', '/maps/' + mapId + '/objects');
+				const data = await res.json();
+				if (res.ok) objs = data;
+			} catch { /* silent */ }
+		}
+		if (!areasInitialized && mapId) {
+			try {
+				const res  = await apiFetch('GET', '/maps/' + mapId + '/areas');
+				const data = await res.json();
+				if (res.ok) areas = data;
+			} catch { /* silent */ }
+		}
+		await drawFullCanvas(canvas, objs, areas);
 	}
 
 	// ── Tab switching ─────────────────────────────────────────────────────────────
@@ -299,7 +323,7 @@
 				const panel = document.querySelector('[data-panel="' + target + '"]');
 				if (panel) panel.classList.add('cns-tab-panel--active');
 
-				if (target === 'preview') drawPreviewCanvas();
+				if (target === 'preview') loadAndDrawPreview();
 
 				if (target === 'objects') {
 					if (selectedAreaId) deselectArea();
@@ -406,70 +430,59 @@
 		});
 	}
 
-	// ── Media pickers (settings tab) ─────────────────────────────────────────────
+	// ── Media pickers ─────────────────────────────────────────────────────────────
 
-	function initImagePicker() {
-		const selectBtn = document.getElementById('cns-select-image');
-		const removeBtn = document.getElementById('cns-remove-image');
-		const imageIdEl = document.getElementById('cns-map-image-id');
-		const previewEl = document.getElementById('cns-image-preview');
+	// Shared core used by all three media picker callers.
+	// onChange(att) is called with the attachment on pick, or null on remove.
+	function _setupMediaPicker(selectBtn, removeBtn, hiddenEl, previewEl, title, onChange) {
 		if (!selectBtn) return;
-
 		let frame;
 		selectBtn.addEventListener('click', function (e) {
 			e.preventDefault();
 			if (frame) { frame.open(); return; }
-			frame = wp.media({ title: 'Select Base Map Image', button: { text: 'Use this image' }, multiple: false, library: { type: 'image' } });
+			frame = wp.media({ title: title, button: { text: 'Use this image' }, multiple: false, library: { type: 'image' } });
 			frame.on('select', function () {
 				const att = frame.state().get('selection').first().toJSON();
-				imageIdEl.value = att.id; imageIdEl.dataset.currentUrl = att.url;
-				previewEl.innerHTML = '<img src="' + att.url + '" alt="" />';
+				if (hiddenEl)  hiddenEl.value = att.id;
+				if (previewEl) previewEl.innerHTML = '<img src="' + att.url + '" alt="" />';
 				if (removeBtn) removeBtn.classList.remove('cns-hidden');
-				drawEditorCanvas();
+				if (onChange)  onChange(att);
 			});
 			frame.open();
 		});
 		if (removeBtn) {
 			removeBtn.addEventListener('click', function (e) {
 				e.preventDefault();
-				imageIdEl.value = '0'; imageIdEl.dataset.currentUrl = '';
-				previewEl.innerHTML = '<span>No image selected</span>';
+				if (hiddenEl)  hiddenEl.value = '0';
+				if (previewEl) previewEl.innerHTML = '<span>No image selected</span>';
 				removeBtn.classList.add('cns-hidden');
-				drawEditorCanvas();
+				if (onChange)  onChange(null);
 			});
 		}
 	}
 
-	function initBgImagePicker() {
-		const selectBtn   = document.getElementById('cns-select-bg-image');
-		const removeBtn   = document.getElementById('cns-remove-bg-image');
-		const bgImageIdEl = document.getElementById('cns-map-bg-image-id');
-		const previewEl   = document.getElementById('cns-bg-image-preview');
-		if (!selectBtn) return;
+	function initImagePicker() {
+		const hiddenEl = document.getElementById('cns-map-image-id');
+		_setupMediaPicker(
+			document.getElementById('cns-select-image'),
+			document.getElementById('cns-remove-image'),
+			hiddenEl,
+			document.getElementById('cns-image-preview'),
+			'Select Base Map Image',
+			function (att) { hiddenEl.dataset.currentUrl = att ? att.url : ''; drawEditorCanvas(); }
+		);
+	}
 
-		let frame;
-		selectBtn.addEventListener('click', function (e) {
-			e.preventDefault();
-			if (frame) { frame.open(); return; }
-			frame = wp.media({ title: 'Select Background Image', button: { text: 'Use this image' }, multiple: false, library: { type: 'image' } });
-			frame.on('select', function () {
-				const att = frame.state().get('selection').first().toJSON();
-				bgImageIdEl.value = att.id; bgImageIdEl.dataset.currentUrl = att.url;
-				previewEl.innerHTML = '<img src="' + att.url + '" alt="" />';
-				if (removeBtn) removeBtn.classList.remove('cns-hidden');
-				drawEditorCanvas();
-			});
-			frame.open();
-		});
-		if (removeBtn) {
-			removeBtn.addEventListener('click', function (e) {
-				e.preventDefault();
-				bgImageIdEl.value = '0'; bgImageIdEl.dataset.currentUrl = '';
-				previewEl.innerHTML = '<span>No image selected</span>';
-				removeBtn.classList.add('cns-hidden');
-				drawEditorCanvas();
-			});
-		}
+	function initBgImagePicker() {
+		const hiddenEl = document.getElementById('cns-map-bg-image-id');
+		_setupMediaPicker(
+			document.getElementById('cns-select-bg-image'),
+			document.getElementById('cns-remove-bg-image'),
+			hiddenEl,
+			document.getElementById('cns-bg-image-preview'),
+			'Select Background Image',
+			function (att) { hiddenEl.dataset.currentUrl = att ? att.url : ''; drawEditorCanvas(); }
+		);
 	}
 
 	// ── Objects module — state ────────────────────────────────────────────────────
@@ -824,34 +837,13 @@
 
 	// Reusable media picker wired to data-action and data-field attributes within root.
 	function initFormMediaPicker(root, prefix) {
-		const selectBtn = root.querySelector('[data-action="select-' + prefix + '"]');
-		const removeBtn = root.querySelector('[data-action="remove-' + prefix + '"]');
-		const hiddenEl  = root.querySelector('[data-field="' + prefix + '-id"]');
-		const previewEl = root.querySelector('[data-field="' + prefix + '-preview"]');
-		if (!selectBtn) return;
-
-		let frame;
-		selectBtn.addEventListener('click', function (e) {
-			e.preventDefault();
-			if (frame) { frame.open(); return; }
-			frame = wp.media({ title: 'Select Image', button: { text: 'Use this image' }, multiple: false, library: { type: 'image' } });
-			frame.on('select', function () {
-				const att = frame.state().get('selection').first().toJSON();
-				if (hiddenEl)  hiddenEl.value = att.id;
-				if (previewEl) previewEl.innerHTML = '<img src="' + att.url + '" alt="" />';
-				if (removeBtn) removeBtn.classList.remove('cns-hidden');
-			});
-			frame.open();
-		});
-
-		if (removeBtn) {
-			removeBtn.addEventListener('click', function (e) {
-				e.preventDefault();
-				if (hiddenEl)  hiddenEl.value = '0';
-				if (previewEl) previewEl.innerHTML = '<span>No image selected</span>';
-				removeBtn.classList.add('cns-hidden');
-			});
-		}
+		_setupMediaPicker(
+			root.querySelector('[data-action="select-' + prefix + '"]'),
+			root.querySelector('[data-action="remove-' + prefix + '"]'),
+			root.querySelector('[data-field="' + prefix + '-id"]'),
+			root.querySelector('[data-field="' + prefix + '-preview"]'),
+			'Select Image'
+		);
 	}
 
 	// Reusable post-search dropdown wired to data-field attributes within root.
@@ -1185,54 +1177,43 @@
 		});
 	}
 
-	function showContextObject(obj) {
-		const emptyEl   = document.getElementById('cns-context-empty');
-		const formEl    = document.getElementById('cns-context-form');
-		const titleEl   = document.getElementById('cns-context-title');
-		const statEl    = document.getElementById('cns-context-save-status');
-		const reposBtn  = document.getElementById('cns-context-reposition');
-		const objBody   = document.getElementById('cns-ctx-obj-body');
-		const areaBody  = document.getElementById('cns-ctx-area-body');
+	function showContextPanel(handler, title, showObj, populate) {
+		const objBody  = document.getElementById('cns-ctx-obj-body');
+		const areaBody = document.getElementById('cns-ctx-area-body');
+		const reposBtn = document.getElementById('cns-context-reposition');
+		const emptyEl  = document.getElementById('cns-context-empty');
+		const formEl   = document.getElementById('cns-context-form');
+		const titleEl  = document.getElementById('cns-context-title');
+		const statEl   = document.getElementById('cns-context-save-status');
 
-		if (objBody)   objBody.hidden   = false;
-		if (areaBody)  areaBody.hidden  = true;
-		if (reposBtn)  reposBtn.hidden  = false;
+		if (objBody)   objBody.hidden   = !showObj;
+		if (areaBody)  areaBody.hidden  =  showObj;
+		if (reposBtn)  reposBtn.hidden  = !showObj;
 		if (emptyEl)   emptyEl.hidden   = true;
 		if (formEl)    formEl.hidden    = false;
-		if (titleEl)   titleEl.textContent = obj.title || '(no title)';
+		if (titleEl)   titleEl.textContent = title || '(no title)';
 		if (statEl)    { statEl.textContent = ''; statEl.className = 'cns-save-status'; }
 
-		ctxHandler = objectsCtxHandler;
+		ctxHandler = handler;
+		populate();
+	}
 
-		if (panelController) {
-			panelController.populate(obj, null, null);
-			_ensureIconCache(function () { panelController.renderIconPicker(); });
-		}
+	function showContextObject(obj) {
+		showContextPanel(objectsCtxHandler, obj.title, true, function () {
+			if (panelController) {
+				panelController.populate(obj, null, null);
+				_ensureIconCache(function () { panelController.renderIconPicker(); });
+			}
+		});
 	}
 
 	function showContextForArea(area) {
-		const emptyEl   = document.getElementById('cns-context-empty');
-		const formEl    = document.getElementById('cns-context-form');
-		const titleEl   = document.getElementById('cns-context-title');
-		const statEl    = document.getElementById('cns-context-save-status');
-		const reposBtn  = document.getElementById('cns-context-reposition');
-		const objBody   = document.getElementById('cns-ctx-obj-body');
-		const areaBody  = document.getElementById('cns-ctx-area-body');
-
-		if (objBody)   objBody.hidden   = true;
-		if (areaBody)  areaBody.hidden  = false;
-		if (reposBtn)  reposBtn.hidden  = true;
-		if (emptyEl)   emptyEl.hidden   = true;
-		if (formEl)    formEl.hidden    = false;
-		if (titleEl)   titleEl.textContent = area.title || '(no title)';
-		if (statEl)    { statEl.textContent = ''; statEl.className = 'cns-save-status'; }
-
-		ctxHandler = areasCtxHandler;
-
-		if (areaPanelController) {
-			areaPanelController.populate(area);
-			renderNodeList(area);
-		}
+		showContextPanel(areasCtxHandler, area.title, false, function () {
+			if (areaPanelController) {
+				areaPanelController.populate(area);
+				renderNodeList(area);
+			}
+		});
 	}
 
 	function hideContextPanel() {
@@ -1500,37 +1481,51 @@
 
 	// ── Areas — save / delete ─────────────────────────────────────────────────────
 
+	async function performSaveArea(areaId, payload, statusId, saveBtnId) {
+		const statusEl = statusId ? document.getElementById(statusId) : null;
+		const saveBtn  = saveBtnId ? document.getElementById(saveBtnId) : null;
+
+		if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.className = 'cns-save-status'; }
+		if (saveBtn)  saveBtn.disabled = true;
+
+		try {
+			const res  = await apiFetch('POST', '/areas/' + areaId, payload);
+			const data = await res.json();
+
+			if (!res.ok) throw new Error(data.message || 'Save failed.');
+
+			areasList = areasList.map(function (a) { return a.id === areaId ? data : a; });
+			renderAreasList(areasList);
+			renderNodeList(data);
+			drawAreasCanvas();
+
+			if (statusEl) {
+				statusEl.textContent = 'Saved.';
+				statusEl.className   = 'cns-save-status cns-save-status--ok';
+				setTimeout(function () { statusEl.textContent = ''; statusEl.className = 'cns-save-status'; }, 2000);
+			}
+
+			return data;
+		} catch (err) {
+			if (statusEl) { statusEl.textContent = err.message; statusEl.className = 'cns-save-status cns-save-status--error'; }
+			throw err;
+		} finally {
+			if (saveBtn) saveBtn.disabled = false;
+		}
+	}
+
 	const areasCtxHandler = {
 		save: async function () {
 			if (!areaPanelController || !selectedAreaId) return;
-			const mapId   = parseInt(document.querySelector('.cns-map-editor')?.dataset.mapId, 10) || 0;
-			const statusEl = document.getElementById('cns-context-save-status');
-			const saveBtn  = document.getElementById('cns-context-save');
-			if (statusEl) { statusEl.textContent = 'Saving…'; statusEl.className = 'cns-save-status'; }
-			if (saveBtn)  saveBtn.disabled = true;
+			const area = areasList.find(function (a) { return a.id === selectedAreaId; });
+			if (!area) return;
+			const meta    = areaPanelController.collect();
+			const payload = Object.assign({}, meta, { nodes: JSON.stringify(area.nodes) });
 			try {
-				const meta  = areaPanelController.collect();
-				const area  = areasList.find(function (a) { return a.id === selectedAreaId; });
-				const payload = Object.assign({}, meta, { nodes: JSON.stringify(area ? area.nodes : []) });
-				const res  = await apiFetch('POST', '/areas/' + selectedAreaId, payload);
-				const data = await res.json();
-				if (!res.ok) throw new Error(data.message || 'Save failed.');
-				areasList = areasList.map(function (a) { return a.id === selectedAreaId ? data : a; });
-				renderAreasList(areasList);
-				renderNodeList(data);
+				const data = await performSaveArea(selectedAreaId, payload, 'cns-context-save-status', 'cns-context-save');
 				const titleEl = document.getElementById('cns-context-title');
-				if (titleEl) titleEl.textContent = data.title || '(no title)';
-				if (statusEl) {
-					statusEl.textContent = 'Saved.';
-					statusEl.className   = 'cns-save-status cns-save-status--ok';
-					setTimeout(function () { statusEl.textContent = ''; statusEl.className = 'cns-save-status'; }, 2000);
-				}
-				drawAreasCanvas();
-			} catch (err) {
-				if (statusEl) { statusEl.textContent = err.message; statusEl.className = 'cns-save-status cns-save-status--error'; }
-			} finally {
-				if (saveBtn) saveBtn.disabled = false;
-			}
+				if (titleEl && data?.title) titleEl.textContent = data.title || '(no title)';
+			} catch { /* error shown by performSaveArea */ }
 		},
 		delete: function () {
 			if (!selectedAreaId || !confirm('Delete this area?')) return;
@@ -1818,6 +1813,14 @@
 				if (data.created) {
 					window.location.href = data.edit_url;
 				} else {
+					if (selectedAreaId && areaPanelController) {
+						const area = areasList.find(function (a) { return a.id === selectedAreaId; });
+						if (area) {
+							const meta    = areaPanelController.collect();
+							const payload = Object.assign({}, meta, { nodes: JSON.stringify(area.nodes) });
+							try { await performSaveArea(selectedAreaId, payload, null, null); } catch { /* silent */ }
+						}
+					}
 					statusEl.textContent = 'Saved.';
 					statusEl.className   = 'cns-save-status cns-save-status--ok';
 					setTimeout(function () { statusEl.textContent = ''; statusEl.className = 'cns-save-status'; }, 2000);

@@ -73,3 +73,44 @@ function cns_map_suite_register_post_meta(): void {
 		]);
 	}
 }
+
+// ── Standalone map page ───────────────────────────────────────────────────────
+// On /maps/slug/ the CPT has no native content (Gutenberg disabled).
+// Render the map block so the page shows the interactive canvas.
+
+add_filter('the_content', 'cns_map_suite_inject_map_content', 5);
+
+function cns_map_suite_inject_map_content(string $content): string {
+	static $rendering = false;
+	if ($rendering || ! is_singular('maps') || ! in_the_loop() || ! is_main_query()) {
+		return $content;
+	}
+	$rendering = true;
+	$result    = render_block([
+		'blockName' => 'cns-map-suite/map',
+		'attrs'     => ['mapId' => get_the_ID()],
+	]);
+	$rendering = false;
+	return $result;
+}
+
+// Enqueue block assets early (styles in <head>) for single map pages.
+// render_block() handles the viewScript, but style must be queued before wp_head().
+
+add_action('wp_enqueue_scripts', 'cns_map_suite_enqueue_map_page_assets');
+
+function cns_map_suite_enqueue_map_page_assets(): void {
+	if (! is_singular('maps')) {
+		return;
+	}
+	$block = WP_Block_Type_Registry::get_instance()->get_registered('cns-map-suite/map');
+	if (! $block) {
+		return;
+	}
+	foreach ($block->style_handles as $handle) {
+		wp_enqueue_style($handle);
+	}
+	foreach ($block->view_script_handles as $handle) {
+		wp_enqueue_script($handle);
+	}
+}

@@ -1,2 +1,302 @@
-// Frontend interactivity for the map block.
-// Canvas rendering, object/area hit detection, and infobox logic go here.
+(function () {
+	'use strict';
+
+	// ── Image / SVG cache ─────────────────────────────────────────────────────
+
+	const imageCache = {};
+
+	function loadImage(url) {
+		if (!url) return Promise.resolve(null);
+		if (imageCache[url]) return Promise.resolve(imageCache[url]);
+		return new Promise(function (resolve) {
+			const img = new Image();
+			img.onload  = function () { imageCache[url] = img; resolve(img); };
+			img.onerror = function () { resolve(null); };
+			img.src = url;
+		});
+	}
+
+	async function loadSvgWithColors(url, fill, stroke) {
+		const key = url + '|' + (fill || '') + '|' + (stroke || '');
+		if (imageCache[key]) return imageCache[key];
+		try {
+			const resp = await fetch(url, { credentials: 'same-origin' });
+			const text = await resp.text();
+			const doc  = new DOMParser().parseFromString(text, 'image/svg+xml');
+			const svg  = doc.documentElement;
+			if (fill)   svg.setAttribute('fill',   fill);
+			if (stroke) svg.setAttribute('stroke', stroke);
+			const blob    = new Blob([new XMLSerializer().serializeToString(doc)], { type: 'image/svg+xml' });
+			const blobUrl = URL.createObjectURL(blob);
+			return new Promise(function (resolve) {
+				const img = new Image();
+				img.onload  = function () { URL.revokeObjectURL(blobUrl); imageCache[key] = img; resolve(img); };
+				img.onerror = function () { URL.revokeObjectURL(blobUrl); resolve(null); };
+				img.src = blobUrl;
+			});
+		} catch { return null; }
+	}
+
+	// ── Draw pipeline ─────────────────────────────────────────────────────────
+
+	async function drawBackground(canvas, data) {
+		const ctx    = canvas.getContext('2d');
+		const width  = canvas.width;
+		const height = canvas.height;
+		ctx.clearRect(0, 0, width, height);
+
+		if (data.bgType === 'image' && data.bgImageUrl) {
+			const bgImg = await loadImage(data.bgImageUrl);
+			if (bgImg) {
+				const scale = Math.max(width / bgImg.naturalWidth, height / bgImg.naturalHeight);
+				const drawW = bgImg.naturalWidth  * scale;
+				const drawH = bgImg.naturalHeight * scale;
+				ctx.drawImage(bgImg, (width - drawW) / 2, (height - drawH) / 2, drawW, drawH);
+			} else {
+				ctx.fillStyle = '#888';
+				ctx.fillRect(0, 0, width, height);
+			}
+		} else {
+			ctx.fillStyle = data.bgColor || '#1a1a2e';
+			ctx.fillRect(0, 0, width, height);
+		}
+
+		if (data.imgUrl) {
+			const mapImg = await loadImage(data.imgUrl);
+			if (mapImg) {
+				const drawW = width * (data.imageW || 1);
+				const drawH = drawW * (mapImg.naturalHeight / mapImg.naturalWidth);
+				ctx.drawImage(mapImg, width * (data.imageX || 0), height * (data.imageY || 0), drawW, drawH);
+			}
+		}
+	}
+
+	function drawAreaShape(ctx, area, W, H) {
+		const nodes = area.nodes || [];
+		if (!nodes.length) return;
+
+		const styles      = area.canvas_styles || {};
+		const fill        = styles.fill        || '#2271b1';
+		const fillOpacity = styles.fillOpacity ?? 0.3;
+		const stroke      = styles.stroke      || '#2271b1';
+		const strokeWidth = styles.strokeWidth || 2;
+
+		ctx.beginPath();
+		ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
+		for (let i = 1; i < nodes.length; i++) {
+			ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
+		}
+		if (nodes.length >= 3) ctx.closePath();
+
+		if (nodes.length >= 3) {
+			ctx.save();
+			ctx.globalAlpha = fillOpacity;
+			ctx.fillStyle   = fill;
+			ctx.fill();
+			ctx.restore();
+		}
+
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth   = strokeWidth;
+		ctx.stroke();
+	}
+
+	function drawFallbackMarker(ctx, x, y, size, fill, stroke) {
+		ctx.save();
+		ctx.beginPath();
+		ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+		ctx.fillStyle   = fill   || '#2271b1';
+		ctx.strokeStyle = stroke || '#fff';
+		ctx.lineWidth   = 2;
+		ctx.fill();
+		ctx.stroke();
+		ctx.restore();
+	}
+
+	async function drawObjectMarker(ctx, obj) {
+		const size   = obj.canvas_styles?.size        || 32;
+		const fill   = obj.canvas_styles?.fillStyle   || '#ffffff';
+		const stroke = obj.canvas_styles?.strokeStyle || '#2271b1';
+
+		if (obj.icon_url) {
+			const img = obj.icon_mime === 'image/svg+xml'
+				? await loadSvgWithColors(obj.icon_url, fill, stroke)
+				: await loadImage(obj.icon_url);
+			if (img) {
+				ctx.drawImage(img, obj.x - size / 2, obj.y - size / 2, size, size);
+				return;
+			}
+		}
+		drawFallbackMarker(ctx, obj.x, obj.y, size, fill, stroke);
+	}
+
+	// ── Hit detection ─────────────────────────────────────────────────────────
+
+	function findObjectAtPoint(ctx, x, y, objects) {
+		for (let i = objects.length - 1; i >= 0; i--) {
+			const obj  = objects[i];
+			const size = obj.canvas_styles?.size || 32;
+			const half = size / 2;
+			ctx.beginPath();
+			ctx.rect(obj.x - half, obj.y - half, size, size);
+			if (ctx.isPointInPath(x, y)) return obj;
+		}
+		return null;
+	}
+
+	function findAreaAtPoint(ctx, x, y, areas, W, H) {
+		for (let i = areas.length - 1; i >= 0; i--) {
+			const nodes = areas[i].nodes || [];
+			if (nodes.length < 3) continue;
+			ctx.beginPath();
+			ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
+			for (let j = 1; j < nodes.length; j++) {
+				ctx.lineTo(nodes[j].x * W, nodes[j].y * H);
+			}
+			ctx.closePath();
+			if (ctx.isPointInPath(x, y)) return areas[i];
+		}
+		return null;
+	}
+
+	// ── Infobox drawer ────────────────────────────────────────────────────────
+	// A single side drawer shared across all map instances on the page.
+	// Lives on document.body; class toggle (not hidden attr) controls visibility
+	// so author display:flex/block never fights the UA [hidden] rule.
+
+	function escHtml(str) {
+		return String(str)
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;');
+	}
+
+	function closeDrawer(drawer) {
+		drawer.classList.remove('is-open');
+		document.body.classList.remove('cns-map-drawer-open');
+	}
+
+	function getOrCreateDrawer() {
+		let drawer = document.getElementById('cns-map-drawer');
+		if (!drawer) {
+			drawer = document.createElement('div');
+			drawer.id        = 'cns-map-drawer';
+			drawer.className = 'cns-map-drawer';
+			drawer.setAttribute('role', 'dialog');
+			drawer.setAttribute('aria-modal', 'true');
+			drawer.innerHTML =
+				'<div class="cns-map-drawer__backdrop"></div>' +
+				'<div class="cns-map-drawer__panel">' +
+					'<div class="cns-map-drawer__header">' +
+						'<button class="cns-map-drawer__close" aria-label="Close">&times;</button>' +
+					'</div>' +
+					'<div class="cns-map-drawer__body"></div>' +
+				'</div>';
+			document.body.appendChild(drawer);
+
+			drawer.querySelector('.cns-map-drawer__backdrop').addEventListener('click', function () {
+				closeDrawer(drawer);
+			});
+			drawer.querySelector('.cns-map-drawer__close').addEventListener('click', function () {
+				closeDrawer(drawer);
+			});
+			document.addEventListener('keydown', function (e) {
+				if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer(drawer);
+			});
+		}
+		return drawer;
+	}
+
+	function showInfobox(wrap, item) {
+		const drawer   = getOrCreateDrawer();
+		const body     = drawer.querySelector('.cns-map-drawer__body');
+		const resolved = item.infobox_resolved || {};
+		const title    = resolved.title    || item.title || '';
+		const content  = resolved.content  || '';
+		const imgUrl   = resolved.image_url || '';
+		const postUrl  = resolved.post_url  || '';
+
+		let html = '';
+		if (imgUrl)  html += '<img class="cns-map-drawer__image" src="' + encodeURI(imgUrl) + '" alt="" />';
+		if (title)   html += '<h2 class="cns-map-drawer__title">' + escHtml(title) + '</h2>';
+		if (content) html += '<div class="cns-map-drawer__content">' + content + '</div>';
+		if (postUrl) html += '<a class="cns-map-drawer__link" href="' + encodeURI(postUrl) + '">View full post &rarr;</a>';
+
+		body.innerHTML = html;
+		drawer.classList.add('is-open');
+		document.body.classList.add('cns-map-drawer-open');
+		drawer.querySelector('.cns-map-drawer__close').focus();
+	}
+
+	function hideInfobox() {
+		const drawer = document.getElementById('cns-map-drawer');
+		if (drawer) closeDrawer(drawer);
+	}
+
+	// ── Map initialiser ───────────────────────────────────────────────────────
+
+	async function initMap(wrapper) {
+		const scriptEl = wrapper.querySelector('script[data-cns-map]');
+		if (!scriptEl) return;
+
+		let data;
+		try { data = JSON.parse(scriptEl.textContent); } catch { return; }
+
+		const canvas = wrapper.querySelector('.cns-map-canvas');
+		if (!canvas) return;
+
+		canvas.width  = data.width;
+		canvas.height = data.height;
+
+		await drawBackground(canvas, data);
+
+		const ctx = canvas.getContext('2d');
+		for (const area of (data.areas || [])) {
+			drawAreaShape(ctx, area, canvas.width, canvas.height);
+		}
+		for (const obj of (data.objects || [])) {
+			await drawObjectMarker(ctx, obj);
+		}
+
+		// Only wire click handling if anything has infobox content.
+		const hasClickable =
+			(data.objects || []).some(function (o) {
+				const ib = o.infobox_resolved || {};
+				return ib.title || ib.description || ib.image_url;
+			}) ||
+			(data.areas || []).some(function (a) {
+				const ib = a.infobox_resolved || {};
+				return ib.title || ib.description || ib.image_url;
+			});
+
+		if (!hasClickable) return;
+
+		canvas.style.cursor = 'pointer';
+		canvas.addEventListener('click', function (e) {
+			const rect = canvas.getBoundingClientRect();
+			const x    = (e.clientX - rect.left) * (canvas.width  / rect.width);
+			const y    = (e.clientY - rect.top)  * (canvas.height / rect.height);
+
+			const hitObj = findObjectAtPoint(ctx, x, y, data.objects || []);
+			if (hitObj) { showInfobox(wrapper, hitObj); return; }
+
+			const hitArea = findAreaAtPoint(ctx, x, y, data.areas || [], canvas.width, canvas.height);
+			if (hitArea) { showInfobox(wrapper, hitArea); return; }
+
+			hideInfobox();
+		});
+	}
+
+	// ── Boot ──────────────────────────────────────────────────────────────────
+
+	function init() {
+		document.querySelectorAll('.wp-block-cns-map-suite-map').forEach(initMap);
+	}
+
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', init);
+	} else {
+		init();
+	}
+}());

@@ -128,6 +128,10 @@ $delete_on_uninstall   = (bool) get_option('cns_map_suite_delete_on_uninstall', 
 						<td><?php echo esc_html(get_the_date('Y-m-d', $map)); ?></td>
 						<td class="cns-maps-actions">
 							<a href="<?php echo $edit_url; ?>"><?php esc_html_e('Edit', 'cns-map-suite'); ?></a>
+							<?php if ($map->post_status === 'publish') : ?>
+								&nbsp;&middot;&nbsp;
+								<a href="<?php echo esc_url(get_permalink($map->ID)); ?>" target="_blank" rel="noopener"><?php esc_html_e('View', 'cns-map-suite'); ?></a>
+							<?php endif; ?>
 							&nbsp;&middot;&nbsp;
 							<a
 								href="<?php echo $delete_url; ?>"

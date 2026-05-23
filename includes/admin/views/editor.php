@@ -55,6 +55,11 @@ window.cnsMapEditor = {
 		</h1>
 		<div class="cns-map-editor__header-actions">
 			<span class="cns-save-status" id="cns-save-status"></span>
+			<?php if (! $is_new && $map->post_status === 'publish') : ?>
+				<a href="<?php echo esc_url(get_permalink($map->ID)); ?>" class="button" target="_blank" rel="noopener">
+					<?php esc_html_e('View Map', 'cns-map-suite'); ?>
+				</a>
+			<?php endif; ?>
 			<button class="button button-primary" id="cns-map-save">
 				<?php esc_html_e('Save Map', 'cns-map-suite'); ?>
 			</button>
@@ -276,6 +281,13 @@ window.cnsMapEditor = {
 				<div class="cns-canvas-wrap">
 					<canvas id="cns-preview-canvas"></canvas>
 				</div>
+				<?php if (! $is_new && $map->post_status === 'publish') : ?>
+					<div class="cns-preview-actions">
+						<a href="<?php echo esc_url(get_permalink($map->ID)); ?>" class="button" target="_blank" rel="noopener">
+							<?php esc_html_e('View map page', 'cns-map-suite'); ?>
+						</a>
+					</div>
+				<?php endif; ?>
 			</div>
 
 		</div><!-- /.cns-map-editor__content -->
