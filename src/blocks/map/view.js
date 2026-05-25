@@ -71,9 +71,58 @@
 		}
 	}
 
+	function buildPolygonPath(ctx, nodes, W, H) {
+		ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
+		for (let i = 1; i < nodes.length; i++) {
+			ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
+		}
+		ctx.closePath();
+	}
+
+	function buildBezierPath(ctx, nodes, W, H) {
+		const n      = nodes.length;
+		const startX = (nodes[n - 1].x + nodes[0].x) / 2 * W;
+		const startY = (nodes[n - 1].y + nodes[0].y) / 2 * H;
+		ctx.moveTo(startX, startY);
+		for (let i = 0; i < n; i++) {
+			const cp   = nodes[i];
+			const next = nodes[(i + 1) % n];
+			ctx.quadraticCurveTo(cp.x * W, cp.y * H, (cp.x + next.x) / 2 * W, (cp.y + next.y) / 2 * H);
+		}
+		ctx.closePath();
+	}
+
+	function buildCirclePath(ctx, nodes, W, H) {
+		const cx = nodes[0].x * W;
+		const cy = nodes[0].y * H;
+		const rx = Math.max(Math.abs(nodes[1].x - nodes[0].x) * W, 1);
+		const ry = Math.max(Math.abs(nodes[1].y - nodes[0].y) * H, 1);
+		ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+	}
+
+	function buildAreaPathFromNodes(ctx, nodes, shapeType, W, H) {
+		ctx.beginPath();
+		switch (shapeType) {
+			case 'BEZIER':
+				if (nodes.length >= 3) buildBezierPath(ctx, nodes, W, H);
+				break;
+			case 'CIRCLE':
+				if (nodes.length >= 2) buildCirclePath(ctx, nodes, W, H);
+				break;
+			case 'RECTANGLE':
+			default:
+				if (nodes.length >= 3) buildPolygonPath(ctx, nodes, W, H);
+				break;
+		}
+	}
+
 	function drawAreaShape(ctx, area, W, H) {
 		const nodes = area.nodes || [];
 		if (!nodes.length) return;
+
+		const shapeType = area.shape_type || 'POLYGON';
+		const minNodes  = shapeType === 'CIRCLE' ? 2 : 3;
+		if (nodes.length < minNodes) return;
 
 		const styles      = area.canvas_styles || {};
 		const fill        = styles.fill        || '#2271b1';
@@ -81,20 +130,13 @@
 		const stroke      = styles.stroke      || '#2271b1';
 		const strokeWidth = styles.strokeWidth || 2;
 
-		ctx.beginPath();
-		ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
-		for (let i = 1; i < nodes.length; i++) {
-			ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
-		}
-		if (nodes.length >= 3) ctx.closePath();
+		buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
 
-		if (nodes.length >= 3) {
-			ctx.save();
-			ctx.globalAlpha = fillOpacity;
-			ctx.fillStyle   = fill;
-			ctx.fill();
-			ctx.restore();
-		}
+		ctx.save();
+		ctx.globalAlpha = fillOpacity;
+		ctx.fillStyle   = fill;
+		ctx.fill();
+		ctx.restore();
 
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = strokeWidth;
@@ -146,15 +188,13 @@
 
 	function findAreaAtPoint(ctx, x, y, areas, W, H) {
 		for (let i = areas.length - 1; i >= 0; i--) {
-			const nodes = areas[i].nodes || [];
-			if (nodes.length < 3) continue;
-			ctx.beginPath();
-			ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
-			for (let j = 1; j < nodes.length; j++) {
-				ctx.lineTo(nodes[j].x * W, nodes[j].y * H);
-			}
-			ctx.closePath();
-			if (ctx.isPointInPath(x, y)) return areas[i];
+			const area      = areas[i];
+			const nodes     = area.nodes || [];
+			const shapeType = area.shape_type || 'POLYGON';
+			const minNodes  = shapeType === 'CIRCLE' ? 2 : 3;
+			if (nodes.length < minNodes) continue;
+			buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
+			if (ctx.isPointInPath(x, y)) return area;
 		}
 		return null;
 	}

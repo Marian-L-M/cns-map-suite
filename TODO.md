@@ -93,6 +93,11 @@
 -   [ ] `buildAreaFormHTML()` → PHP template instead of hard-coded string; type labels should come from custom taxonomy or `wp_options`
 -   [ ] `drawEditorCanvas()` / `drawPreviewCanvas()` — consolidate around the shared `drawFullCanvas()` pipeline
 
+## Bug List
+
+-   [ ]
+-   [ ]
+
 ## Done
 
 -   ✅ Plugin scaffold (CPT, DB tables, admin menu, block)

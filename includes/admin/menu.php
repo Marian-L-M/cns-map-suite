@@ -114,11 +114,16 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		CNS_MAP_SUITE_VERSION
 	);
 
+	$admin_asset_file = CNS_MAP_SUITE_DIR . 'build/admin/index.asset.php';
+	$admin_asset      = file_exists( $admin_asset_file )
+		? require $admin_asset_file
+		: [ 'dependencies' => [], 'version' => CNS_MAP_SUITE_VERSION ];
+
 	wp_enqueue_script(
 		'cns-map-admin',
-		CNS_MAP_SUITE_URL . 'assets/admin/admin.js',
-		['wp-color-picker'],
-		CNS_MAP_SUITE_VERSION,
+		CNS_MAP_SUITE_URL . 'build/admin/index.js',
+		array_merge( [ 'wp-color-picker' ], $admin_asset['dependencies'] ),
+		$admin_asset['version'],
 		true
 	);
 
