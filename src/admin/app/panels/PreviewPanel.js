@@ -1,12 +1,5 @@
 import PreviewCanvas from '../canvases/PreviewCanvas.js';
-
-function settingsToDrawState( s ) {
-	return {
-		width: s.width, aspectRatio: s.aspectRatio,
-		bgType: s.bgType, bgColor: s.bgColor, bgImageUrl: s.bgImageUrl,
-		imgUrl: s.imageUrl, imageX: s.imageX, imageY: s.imageY, imageW: s.imageW,
-	};
-}
+import { settingsToDrawState } from '../../canvas.js';
 
 export default function PreviewPanel( { settings, objects, areas, viewUrl } ) {
 	return (

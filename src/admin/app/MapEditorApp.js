@@ -1,4 +1,4 @@
-import { useState, useCallback } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import EditorHeader    from './EditorHeader.js';
 import TabBar          from './TabBar.js';
 import ContextPanel    from './ContextPanel.js';
@@ -105,14 +105,6 @@ export default function MapEditorApp() {
 		return data;
 	}
 
-	async function handleObjectDelete() {
-		if ( ! selectedObjectId ) return;
-		const res = await apiFetch( 'DELETE', `/objects/${ selectedObjectId }` );
-		if ( ! res.ok ) throw new Error( 'Delete failed.' );
-		setObjectsList( ( prev ) => prev.filter( ( o ) => o.id !== selectedObjectId ) );
-		setSelectedObjectId( null );
-	}
-
 	async function handleObjectPositionUpdate( id, x, y ) {
 		const res  = await apiFetch( 'PATCH', `/objects/${ id }/position`, { x, y } );
 		const data = await res.json();
@@ -133,14 +125,6 @@ export default function MapEditorApp() {
 		if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
 		setAreasList( ( prev ) => prev.map( ( a ) => a.id === selectedAreaId ? data : a ) );
 		return data;
-	}
-
-	async function handleAreaDelete() {
-		if ( ! selectedAreaId ) return;
-		const res = await apiFetch( 'DELETE', `/areas/${ selectedAreaId }` );
-		if ( ! res.ok ) throw new Error( 'Delete failed.' );
-		setAreasList( ( prev ) => prev.filter( ( a ) => a.id !== selectedAreaId ) );
-		setSelectedAreaId( null );
 	}
 
 	function handleAreaNodesUpdate( areaId, nodes ) {
@@ -256,13 +240,12 @@ export default function MapEditorApp() {
 					activeTab={ activeTab }
 					selectedObject={ selectedObject }
 					selectedArea={ selectedArea }
-					areasList={ areasList }
 					onObjectSave={ handleObjectSave }
-					onObjectDelete={ handleObjectDelete }
+					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId ) }
 					onObjectClose={ () => setSelectedObjectId( null ) }
 					onObjectReposition={ () => setRepositioningObjId( selectedObjectId ) }
 					onAreaSave={ handleAreaSave }
-					onAreaDelete={ handleAreaDelete }
+					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId ) }
 					onAreaClose={ () => setSelectedAreaId( null ) }
 					onAreaNodesUpdate={ handleAreaNodesUpdate }
 					onAreaShapeTypeChange={ handleAreaShapeTypeChange }

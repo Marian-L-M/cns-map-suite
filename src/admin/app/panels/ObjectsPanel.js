@@ -1,17 +1,10 @@
-import { useState, useEffect, useCallback } from '@wordpress/element';
+import { useState, useEffect } from '@wordpress/element';
 import ObjectsCanvas from '../canvases/ObjectsCanvas.js';
 import ObjectsList   from '../lists/ObjectsList.js';
 import ObjectModal   from '../ObjectModal.js';
 import { apiFetch }  from '../../utils.js';
+import { settingsToDrawState } from '../../canvas.js';
 import { defaultObjectFormData } from '../forms/ObjectForm.js';
-
-function settingsToDrawState( s ) {
-	return {
-		width: s.width, aspectRatio: s.aspectRatio,
-		bgType: s.bgType, bgColor: s.bgColor, bgImageUrl: s.bgImageUrl,
-		imgUrl: s.imageUrl, imageX: s.imageX, imageY: s.imageY, imageW: s.imageW,
-	};
-}
 
 export default function ObjectsPanel( {
 	mapId, settings, objects, selectedObjectId,

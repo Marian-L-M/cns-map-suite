@@ -42,6 +42,14 @@ export function getCanvasCoords( canvas, event ) {
 	};
 }
 
+export function settingsToDrawState( s ) {
+	return {
+		width: s.width, aspectRatio: s.aspectRatio,
+		bgType: s.bgType, bgColor: s.bgColor, bgImageUrl: s.bgImageUrl,
+		imgUrl: s.imageUrl, imageX: s.imageX, imageY: s.imageY, imageW: s.imageW,
+	};
+}
+
 // drawAreaShape / drawObjectMarker are passed in to avoid circular imports.
 export async function drawFullCanvas( canvas, objects, areas, state, drawAreaFn, drawObjectFn ) {
 	await drawMapCanvas( canvas, state );

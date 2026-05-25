@@ -10,7 +10,7 @@ export default function PreviewCanvas( { drawState, objects, areas } ) {
 		const canvas = canvasRef.current;
 		if ( ! canvas ) return;
 		drawFullCanvas( canvas, objects, areas, drawState, drawAreaShape, drawObjectMarker );
-	}, [ drawState, objects, areas ] );
+	} );
 
 	return (
 		<div className="cns-canvas-wrap">

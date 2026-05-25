@@ -1,4 +1,4 @@
-import { useState, useRef } from '@wordpress/element';
+import { useState, useRef, useEffect } from '@wordpress/element';
 
 /**
  * Async post-search typeahead backed by the WP REST /search endpoint.
@@ -13,6 +13,8 @@ export default function PostSearch( { linkedPostId, linkedPostLabel, onChange } 
 	const [ results, setResults ] = useState( [] );
 	const [ open, setOpen ]       = useState( false );
 	const timer = useRef( null );
+
+	useEffect( () => () => clearTimeout( timer.current ), [] );
 
 	function handleInput( e ) {
 		const val = e.target.value;

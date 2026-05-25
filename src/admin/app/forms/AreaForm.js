@@ -1,3 +1,4 @@
+import { useRef } from '@wordpress/element';
 import PostSearch from '../shared/PostSearch.js';
 
 const TYPES = [
@@ -22,6 +23,9 @@ const SHAPES = [
  * Props: formData, onChange, onShapeTypeChange
  */
 export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
+	const uid = useRef( Math.random().toString( 36 ).slice( 2 ) );
+	const n   = uid.current;
+
 	function set( key, val ) { onChange( { ...formData, [ key ]: val } ); }
 
 	function handleShapeChange( e ) {
@@ -64,11 +68,11 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 				<h3>Infobox</h3>
 				<div className="cns-radio-toggle">
 					<label>
-						<input type="radio" name="area-ib-src" value="manual" checked={ ! isPost } onChange={ () => set( 'infobox_source', 'manual' ) } />
+						<input type="radio" name={ `area-ib-src-${ n }` } value="manual" checked={ ! isPost } onChange={ () => set( 'infobox_source', 'manual' ) } />
 						{ ' ' }Manual
 					</label>
 					<label>
-						<input type="radio" name="area-ib-src" value="post" checked={ isPost } onChange={ () => set( 'infobox_source', 'post' ) } />
+						<input type="radio" name={ `area-ib-src-${ n }` } value="post" checked={ isPost } onChange={ () => set( 'infobox_source', 'post' ) } />
 						{ ' ' }From post
 					</label>
 				</div>

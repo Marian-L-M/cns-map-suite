@@ -8,7 +8,7 @@ import { normalizeNodesForShapeType } from '../areas.js';
 
 export default function ContextPanel( {
 	activeTab,
-	selectedObject, selectedArea, areasList,
+	selectedObject, selectedArea,
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
 	onAreaSave,   onAreaDelete,   onAreaClose,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
@@ -123,7 +123,7 @@ export default function ContextPanel( {
 								} }
 							/>
 							<NodeList
-								area={ areasList.find( ( a ) => a.id === selectedArea.id ) || selectedArea }
+								area={ selectedArea }
 								onNodesChange={ ( nodes ) => onAreaNodesUpdate?.( selectedArea.id, nodes ) }
 							/>
 						</>

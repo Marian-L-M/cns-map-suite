@@ -34,7 +34,6 @@ function ContextPanel({
   activeTab,
   selectedObject,
   selectedArea,
-  areasList,
   onObjectSave,
   onObjectDelete,
   onObjectClose,
@@ -175,7 +174,7 @@ function ContextPanel({
               }));
             }
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_forms_NodeList_js__WEBPACK_IMPORTED_MODULE_3__["default"], {
-            area: areasList.find(a => a.id === selectedArea.id) || selectedArea,
+            area: selectedArea,
             onNodesChange: nodes => onAreaNodesUpdate?.(selectedArea.id, nodes)
           })]
         })]
@@ -503,13 +502,6 @@ function MapEditorApp() {
     setObjectsList(prev => prev.map(o => o.id === selectedObjectId ? data : o));
     return data;
   }
-  async function handleObjectDelete() {
-    if (!selectedObjectId) return;
-    const res = await (0,_utils_js__WEBPACK_IMPORTED_MODULE_9__.apiFetch)('DELETE', `/objects/${selectedObjectId}`);
-    if (!res.ok) throw new Error('Delete failed.');
-    setObjectsList(prev => prev.filter(o => o.id !== selectedObjectId));
-    setSelectedObjectId(null);
-  }
   async function handleObjectPositionUpdate(id, x, y) {
     const res = await (0,_utils_js__WEBPACK_IMPORTED_MODULE_9__.apiFetch)('PATCH', `/objects/${id}/position`, {
       x,
@@ -536,13 +528,6 @@ function MapEditorApp() {
     if (!res.ok) throw new Error(data.message || 'Save failed.');
     setAreasList(prev => prev.map(a => a.id === selectedAreaId ? data : a));
     return data;
-  }
-  async function handleAreaDelete() {
-    if (!selectedAreaId) return;
-    const res = await (0,_utils_js__WEBPACK_IMPORTED_MODULE_9__.apiFetch)('DELETE', `/areas/${selectedAreaId}`);
-    if (!res.ok) throw new Error('Delete failed.');
-    setAreasList(prev => prev.filter(a => a.id !== selectedAreaId));
-    setSelectedAreaId(null);
   }
   function handleAreaNodesUpdate(areaId, nodes) {
     setAreasList(prev => prev.map(a => a.id === areaId ? {
@@ -645,13 +630,12 @@ function MapEditorApp() {
         activeTab: activeTab,
         selectedObject: selectedObject,
         selectedArea: selectedArea,
-        areasList: areasList,
         onObjectSave: handleObjectSave,
-        onObjectDelete: handleObjectDelete,
+        onObjectDelete: () => handleObjectDeleteById(selectedObjectId),
         onObjectClose: () => setSelectedObjectId(null),
         onObjectReposition: () => setRepositioningObjId(selectedObjectId),
         onAreaSave: handleAreaSave,
-        onAreaDelete: handleAreaDelete,
+        onAreaDelete: () => handleAreaDeleteById(selectedAreaId),
         onAreaClose: () => setSelectedAreaId(null),
         onAreaNodesUpdate: handleAreaNodesUpdate,
         onAreaShapeTypeChange: handleAreaShapeTypeChange
@@ -1211,7 +1195,7 @@ function PreviewCanvas({
     const canvas = canvasRef.current;
     if (!canvas) return;
     (0,_canvas_js__WEBPACK_IMPORTED_MODULE_1__.drawFullCanvas)(canvas, objects, areas, drawState, _areas_js__WEBPACK_IMPORTED_MODULE_3__.drawAreaShape, _objects_js__WEBPACK_IMPORTED_MODULE_2__.drawObjectMarker);
-  }, [drawState, objects, areas]);
+  });
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
     className: "cns-canvas-wrap",
     children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("canvas", {
@@ -1283,9 +1267,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ AreaForm),
 /* harmony export */   defaultAreaFormData: () => (/* binding */ defaultAreaFormData)
 /* harmony export */ });
-/* harmony import */ var _shared_PostSearch_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../shared/PostSearch.js */ "./src/admin/app/shared/PostSearch.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_PostSearch_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/PostSearch.js */ "./src/admin/app/shared/PostSearch.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
 
 
 const TYPES = [{
@@ -1329,6 +1316,8 @@ function AreaForm({
   onChange,
   onShapeTypeChange
 }) {
+  const uid = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(Math.random().toString(36).slice(2));
+  const n = uid.current;
   function set(key, val) {
     onChange({
       ...formData,
@@ -1341,52 +1330,52 @@ function AreaForm({
     onShapeTypeChange?.(st);
   }
   const isPost = formData.infobox_source === 'post';
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("section", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
       className: "cns-modal-section",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("h3", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
         children: "Details"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "cns-form-grid",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row cns-form-row--full",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Title"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "text",
             className: "large-text",
             value: formData.title,
             onChange: e => set('title', e.target.value)
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Type"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("select", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("select", {
             value: formData.type,
             onChange: e => set('type', e.target.value),
-            children: TYPES.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("option", {
+            children: TYPES.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("option", {
               value: t.value,
               children: t.label
             }, t.value))
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Shape"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("select", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("select", {
             value: formData.shape_type,
             onChange: handleShapeChange,
-            children: SHAPES.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("option", {
+            children: SHAPES.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("option", {
               value: s.value,
               children: s.label
             }, s.value))
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Object Time"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "number",
             className: "small-text",
             value: formData.object_time,
@@ -1394,53 +1383,53 @@ function AreaForm({
           })]
         })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("section", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
       className: "cns-modal-section",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("h3", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
         children: "Infobox"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "cns-radio-toggle",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("label", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "radio",
-            name: "area-ib-src",
+            name: `area-ib-src-${n}`,
             value: "manual",
             checked: !isPost,
             onChange: () => set('infobox_source', 'manual')
           }), ' ', "Manual"]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("label", {
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "radio",
-            name: "area-ib-src",
+            name: `area-ib-src-${n}`,
             value: "post",
             checked: isPost,
             onChange: () => set('infobox_source', 'post')
           }), ' ', "From post"]
         })]
-      }), !isPost && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      }), !isPost && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "cns-form-grid",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row cns-form-row--full",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Infobox Title"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "text",
             className: "large-text",
             value: formData.infobox_title,
             onChange: e => set('infobox_title', e.target.value)
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row cns-form-row--full",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Description"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("textarea", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
             rows: "3",
             className: "large-text",
             value: formData.infobox_description,
             onChange: e => set('infobox_description', e.target.value)
           })]
         })]
-      }), isPost && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_shared_PostSearch_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+      }), isPost && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_shared_PostSearch_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
         linkedPostId: formData.linked_post_id,
         linkedPostLabel: formData.linked_post_label,
         onChange: item => onChange({
@@ -1449,53 +1438,53 @@ function AreaForm({
           linked_post_label: item ? item.title : ''
         })
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("section", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
       className: "cns-modal-section",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("h3", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
         children: "Design"
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
         className: "cns-form-grid",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Fill Color"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "color",
             value: formData.style_fill,
             onChange: e => set('style_fill', e.target.value)
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Fill Opacity"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
             className: "cns-range-wrap",
-            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
               type: "range",
               min: "0",
               max: "1",
               step: "0.05",
               value: formData.style_fill_opacity,
               onChange: e => set('style_fill_opacity', parseFloat(e.target.value))
-            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("output", {
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("output", {
               className: "cns-range-value",
               children: parseFloat(formData.style_fill_opacity).toFixed(2)
             })]
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Stroke Color"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "color",
             value: formData.style_stroke,
             onChange: e => set('style_stroke', e.target.value)
           })]
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
           className: "cns-form-row",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
             children: "Stroke Width (px)"
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
             type: "number",
             className: "small-text",
             min: "1",
@@ -2167,28 +2156,17 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _canvases_AreasCanvas_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../canvases/AreasCanvas.js */ "./src/admin/app/canvases/AreasCanvas.js");
 /* harmony import */ var _lists_AreasList_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lists/AreasList.js */ "./src/admin/app/lists/AreasList.js");
 /* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils.js */ "./src/admin/utils.js");
-/* harmony import */ var _areas_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../areas.js */ "./src/admin/areas.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _canvas_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../canvas.js */ "./src/admin/canvas.js");
+/* harmony import */ var _areas_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../areas.js */ "./src/admin/areas.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
 
 
 
 
 
 
-function settingsToDrawState(s) {
-  return {
-    width: s.width,
-    aspectRatio: s.aspectRatio,
-    bgType: s.bgType,
-    bgColor: s.bgColor,
-    bgImageUrl: s.bgImageUrl,
-    imgUrl: s.imageUrl,
-    imageX: s.imageX,
-    imageY: s.imageY,
-    imageW: s.imageW
-  };
-}
+
 function AreasPanel({
   mapId,
   settings,
@@ -2209,7 +2187,7 @@ function AreasPanel({
   }, [mapId]);
   async function handleAddArea() {
     if (!mapId) return;
-    const defaultNodes = (0,_areas_js__WEBPACK_IMPORTED_MODULE_4__.getDefaultNodes)('POLYGON');
+    const defaultNodes = (0,_areas_js__WEBPACK_IMPORTED_MODULE_5__.getDefaultNodes)('POLYGON');
     try {
       const res = await (0,_utils_js__WEBPACK_IMPORTED_MODULE_3__.apiFetch)('POST', `/maps/${mapId}/areas`, {
         title: 'New Area',
@@ -2231,32 +2209,32 @@ function AreasPanel({
     if (!confirm('Delete this area?')) return;
     await onDelete(id);
   }
-  const drawState = settingsToDrawState(settings);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
+  const drawState = (0,_canvas_js__WEBPACK_IMPORTED_MODULE_4__.settingsToDrawState)(settings);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "areas",
     role: "tabpanel",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
       className: "cns-objects-layout",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         className: "cns-objects-toolbar",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
           type: "button",
           className: "button button-primary",
           onClick: handleAddArea,
           children: "Add Area"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
           className: "description",
           children: "Click a node to reposition it. Click empty space on a selected area to add a node."
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_canvases_AreasCanvas_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_canvases_AreasCanvas_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
         drawState: drawState,
         areas: areas,
         selectedAreaId: selectedAreaId,
         onSelect: onSelect,
         onDeselect: onDeselect,
         onNodesChange: onNodesUpdate
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_lists_AreasList_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_lists_AreasList_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
         areas: areas,
         onSelect: onSelect,
         onDelete: handleDelete
@@ -2319,9 +2297,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _lists_ObjectsList_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lists/ObjectsList.js */ "./src/admin/app/lists/ObjectsList.js");
 /* harmony import */ var _ObjectModal_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../ObjectModal.js */ "./src/admin/app/ObjectModal.js");
 /* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils.js */ "./src/admin/utils.js");
-/* harmony import */ var _forms_ObjectForm_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../forms/ObjectForm.js */ "./src/admin/app/forms/ObjectForm.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _canvas_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../canvas.js */ "./src/admin/canvas.js");
+/* harmony import */ var _forms_ObjectForm_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../forms/ObjectForm.js */ "./src/admin/app/forms/ObjectForm.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__);
 
 
 
@@ -2329,19 +2308,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-function settingsToDrawState(s) {
-  return {
-    width: s.width,
-    aspectRatio: s.aspectRatio,
-    bgType: s.bgType,
-    bgColor: s.bgColor,
-    bgImageUrl: s.bgImageUrl,
-    imgUrl: s.imageUrl,
-    imageX: s.imageX,
-    imageY: s.imageY,
-    imageW: s.imageW
-  };
-}
+
 function ObjectsPanel({
   mapId,
   settings,
@@ -2393,25 +2360,25 @@ function ObjectsPanel({
     if (!confirm('Delete this object?')) return;
     await onDelete(id);
   }
-  const drawState = settingsToDrawState(settings);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+  const drawState = (0,_canvas_js__WEBPACK_IMPORTED_MODULE_5__.settingsToDrawState)(settings);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "objects",
     role: "tabpanel",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
       className: "cns-objects-layout",
-      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsxs)("div", {
         className: "cns-objects-toolbar",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("button", {
           type: "button",
           className: "button button-primary",
           onClick: openAddModal,
           children: "Add Object"
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)("p", {
           className: "description",
           children: "Or click directly on the canvas to place an object at that position."
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_canvases_ObjectsCanvas_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_canvases_ObjectsCanvas_js__WEBPACK_IMPORTED_MODULE_1__["default"], {
         drawState: drawState,
         objects: objects,
         selectedObjectId: selectedObjectId,
@@ -2420,7 +2387,7 @@ function ObjectsPanel({
         onDeselect: onDeselect,
         onPositionUpdate: onPositionUpdate,
         onRepositionComplete: onRepositionComplete
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_lists_ObjectsList_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_lists_ObjectsList_js__WEBPACK_IMPORTED_MODULE_2__["default"], {
         objects: objects,
         onEdit: obj => setModal({
           obj,
@@ -2429,7 +2396,7 @@ function ObjectsPanel({
         }),
         onDelete: handleDelete
       })]
-    }), modal && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_ObjectModal_js__WEBPACK_IMPORTED_MODULE_3__["default"], {
+    }), modal && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_7__.jsx)(_ObjectModal_js__WEBPACK_IMPORTED_MODULE_3__["default"], {
       obj: modal.obj,
       defaultX: modal.x,
       defaultY: modal.y,
@@ -2452,40 +2419,29 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "default": () => (/* binding */ PreviewPanel)
 /* harmony export */ });
 /* harmony import */ var _canvases_PreviewCanvas_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../canvases/PreviewCanvas.js */ "./src/admin/app/canvases/PreviewCanvas.js");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _canvas_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../canvas.js */ "./src/admin/canvas.js");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
 
 
-function settingsToDrawState(s) {
-  return {
-    width: s.width,
-    aspectRatio: s.aspectRatio,
-    bgType: s.bgType,
-    bgColor: s.bgColor,
-    bgImageUrl: s.bgImageUrl,
-    imgUrl: s.imageUrl,
-    imageX: s.imageX,
-    imageY: s.imageY,
-    imageW: s.imageW
-  };
-}
+
 function PreviewPanel({
   settings,
   objects,
   areas,
   viewUrl
 }) {
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "preview",
     role: "tabpanel",
-    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_canvases_PreviewCanvas_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
-      drawState: settingsToDrawState(settings),
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_canvases_PreviewCanvas_js__WEBPACK_IMPORTED_MODULE_0__["default"], {
+      drawState: (0,_canvas_js__WEBPACK_IMPORTED_MODULE_1__.settingsToDrawState)(settings),
       objects: objects,
       areas: areas
-    }), viewUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+    }), viewUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
       className: "cns-preview-actions",
-      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("a", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("a", {
         href: viewUrl,
         className: "button",
         target: "_blank",
@@ -2931,6 +2887,7 @@ function PostSearch({
   const [results, setResults] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
   const [open, setOpen] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
   const timer = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => clearTimeout(timer.current), []);
   function handleInput(e) {
     const val = e.target.value;
     setQuery(val);
@@ -3277,7 +3234,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   drawFullCanvas: () => (/* binding */ drawFullCanvas),
 /* harmony export */   drawMapCanvas: () => (/* binding */ drawMapCanvas),
-/* harmony export */   getCanvasCoords: () => (/* binding */ getCanvasCoords)
+/* harmony export */   getCanvasCoords: () => (/* binding */ getCanvasCoords),
+/* harmony export */   settingsToDrawState: () => (/* binding */ settingsToDrawState)
 /* harmony export */ });
 /* harmony import */ var _utils_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils.js */ "./src/admin/utils.js");
 
@@ -3317,6 +3275,19 @@ function getCanvasCoords(canvas, event) {
   return {
     x: Math.round((event.clientX - rect.left) * (canvas.width / rect.width)),
     y: Math.round((event.clientY - rect.top) * (canvas.height / rect.height))
+  };
+}
+function settingsToDrawState(s) {
+  return {
+    width: s.width,
+    aspectRatio: s.aspectRatio,
+    bgType: s.bgType,
+    bgColor: s.bgColor,
+    bgImageUrl: s.bgImageUrl,
+    imgUrl: s.imageUrl,
+    imageX: s.imageX,
+    imageY: s.imageY,
+    imageW: s.imageW
   };
 }
 

@@ -96,7 +96,7 @@
 ## Bug List
 
 -   [ ] Object/area change detection for global save is iffy. Just always submit the active form on save
--   [ ]
+-   [ ] Delete node/object on delete button
 
 ## Done
 

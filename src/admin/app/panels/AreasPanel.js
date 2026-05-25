@@ -2,15 +2,8 @@ import { useState, useEffect } from '@wordpress/element';
 import AreasCanvas  from '../canvases/AreasCanvas.js';
 import AreasList    from '../lists/AreasList.js';
 import { apiFetch } from '../../utils.js';
+import { settingsToDrawState } from '../../canvas.js';
 import { getDefaultNodes } from '../../areas.js';
-
-function settingsToDrawState( s ) {
-	return {
-		width: s.width, aspectRatio: s.aspectRatio,
-		bgType: s.bgType, bgColor: s.bgColor, bgImageUrl: s.bgImageUrl,
-		imgUrl: s.imageUrl, imageX: s.imageX, imageY: s.imageY, imageW: s.imageW,
-	};
-}
 
 export default function AreasPanel( {
 	mapId, settings, areas, selectedAreaId,
