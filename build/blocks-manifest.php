@@ -24,7 +24,7 @@ return array(
 		),
 		'textdomain' => 'cns-map-suite',
 		'editorScript' => 'file:./index.js',
-		'editorStyle' => 'file:./index.css',
+		'editorStyle' => 'file:./editor-index.css',
 		'style' => 'file:./style-index.css',
 		'viewScript' => 'file:./view.js',
 		'render' => 'file:./render.php'

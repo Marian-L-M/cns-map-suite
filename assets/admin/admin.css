@@ -76,10 +76,6 @@
 
 /* ── Editor layout ─────────────────────────────────────────────────────────── */
 
-.cns-map-editor {
-	/* full available width — no max-width */
-}
-
 .cns-editor-layout {
 	display: grid;
 	grid-template-columns: 3fr 1fr;
@@ -247,7 +243,9 @@
 	cursor: pointer;
 	color: #646970;
 	margin-bottom: -1px;
-	transition: color 0.15s, border-color 0.15s;
+	transition:
+		color 0.15s,
+		border-color 0.15s;
 }
 
 .cns-tab:hover {

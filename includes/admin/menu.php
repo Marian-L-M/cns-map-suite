@@ -109,7 +109,7 @@ function cns_map_suite_enqueue_admin_assets(): void {
 
 	wp_enqueue_style(
 		'cns-map-admin',
-		CNS_MAP_SUITE_URL . 'assets/admin/admin.css',
+		CNS_MAP_SUITE_URL . 'build/admin/index.css',
 		[],
 		CNS_MAP_SUITE_VERSION
 	);

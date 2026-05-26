@@ -86,7 +86,12 @@
 .cns-map-drawer__content > * + * {
   margin-top: 1em;
 }
-.cns-map-drawer__content h1, .cns-map-drawer__content h2, .cns-map-drawer__content h3, .cns-map-drawer__content h4, .cns-map-drawer__content h5, .cns-map-drawer__content h6 {
+.cns-map-drawer__content h1,
+.cns-map-drawer__content h2,
+.cns-map-drawer__content h3,
+.cns-map-drawer__content h4,
+.cns-map-drawer__content h5,
+.cns-map-drawer__content h6 {
   margin-top: 1.5em;
   margin-bottom: 0.5em;
   font-weight: 600;
@@ -95,7 +100,8 @@
 .cns-map-drawer__content p {
   margin: 0 0 1em;
 }
-.cns-map-drawer__content ul, .cns-map-drawer__content ol {
+.cns-map-drawer__content ul,
+.cns-map-drawer__content ol {
   padding-left: 1.5em;
   margin-bottom: 1em;
 }

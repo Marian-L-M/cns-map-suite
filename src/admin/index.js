@@ -1,6 +1,7 @@
 import { createRoot } from '@wordpress/element';
 import MapEditorApp   from './app/MapEditorApp.js';
 import IconLibraryApp from './app/IconLibraryApp.js';
+import './admin.scss';
 
 document.addEventListener( 'DOMContentLoaded', () => {
 	const editorEl = document.getElementById( 'cns-admin-root' );
