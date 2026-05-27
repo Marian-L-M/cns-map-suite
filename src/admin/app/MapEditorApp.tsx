@@ -1,65 +1,86 @@
 import { useState } from '@wordpress/element';
-import EditorHeader    from './EditorHeader';
-import TabBar          from './TabBar';
-import ContextPanel    from './ContextPanel';
-import SettingsPanel   from './panels/SettingsPanel';
-import ObjectsPanel    from './panels/ObjectsPanel';
-import AreasPanel      from './panels/AreasPanel';
-import HierarchyPanel  from './panels/HierarchyPanel';
-import PreviewPanel    from './panels/PreviewPanel';
-import { apiFetch }    from '../utils';
+import EditorHeader from './EditorHeader';
+import TabBar from './TabBar';
+import ContextPanel from './ContextPanel';
+import SettingsPanel from './panels/SettingsPanel';
+import ObjectsPanel from './panels/ObjectsPanel';
+import AreasPanel from './panels/AreasPanel';
+import HierarchyPanel from './panels/HierarchyPanel';
+import PreviewPanel from './panels/PreviewPanel';
+import { apiFetch } from '../utils';
 import { normalizeNodesForShapeType } from '../areas';
 import type {
-	MapSettings, MapObject, MapArea, Node,
-	ObjectSavePayload, AreaFormData, ShapeType,
-	Tab, SaveStatus,
+	MapSettings,
+	MapObject,
+	MapArea,
+	Node,
+	ObjectSavePayload,
+	AreaFormData,
+	ShapeType,
+	Tab,
+	SaveStatus,
 } from '../../types';
 
 function buildInitialSettings(): MapSettings {
-	const d = window.cnsMapEditor || {} as typeof window.cnsMapEditor;
+	const d = window.cnsMapEditor || ( {} as typeof window.cnsMapEditor );
 	return {
-		title:       d.title       ?? '',
-		width:       d.width       ?? 1000,
+		title: d.title ?? '',
+		width: d.width ?? 1000,
 		aspectRatio: d.aspectRatio ?? 1.0,
-		time:        d.time        ?? 0,
-		imageId:     d.imageId     ?? 0,
-		imageUrl:    d.imageUrl    ?? '',
-		imageX:      d.imageX      ?? 0,
-		imageY:      d.imageY      ?? 0,
-		imageW:      d.imageWidth  ?? 1.0,
-		isMaster:    d.isMaster    ?? false,
-		featured:    d.featured    ?? false,
-		bgType:      d.bgType      ?? 'color',
-		bgColor:     d.bgColor     ?? '#1a1a2e',
-		bgImageId:   d.bgImageId   ?? 0,
-		bgImageUrl:  d.bgImageUrl  ?? '',
+		time: d.time ?? 0,
+		imageId: d.imageId ?? 0,
+		imageUrl: d.imageUrl ?? '',
+		imageX: d.imageX ?? 0,
+		imageY: d.imageY ?? 0,
+		imageW: d.imageWidth ?? 1.0,
+		isMaster: d.isMaster ?? false,
+		featured: d.featured ?? false,
+		bgType: d.bgType ?? 'color',
+		bgColor: d.bgColor ?? '#1a1a2e',
+		bgImageId: d.bgImageId ?? 0,
+		bgImageUrl: d.bgImageUrl ?? '',
 	};
 }
 
 export default function MapEditorApp() {
-	const d           = window.cnsMapEditor || {} as typeof window.cnsMapEditor;
-	const mapId       = d.mapId       || 0;
-	const isNew       = d.isNew       || false;
+	const d = window.cnsMapEditor || ( {} as typeof window.cnsMapEditor );
+	const mapId = d.mapId || 0;
+	const isNew = d.isNew || false;
 	const overviewUrl = d.overviewUrl || '#';
-	const viewUrl     = d.viewUrl     || '';
+	const viewUrl = d.viewUrl || '';
 
-	const [ settings,           setSettings           ] = useState<MapSettings>( buildInitialSettings );
-	const [ activeTab,          setActiveTab          ] = useState<Tab>( 'settings' );
-	const [ objectsList,        setObjectsList        ] = useState<MapObject[]>( [] );
-	const [ areasList,          setAreasList          ] = useState<MapArea[]>( [] );
-	const [ selectedObjectId,   setSelectedObjectId   ] = useState<number | null>( null );
-	const [ selectedAreaId,     setSelectedAreaId     ] = useState<number | null>( null );
-	const [ repositioningObjId, setRepositioningObjId ] = useState<number | null>( null );
-	const [ saveStatus,         setSaveStatus         ] = useState<SaveStatus>( { text: '', type: '' } );
+	const [ settings, setSettings ] =
+		useState< MapSettings >( buildInitialSettings );
+	const [ activeTab, setActiveTab ] = useState< Tab >( 'settings' );
+	const [ objectsList, setObjectsList ] = useState< MapObject[] >( [] );
+	const [ areasList, setAreasList ] = useState< MapArea[] >( [] );
+	const [ selectedObjectId, setSelectedObjectId ] = useState< number | null >(
+		null
+	);
+	const [ selectedAreaId, setSelectedAreaId ] = useState< number | null >(
+		null
+	);
+	const [ repositioningObjId, setRepositioningObjId ] = useState<
+		number | null
+	>( null );
+	const [ saveStatus, setSaveStatus ] = useState< SaveStatus >( {
+		text: '',
+		type: '',
+	} );
 
-	const selectedObject = objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
-	const selectedArea   = areasList.find(   ( a ) => a.id === selectedAreaId   ) || null;
+	const selectedObject =
+		objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
+	const selectedArea =
+		areasList.find( ( a ) => a.id === selectedAreaId ) || null;
 
 	// ── Tab switching ─────────────────────────────────────────────────────────
 
 	function handleTabChange( tab: Tab ) {
-		if ( tab !== 'objects' ) { setSelectedObjectId( null ); setRepositioningObjId( null ); }
-		if ( tab !== 'areas'   )   setSelectedAreaId( null );
+		if ( tab !== 'objects' ) {
+			setSelectedObjectId( null );
+			setRepositioningObjId( null );
+		}
+		if ( tab !== 'areas' ) setSelectedAreaId( null );
 		setActiveTab( tab );
 	}
 
@@ -68,31 +89,38 @@ export default function MapEditorApp() {
 	async function handleSave() {
 		setSaveStatus( { text: 'Saving…', type: '' } );
 		const payload = {
-			map_id:       mapId,
-			title:        settings.title,
-			status:       'publish',
-			width:        settings.width,
+			map_id: mapId,
+			title: settings.title,
+			status: 'publish',
+			width: settings.width,
 			aspect_ratio: settings.aspectRatio,
-			time:         settings.time,
-			image_id:     settings.imageId,
-			image_x:      settings.imageX,
-			image_y:      settings.imageY,
-			image_width:  settings.imageW,
-			is_master:    settings.isMaster,
-			featured:     settings.featured,
-			bg_type:      settings.bgType,
-			bg_color:     settings.bgColor,
-			bg_image_id:  settings.bgImageId,
+			time: settings.time,
+			image_id: settings.imageId,
+			image_x: settings.imageX,
+			image_y: settings.imageY,
+			image_width: settings.imageW,
+			is_master: settings.isMaster,
+			featured: settings.featured,
+			bg_type: settings.bgType,
+			bg_color: settings.bgColor,
+			bg_image_id: settings.bgImageId,
 		};
 		try {
-			const res  = await apiFetch( 'POST', '/maps', payload );
-			const data = await res.json() as { created?: boolean; edit_url?: string; message?: string };
+			const res = await apiFetch( 'POST', '/maps', payload );
+			const data = ( await res.json() ) as {
+				created?: boolean;
+				edit_url?: string;
+				message?: string;
+			};
 			if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
 			if ( data.created && data.edit_url ) {
 				window.location.href = data.edit_url;
 			} else {
 				setSaveStatus( { text: 'Saved.', type: 'ok' } );
-				setTimeout( () => setSaveStatus( { text: '', type: '' } ), 2000 );
+				setTimeout(
+					() => setSaveStatus( { text: '', type: '' } ),
+					2000
+				);
 			}
 		} catch ( err ) {
 			setSaveStatus( { text: ( err as Error ).message, type: 'error' } );
@@ -101,54 +129,107 @@ export default function MapEditorApp() {
 
 	// ── Object operations ─────────────────────────────────────────────────────
 
-	async function handleObjectSave( formPayload: ObjectSavePayload ): Promise<MapObject | undefined> {
+	async function handleObjectSave(
+		formPayload: ObjectSavePayload
+	): Promise< MapObject | undefined > {
 		if ( ! selectedObjectId ) return;
-		const res  = await apiFetch( 'POST', `/objects/${ selectedObjectId }`, formPayload );
-		const data = await res.json() as MapObject;
-		if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Save failed.' );
-		setObjectsList( ( prev ) => prev.map( ( o ) => o.id === selectedObjectId ? data : o ) );
+		const res = await apiFetch(
+			'POST',
+			`/objects/${ selectedObjectId }`,
+			formPayload
+		);
+		const data = ( await res.json() ) as MapObject;
+		if ( ! res.ok )
+			throw new Error(
+				( data as unknown as { message?: string } ).message ||
+					'Save failed.'
+			);
+		setObjectsList( ( prev ) =>
+			prev.map( ( o ) => ( o.id === selectedObjectId ? data : o ) )
+		);
 		return data;
 	}
 
-	async function handleObjectPositionUpdate( id: number, x: number, y: number ): Promise<void> {
-		const res  = await apiFetch( 'PATCH', `/objects/${ id }/position`, { x, y } );
-		const data = await res.json() as MapObject;
+	async function handleObjectPositionUpdate(
+		id: number,
+		x: number,
+		y: number
+	): Promise< void > {
+		const res = await apiFetch( 'PATCH', `/objects/${ id }/position`, {
+			x,
+			y,
+		} );
+		const data = ( await res.json() ) as MapObject;
 		if ( res.ok ) {
-			setObjectsList( ( prev ) => prev.map( ( o ) => o.id === id ? data : o ) );
+			setObjectsList( ( prev ) =>
+				prev.map( ( o ) => ( o.id === id ? data : o ) )
+			);
 		}
 	}
 
 	// ── Area operations ───────────────────────────────────────────────────────
 
-	async function handleAreaSave( formData: AreaFormData ): Promise<MapArea | undefined> {
+	async function handleAreaSave(
+		formData: AreaFormData
+	): Promise< MapArea | undefined > {
 		if ( ! selectedAreaId ) return;
 		const area = areasList.find( ( a ) => a.id === selectedAreaId );
 		if ( ! area ) return;
 		const payload = { ...formData, nodes: JSON.stringify( area.nodes ) };
-		const res  = await apiFetch( 'POST', `/areas/${ selectedAreaId }`, payload );
-		const data = await res.json() as MapArea;
-		if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Save failed.' );
-		setAreasList( ( prev ) => prev.map( ( a ) => a.id === selectedAreaId ? data : a ) );
+		const res = await apiFetch(
+			'POST',
+			`/areas/${ selectedAreaId }`,
+			payload
+		);
+		const data = ( await res.json() ) as MapArea;
+		if ( ! res.ok )
+			throw new Error(
+				( data as unknown as { message?: string } ).message ||
+					'Save failed.'
+			);
+		setAreasList( ( prev ) =>
+			prev.map( ( a ) => ( a.id === selectedAreaId ? data : a ) )
+		);
 		return data;
 	}
 
 	function handleAreaNodesUpdate( areaId: number, nodes: Node[] ) {
-		setAreasList( ( prev ) => prev.map( ( a ) => a.id === areaId ? { ...a, nodes } : a ) );
+		setAreasList( ( prev ) =>
+			prev.map( ( a ) => ( a.id === areaId ? { ...a, nodes } : a ) )
+		);
 	}
 
 	function handleAreaShapeTypeChange( areaId: number, shapeType: ShapeType ) {
-		setAreasList( ( prev ) => prev.map( ( a ) => {
-			if ( a.id !== areaId ) return a;
-			return { ...a, shape_type: shapeType, nodes: normalizeNodesForShapeType( a.nodes || [], shapeType ) };
-		} ) );
+		setAreasList( ( prev ) =>
+			prev.map( ( a ) => {
+				if ( a.id !== areaId ) return a;
+				return {
+					...a,
+					shape_type: shapeType,
+					nodes: normalizeNodesForShapeType(
+						a.nodes || [],
+						shapeType
+					),
+				};
+			} )
+		);
 	}
 
 	// ── Object add / delete ───────────────────────────────────────────────────
 
-	async function handleObjectAdd( payload: ObjectSavePayload ): Promise<MapObject> {
-		const res  = await apiFetch( 'POST', `/maps/${ mapId }/objects`, payload );
-		const data = await res.json() as MapObject;
-		if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed.' );
+	async function handleObjectAdd(
+		payload: ObjectSavePayload
+	): Promise< MapObject > {
+		const res = await apiFetch(
+			'POST',
+			`/maps/${ mapId }/objects`,
+			payload
+		);
+		const data = ( await res.json() ) as MapObject;
+		if ( ! res.ok )
+			throw new Error(
+				( data as unknown as { message?: string } ).message || 'Failed.'
+			);
 		setObjectsList( ( prev ) => [ ...prev, data ] );
 		return data;
 	}
@@ -174,83 +255,95 @@ export default function MapEditorApp() {
 		: `Edit: ${ settings.title || '(no title)' }`;
 
 	return (
-		<div className="cns-map-editor wrap">
-			<div className="cns-editor-layout">
-				<div className="cns-editor-main">
-					<EditorHeader
-						pageTitle={ pageTitle }
-						overviewUrl={ overviewUrl }
-						viewUrl={ ( ! isNew && viewUrl ) ? viewUrl : '' }
-						saveStatus={ saveStatus }
-						onSave={ handleSave }
+		<div className="cns-map-editor">
+			<EditorHeader
+				pageTitle={ pageTitle }
+				overviewUrl={ overviewUrl }
+				viewUrl={ ! isNew && viewUrl ? viewUrl : '' }
+				saveStatus={ saveStatus }
+				onSave={ handleSave }
+			/>
+			<div className="cns-editor-main">
+				<div className="cns-map-editor__body">
+					<TabBar
+						activeTab={ activeTab }
+						isMaster={ settings.isMaster }
+						onChange={ handleTabChange }
 					/>
 
-					<div className="cns-map-editor__body">
-						<TabBar
-							activeTab={ activeTab }
-							isMaster={ settings.isMaster }
-							onChange={ handleTabChange }
-						/>
-
-						<div className="cns-map-editor__content">
-							{ activeTab === 'settings' && (
-								<SettingsPanel settings={ settings } onChange={ setSettings } />
-							) }
-							{ activeTab === 'objects' && ! settings.isMaster && (
-								<ObjectsPanel
-									mapId={ mapId }
-									settings={ settings }
-									objects={ objectsList }
-									selectedObjectId={ selectedObjectId }
-									repositioningObjectId={ repositioningObjId }
-									onObjectsLoaded={ setObjectsList }
-									onSelect={ setSelectedObjectId }
-									onDeselect={ () => setSelectedObjectId( null ) }
-									onAdd={ handleObjectAdd }
-									onPositionUpdate={ handleObjectPositionUpdate }
-									onRepositionStart={ ( id ) => setRepositioningObjId( id ) }
-									onRepositionComplete={ () => setRepositioningObjId( null ) }
-									onDelete={ handleObjectDeleteById }
-								/>
-							) }
-							{ activeTab === 'areas' && ! settings.isMaster && (
-								<AreasPanel
-									mapId={ mapId }
-									settings={ settings }
-									areas={ areasList }
-									selectedAreaId={ selectedAreaId }
-									onAreasLoaded={ setAreasList }
-									onSelect={ setSelectedAreaId }
-									onDeselect={ () => setSelectedAreaId( null ) }
-									onNodesUpdate={ handleAreaNodesUpdate }
-									onDelete={ handleAreaDeleteById }
-								/>
-							) }
-							{ ( activeTab === 'hierarchy' || ( settings.isMaster && activeTab !== 'settings' && activeTab !== 'preview' ) ) && (
-								<HierarchyPanel />
-							) }
-							{ activeTab === 'preview' && (
-								<PreviewPanel
-									settings={ settings }
-									objects={ objectsList }
-									areas={ areasList }
-									viewUrl={ ( ! isNew && viewUrl ) ? viewUrl : '' }
-								/>
-							) }
-						</div>
+					<div className="cns-map-editor__content">
+						{ activeTab === 'settings' && (
+							<SettingsPanel
+								settings={ settings }
+								onChange={ setSettings }
+							/>
+						) }
+						{ activeTab === 'objects' && ! settings.isMaster && (
+							<ObjectsPanel
+								mapId={ mapId }
+								settings={ settings }
+								objects={ objectsList }
+								selectedObjectId={ selectedObjectId }
+								repositioningObjectId={ repositioningObjId }
+								onObjectsLoaded={ setObjectsList }
+								onSelect={ setSelectedObjectId }
+								onDeselect={ () => setSelectedObjectId( null ) }
+								onAdd={ handleObjectAdd }
+								onPositionUpdate={ handleObjectPositionUpdate }
+								onRepositionStart={ ( id ) =>
+									setRepositioningObjId( id )
+								}
+								onRepositionComplete={ () =>
+									setRepositioningObjId( null )
+								}
+								onDelete={ handleObjectDeleteById }
+							/>
+						) }
+						{ activeTab === 'areas' && ! settings.isMaster && (
+							<AreasPanel
+								mapId={ mapId }
+								settings={ settings }
+								areas={ areasList }
+								selectedAreaId={ selectedAreaId }
+								onAreasLoaded={ setAreasList }
+								onSelect={ setSelectedAreaId }
+								onDeselect={ () => setSelectedAreaId( null ) }
+								onNodesUpdate={ handleAreaNodesUpdate }
+								onDelete={ handleAreaDeleteById }
+							/>
+						) }
+						{ ( activeTab === 'hierarchy' ||
+							( settings.isMaster &&
+								activeTab !== 'settings' &&
+								activeTab !== 'preview' ) ) && (
+							<HierarchyPanel />
+						) }
+						{ activeTab === 'preview' && (
+							<PreviewPanel
+								settings={ settings }
+								objects={ objectsList }
+								areas={ areasList }
+								viewUrl={ ! isNew && viewUrl ? viewUrl : '' }
+							/>
+						) }
 					</div>
 				</div>
-
 				<ContextPanel
 					activeTab={ activeTab }
 					selectedObject={ selectedObject }
 					selectedArea={ selectedArea }
 					onObjectSave={ handleObjectSave }
-					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId! ) }
+					onObjectDelete={ () =>
+						handleObjectDeleteById( selectedObjectId! )
+					}
 					onObjectClose={ () => setSelectedObjectId( null ) }
-					onObjectReposition={ () => setRepositioningObjId( selectedObjectId ) }
+					onObjectReposition={ () =>
+						setRepositioningObjId( selectedObjectId )
+					}
 					onAreaSave={ handleAreaSave }
-					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId! ) }
+					onAreaDelete={ () =>
+						handleAreaDeleteById( selectedAreaId! )
+					}
 					onAreaClose={ () => setSelectedAreaId( null ) }
 					onAreaNodesUpdate={ handleAreaNodesUpdate }
 					onAreaShapeTypeChange={ handleAreaShapeTypeChange }

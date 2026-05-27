@@ -1,7 +1,32 @@
 // CNS Map Suite — Admin styles
 
-// ── Overview ──────────────────────────────────────────────────────────────────
+.cns-map-editor {
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
+}
 
+.cns-editor-main {
+	display: flex;
+	gap: 2rem;
+	width: 100%;
+	.cns-map-editor__body {
+		flex: 3;
+	}
+	.cns-editor-context {
+		flex: 1;
+	}
+}
+
+.cns-map-editor {
+	&__header {
+		padding: 2rem 2rem 0;
+	}
+	&__body {
+	}
+}
+
+// ── Overview ──────────────────────────────────────────────────────────────────
 .cns-maps-overview__header {
 	display: flex;
 	align-items: center;
@@ -91,100 +116,100 @@
 	min-height: calc(100vh - 120px);
 }
 
-.cns-editor-main {
-	min-width: 0;
-}
+// .cns-editor-main {
+// 	min-width: 0;
+// }
 
 // ── Context panel ─────────────────────────────────────────────────────────────
 
-.cns-editor-context {
-	height: 100%;
-	width: 100%;
-	border-left: 1px solid #e0e0e0;
-	background: #fff;
-	display: flex;
-	flex-direction: column;
-	// position: sticky;
-	// top: 32px;
+// .cns-editor-context {
+// 	height: 100%;
+// 	width: 100%;
+// 	border-left: 1px solid #e0e0e0;
+// 	background: #fff;
+// 	display: flex;
+// 	flex-direction: column;
+// 	// position: sticky;
+// 	// top: 32px;
 
-	&__empty {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		padding: 32px 20px;
-		text-align: center;
-		color: #646970;
-		font-size: 13px;
-		flex: 1;
+// 	&__empty {
+// 		display: flex;
+// 		flex-direction: column;
+// 		align-items: center;
+// 		justify-content: center;
+// 		padding: 32px 20px;
+// 		text-align: center;
+// 		color: #646970;
+// 		font-size: 13px;
+// 		flex: 1;
 
-		p {
-			margin: 0;
-		}
-	}
+// 		p {
+// 			margin: 0;
+// 		}
+// 	}
 
-	&__header {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 12px 16px;
-		border-bottom: 1px solid #e0e0e0;
-		flex-shrink: 0;
-	}
+// 	&__header {
+// 		display: flex;
+// 		align-items: center;
+// 		gap: 8px;
+// 		padding: 12px 16px;
+// 		border-bottom: 1px solid #e0e0e0;
+// 		flex-shrink: 0;
+// 	}
 
-	&__title {
-		flex: 1;
-		font-weight: 600;
-		font-size: 13px;
-		white-space: nowrap;
-		overflow: hidden;
-		text-overflow: ellipsis;
-	}
+// 	&__title {
+// 		flex: 1;
+// 		font-weight: 600;
+// 		font-size: 13px;
+// 		white-space: nowrap;
+// 		overflow: hidden;
+// 		text-overflow: ellipsis;
+// 	}
 
-	&__close {
-		background: none;
-		border: none;
-		cursor: pointer;
-		color: #646970;
-		font-size: 18px;
-		line-height: 1;
-		padding: 2px 4px;
-		border-radius: 3px;
+// 	&__close {
+// 		background: none;
+// 		border: none;
+// 		cursor: pointer;
+// 		color: #646970;
+// 		font-size: 18px;
+// 		line-height: 1;
+// 		padding: 2px 4px;
+// 		border-radius: 3px;
 
-		&:hover {
-			color: #1d2327;
-			background: #f0f0f1;
-		}
-	}
+// 		&:hover {
+// 			color: #1d2327;
+// 			background: #f0f0f1;
+// 		}
+// 	}
 
-	&__body {
-		flex: 1;
-		overflow-y: auto;
+// 	&__body {
+// 		flex: 1;
+// 		overflow-y: auto;
 
-		.cns-modal-section {
-			padding: 14px 16px;
-		}
+// 		.cns-modal-section {
+// 			padding: 14px 16px;
+// 		}
 
-		.cns-form-grid {
-			grid-template-columns: 1fr;
-			gap: 12px;
-		}
-	}
+// 		.cns-form-grid {
+// 			grid-template-columns: 1fr;
+// 			gap: 12px;
+// 		}
+// 	}
 
-	&__footer {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-		padding: 10px 16px;
-		border-top: 1px solid #e0e0e0;
-		flex-shrink: 0;
+// 	&__footer {
+// 		display: flex;
+// 		align-items: center;
+// 		gap: 8px;
+// 		padding: 10px 16px;
+// 		border-top: 1px solid #e0e0e0;
+// 		flex-shrink: 0;
 
-		.cns-save-status {
-			flex: 1;
-			font-size: 11px;
-		}
-	}
-}
+// 		.cns-save-status {
+// 			flex: 1;
+// 			font-size: 11px;
+// 		}
+// 	}
+// }
 
 // ── Map editor header ─────────────────────────────────────────────────────────
 

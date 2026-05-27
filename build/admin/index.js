@@ -563,59 +563,56 @@ function MapEditorApp() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   const pageTitle = isNew ? 'New Map' : `Edit: ${settings.title || '(no title)'}`;
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)("div", {
-    className: "cns-map-editor wrap",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
-      className: "cns-editor-layout",
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+    className: "cns-map-editor",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_EditorHeader__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      pageTitle: pageTitle,
+      overviewUrl: overviewUrl,
+      viewUrl: !isNew && viewUrl ? viewUrl : '',
+      saveStatus: saveStatus,
+      onSave: handleSave
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
+      className: "cns-editor-main",
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
-        className: "cns-editor-main",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_EditorHeader__WEBPACK_IMPORTED_MODULE_1__["default"], {
-          pageTitle: pageTitle,
-          overviewUrl: overviewUrl,
-          viewUrl: !isNew && viewUrl ? viewUrl : '',
-          saveStatus: saveStatus,
-          onSave: handleSave
+        className: "cns-map-editor__body",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_TabBar__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          activeTab: activeTab,
+          isMaster: settings.isMaster,
+          onChange: handleTabChange
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
-          className: "cns-map-editor__body",
-          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_TabBar__WEBPACK_IMPORTED_MODULE_2__["default"], {
-            activeTab: activeTab,
-            isMaster: settings.isMaster,
-            onChange: handleTabChange
-          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsxs)("div", {
-            className: "cns-map-editor__content",
-            children: [activeTab === 'settings' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_SettingsPanel__WEBPACK_IMPORTED_MODULE_4__["default"], {
-              settings: settings,
-              onChange: setSettings
-            }), activeTab === 'objects' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_ObjectsPanel__WEBPACK_IMPORTED_MODULE_5__["default"], {
-              mapId: mapId,
-              settings: settings,
-              objects: objectsList,
-              selectedObjectId: selectedObjectId,
-              repositioningObjectId: repositioningObjId,
-              onObjectsLoaded: setObjectsList,
-              onSelect: setSelectedObjectId,
-              onDeselect: () => setSelectedObjectId(null),
-              onAdd: handleObjectAdd,
-              onPositionUpdate: handleObjectPositionUpdate,
-              onRepositionStart: id => setRepositioningObjId(id),
-              onRepositionComplete: () => setRepositioningObjId(null),
-              onDelete: handleObjectDeleteById
-            }), activeTab === 'areas' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_AreasPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
-              mapId: mapId,
-              settings: settings,
-              areas: areasList,
-              selectedAreaId: selectedAreaId,
-              onAreasLoaded: setAreasList,
-              onSelect: setSelectedAreaId,
-              onDeselect: () => setSelectedAreaId(null),
-              onNodesUpdate: handleAreaNodesUpdate,
-              onDelete: handleAreaDeleteById
-            }), (activeTab === 'hierarchy' || settings.isMaster && activeTab !== 'settings' && activeTab !== 'preview') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_HierarchyPanel__WEBPACK_IMPORTED_MODULE_7__["default"], {}), activeTab === 'preview' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_PreviewPanel__WEBPACK_IMPORTED_MODULE_8__["default"], {
-              settings: settings,
-              objects: objectsList,
-              areas: areasList,
-              viewUrl: !isNew && viewUrl ? viewUrl : ''
-            })]
+          className: "cns-map-editor__content",
+          children: [activeTab === 'settings' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_SettingsPanel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            settings: settings,
+            onChange: setSettings
+          }), activeTab === 'objects' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_ObjectsPanel__WEBPACK_IMPORTED_MODULE_5__["default"], {
+            mapId: mapId,
+            settings: settings,
+            objects: objectsList,
+            selectedObjectId: selectedObjectId,
+            repositioningObjectId: repositioningObjId,
+            onObjectsLoaded: setObjectsList,
+            onSelect: setSelectedObjectId,
+            onDeselect: () => setSelectedObjectId(null),
+            onAdd: handleObjectAdd,
+            onPositionUpdate: handleObjectPositionUpdate,
+            onRepositionStart: id => setRepositioningObjId(id),
+            onRepositionComplete: () => setRepositioningObjId(null),
+            onDelete: handleObjectDeleteById
+          }), activeTab === 'areas' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_AreasPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+            mapId: mapId,
+            settings: settings,
+            areas: areasList,
+            selectedAreaId: selectedAreaId,
+            onAreasLoaded: setAreasList,
+            onSelect: setSelectedAreaId,
+            onDeselect: () => setSelectedAreaId(null),
+            onNodesUpdate: handleAreaNodesUpdate,
+            onDelete: handleAreaDeleteById
+          }), (activeTab === 'hierarchy' || settings.isMaster && activeTab !== 'settings' && activeTab !== 'preview') && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_HierarchyPanel__WEBPACK_IMPORTED_MODULE_7__["default"], {}), activeTab === 'preview' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_panels_PreviewPanel__WEBPACK_IMPORTED_MODULE_8__["default"], {
+            settings: settings,
+            objects: objectsList,
+            areas: areasList,
+            viewUrl: !isNew && viewUrl ? viewUrl : ''
           })]
         })]
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_11__.jsx)(_ContextPanel__WEBPACK_IMPORTED_MODULE_3__["default"], {
@@ -632,7 +629,7 @@ function MapEditorApp() {
         onAreaNodesUpdate: handleAreaNodesUpdate,
         onAreaShapeTypeChange: handleAreaShapeTypeChange
       })]
-    })
+    })]
   });
 }
 
