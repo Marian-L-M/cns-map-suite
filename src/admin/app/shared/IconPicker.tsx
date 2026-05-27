@@ -1,10 +1,17 @@
-export default function IconPicker( { icons, selectedIconId, onSelect } ) {
+import type { LibraryIcon } from '../../../types';
+
+interface Props {
+	icons: LibraryIcon[];
+	selectedIconId: number | null;
+	onSelect: ( id: number ) => void;
+}
+
+export default function IconPicker( { icons, selectedIconId, onSelect }: Props ) {
 	if ( ! icons || ! icons.length ) {
-		const iconsUrl = window.cnsMapSuite?.iconsUrl || '#';
 		return (
 			<p className="description">
 				No icons yet.{ ' ' }
-				<a href={ iconsUrl } target="_blank" rel="noreferrer">Add icons →</a>
+				<a href={ window.cnsMapSuite.iconsUrl } target="_blank" rel="noreferrer">Add icons →</a>
 			</p>
 		);
 	}

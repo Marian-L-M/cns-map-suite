@@ -1,4 +1,12 @@
-export default function ObjectsList( { objects, onEdit, onDelete } ) {
+import type { MapObject } from '../../../types';
+
+interface Props {
+	objects: MapObject[];
+	onEdit: ( obj: MapObject ) => void;
+	onDelete: ( id: number ) => void;
+}
+
+export default function ObjectsList( { objects, onEdit, onDelete }: Props ) {
 	if ( ! objects.length ) {
 		return <p className="cns-objects-empty">No objects yet. Click on the canvas to place one.</p>;
 	}

@@ -1,6 +1,15 @@
-import SaveStatus from './shared/SaveStatus.js';
+import SaveStatus from './shared/SaveStatus';
+import type { SaveStatus as SaveStatusType } from '../../types';
 
-export default function EditorHeader( { pageTitle, overviewUrl, viewUrl, saveStatus, onSave } ) {
+interface Props {
+	pageTitle: string;
+	overviewUrl: string;
+	viewUrl: string;
+	saveStatus: SaveStatusType;
+	onSave: () => void;
+}
+
+export default function EditorHeader( { pageTitle, overviewUrl, viewUrl, saveStatus, onSave }: Props ) {
 	return (
 		<div className="cns-map-editor__header">
 			<a href={ overviewUrl } className="cns-back-link">&larr; All Maps</a>

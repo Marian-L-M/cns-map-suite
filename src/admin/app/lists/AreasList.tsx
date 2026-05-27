@@ -1,6 +1,14 @@
-export default function AreasList( { areas, onSelect, onDelete } ) {
+import type { MapArea } from '../../../types';
+
+interface Props {
+	areas: MapArea[];
+	onSelect: ( id: number ) => void;
+	onDelete: ( id: number ) => void;
+}
+
+export default function AreasList( { areas, onSelect, onDelete }: Props ) {
 	if ( ! areas.length ) {
-		return <p className="cns-objects-empty">No areas yet. Click "Add Area" to create one.</p>;
+		return <p className="cns-objects-empty">No areas yet. Click &ldquo;Add Area&rdquo; to create one.</p>;
 	}
 
 	return (

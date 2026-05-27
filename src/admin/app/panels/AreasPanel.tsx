@@ -1,20 +1,33 @@
 import { useState, useEffect } from '@wordpress/element';
-import AreasCanvas  from '../canvases/AreasCanvas.js';
-import AreasList    from '../lists/AreasList.js';
-import { apiFetch } from '../../utils.js';
-import { settingsToDrawState } from '../../canvas.js';
-import { getDefaultNodes } from '../../areas.js';
+import AreasCanvas  from '../canvases/AreasCanvas';
+import AreasList    from '../lists/AreasList';
+import { apiFetch } from '../../utils';
+import { settingsToDrawState } from '../../canvas';
+import { getDefaultNodes } from '../../areas';
+import type { MapSettings, MapArea, Node } from '../../../types';
+
+interface Props {
+	mapId: number;
+	settings: MapSettings;
+	areas: MapArea[];
+	selectedAreaId: number | null;
+	onAreasLoaded: ( areas: MapArea[] ) => void;
+	onSelect: ( id: number ) => void;
+	onDeselect: () => void;
+	onNodesUpdate: ( areaId: number, nodes: Node[] ) => void;
+	onDelete: ( id: number ) => Promise<void>;
+}
 
 export default function AreasPanel( {
 	mapId, settings, areas, selectedAreaId,
 	onAreasLoaded, onSelect, onDeselect, onNodesUpdate, onDelete,
-} ) {
+}: Props ) {
 	const [ initialized, setInitialized ] = useState( false );
 
 	useEffect( () => {
 		if ( initialized || ! mapId ) return;
 		apiFetch( 'GET', `/maps/${ mapId }/areas` )
-			.then( ( r ) => r.json() )
+			.then( ( r ) => r.json() as Promise<MapArea[]> )
 			.then( ( data ) => { if ( Array.isArray( data ) ) onAreasLoaded( data ); } )
 			.catch( () => {} )
 			.finally( () => setInitialized( true ) );
@@ -32,14 +45,14 @@ export default function AreasPanel( {
 				style_stroke:        '#2271b1',
 				style_stroke_width:  2,
 			} );
-			const data = await res.json();
-			if ( ! res.ok ) throw new Error( data.message || 'Failed to create area.' );
+			const data = await res.json() as MapArea;
+			if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed to create area.' );
 			onAreasLoaded( [ ...areas, data ] );
 			onSelect( data.id );
-		} catch ( err ) { alert( err.message ); }
+		} catch ( err ) { alert( ( err as Error ).message ); }
 	}
 
-	async function handleDelete( id ) {
+	async function handleDelete( id: number ) {
 		if ( ! confirm( 'Delete this area?' ) ) return;
 		await onDelete( id );
 	}

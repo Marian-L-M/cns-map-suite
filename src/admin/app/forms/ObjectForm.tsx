@@ -1,10 +1,10 @@
-/* global wp */
 import { useRef } from '@wordpress/element';
-import MediaPicker from '../shared/MediaPicker.js';
-import PostSearch  from '../shared/PostSearch.js';
-import IconPicker  from '../shared/IconPicker.js';
+import MediaPicker from '../shared/MediaPicker';
+import PostSearch  from '../shared/PostSearch';
+import IconPicker  from '../shared/IconPicker';
+import type { ObjectFormData, ObjectSavePayload, ObjectType, LibraryIcon, MapObject, InfoboxSource } from '../../../types';
 
-const TYPES = [
+const TYPES: { value: ObjectType; label: string }[] = [
 	{ value: 'LOCATION', label: 'Location' },
 	{ value: 'HISTORY',  label: 'History' },
 	{ value: 'NATURAL',  label: 'Natural' },
@@ -12,21 +12,22 @@ const TYPES = [
 	{ value: 'OTHER',    label: 'Other' },
 ];
 
-/**
- * Controlled object metadata form.
- *
- * Props: formData, onChange, icons (array from icon library cache)
- */
-export default function ObjectForm( { formData, onChange, icons } ) {
-	// radio-name uniqueness is handled by rendering context (modal vs context panel)
-	// so we use a stable prefix per mount via useRef
+interface Props {
+	formData: ObjectFormData;
+	onChange: ( formData: ObjectFormData ) => void;
+	icons: LibraryIcon[];
+}
+
+export default function ObjectForm( { formData, onChange, icons }: Props ) {
 	const uid = useRef( Math.random().toString( 36 ).slice( 2 ) );
 	const n   = uid.current;
 
-	function set( key, val ) { onChange( { ...formData, [ key ]: val } ); }
+	function set<K extends keyof ObjectFormData>( key: K, val: ObjectFormData[ K ] ) {
+		onChange( { ...formData, [ key ]: val } );
+	}
 
-	const isSvgSource   = formData.icon_source !== 'image';
-	const isManualIb    = formData.infobox_source !== 'post';
+	const isSvgSource = formData.icon_source !== 'image';
+	const isManualIb  = formData.infobox_source !== 'post';
 
 	return (
 		<>
@@ -53,7 +54,7 @@ export default function ObjectForm( { formData, onChange, icons } ) {
 							onSelect={ ( id ) => set( 'icon_image_id_svg', id ) }
 						/>
 						<p className="description">
-							<a href={ window.cnsMapSuite?.iconsUrl || '#' } target="_blank" rel="noreferrer">
+							<a href={ window.cnsMapSuite.iconsUrl } target="_blank" rel="noreferrer">
 								Manage icon library →
 							</a>
 						</p>
@@ -84,7 +85,7 @@ export default function ObjectForm( { formData, onChange, icons } ) {
 					</div>
 					<div className="cns-form-row">
 						<label>Type</label>
-						<select value={ formData.type } onChange={ ( e ) => set( 'type', e.target.value ) }>
+						<select value={ formData.type } onChange={ ( e ) => set( 'type', e.target.value as ObjectType ) }>
 							{ TYPES.map( ( t ) => <option key={ t.value } value={ t.value }>{ t.label }</option> ) }
 						</select>
 					</div>
@@ -130,7 +131,7 @@ export default function ObjectForm( { formData, onChange, icons } ) {
 						</div>
 						<div className="cns-form-row cns-form-row--full">
 							<label>Description</label>
-							<textarea rows="4" className="large-text" value={ formData.infobox_description }
+							<textarea rows={ 4 } className="large-text" value={ formData.infobox_description }
 								onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
 						</div>
 						<div className="cns-form-row cns-form-row--full">
@@ -190,7 +191,11 @@ export default function ObjectForm( { formData, onChange, icons } ) {
 	);
 }
 
-export function defaultObjectFormData( obj, x, y ) {
+export function defaultObjectFormData(
+	obj: MapObject | null,
+	x: number | null,
+	y: number | null,
+): ObjectFormData {
 	const isSvg = ! obj || ! obj.icon_image_id || obj.icon_mime === 'image/svg+xml';
 	return {
 		icon_source:          isSvg ? 'svg' : 'image',
@@ -202,7 +207,7 @@ export function defaultObjectFormData( obj, x, y ) {
 		object_time:          obj?.object_time ?? 0,
 		x:                    obj ? obj.x : ( x ?? 0 ),
 		y:                    obj ? obj.y : ( y ?? 0 ),
-		infobox_source:       obj?.infobox_source      || 'manual',
+		infobox_source:       ( obj?.infobox_source as InfoboxSource | undefined ) || 'manual',
 		infobox_title:        obj?.infobox_data?.title       || '',
 		infobox_description:  obj?.infobox_data?.description || '',
 		infobox_image_id:     obj?.infobox_data?.image_id    || 0,
@@ -215,7 +220,7 @@ export function defaultObjectFormData( obj, x, y ) {
 	};
 }
 
-export function collectObjectPayload( formData ) {
+export function collectObjectPayload( formData: ObjectFormData ): ObjectSavePayload {
 	const iconImageId = formData.icon_source === 'svg'
 		? ( formData.icon_image_id_svg || 0 )
 		: ( formData.icon_image_id_custom || 0 );

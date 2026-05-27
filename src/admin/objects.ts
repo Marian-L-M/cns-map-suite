@@ -1,9 +1,17 @@
-import { loadImage, loadSvgWithColors } from './utils.js';
-import { drawMapCanvas } from './canvas.js';
+import { loadImage, loadSvgWithColors } from './utils';
+import { drawMapCanvas } from './canvas';
+import type { MapObject, DrawState, CanvasPoint } from '../types';
 
 // ── Canvas rendering ──────────────────────────────────────────────────────────
 
-function drawFallbackMarker( ctx, x, y, size, fill, stroke ) {
+function drawFallbackMarker(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	size: number,
+	fill: string,
+	stroke: string,
+): void {
 	ctx.save();
 	ctx.beginPath();
 	ctx.arc( x, y, size / 2, 0, Math.PI * 2 );
@@ -15,10 +23,14 @@ function drawFallbackMarker( ctx, x, y, size, fill, stroke ) {
 	ctx.restore();
 }
 
-export async function drawObjectMarker( ctx, obj, isSelected ) {
-	const size   = obj.canvas_styles?.size        || 32;
-	const fill   = obj.canvas_styles?.fillStyle   || '#ffffff';
-	const stroke = obj.canvas_styles?.strokeStyle || '#2271b1';
+export async function drawObjectMarker(
+	ctx: CanvasRenderingContext2D,
+	obj: MapObject,
+	isSelected: boolean,
+): Promise<void> {
+	const size   = obj.canvas_styles?.size        ?? 32;
+	const fill   = obj.canvas_styles?.fillStyle   ?? '#ffffff';
+	const stroke = obj.canvas_styles?.strokeStyle ?? '#2271b1';
 
 	if ( obj.icon_url ) {
 		const img = obj.icon_mime === 'image/svg+xml'
@@ -45,10 +57,16 @@ export async function drawObjectMarker( ctx, obj, isSelected ) {
 	}
 }
 
-// drawState: { width, aspectRatio, bgType, bgColor, bgImageUrl, imgUrl, imageX, imageY, imageW }
-export async function drawObjectsOnCanvas( canvas, drawState, objects, selectedObjectId, repositioningId, repositionCursor ) {
+export async function drawObjectsOnCanvas(
+	canvas: HTMLCanvasElement,
+	drawState: DrawState,
+	objects: MapObject[],
+	selectedObjectId: number | null,
+	repositioningId: number | null,
+	repositionCursor: CanvasPoint | null,
+): Promise<void> {
 	await drawMapCanvas( canvas, drawState );
-	const ctx = canvas.getContext( '2d' );
+	const ctx = canvas.getContext( '2d' )!;
 	for ( const obj of objects ) {
 		if ( repositioningId === obj.id && repositionCursor ) {
 			await drawObjectMarker( ctx, { ...obj, ...repositionCursor }, true );
@@ -58,10 +76,15 @@ export async function drawObjectsOnCanvas( canvas, drawState, objects, selectedO
 	}
 }
 
-export function findObjectAtPoint( ctx, x, y, objects ) {
+export function findObjectAtPoint(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	objects: MapObject[],
+): MapObject | null {
 	for ( let i = objects.length - 1; i >= 0; i-- ) {
 		const obj  = objects[ i ];
-		const size = obj.canvas_styles?.size || 32;
+		const size = obj.canvas_styles?.size ?? 32;
 		const half = size / 2;
 		ctx.beginPath();
 		ctx.rect( obj.x - half, obj.y - half, size, size );

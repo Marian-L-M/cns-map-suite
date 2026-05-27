@@ -8,7 +8,7 @@ module.exports = {
 		const blockEntries = await defaultConfig.entry();
 		return {
 			...blockEntries,
-			'admin/index': './src/admin/index.js',
+			'admin/index': './src/admin/index.tsx',
 		};
 	},
 };

@@ -1,21 +1,28 @@
 import { useState, useEffect } from '@wordpress/element';
-import ObjectForm, { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm.js';
-import SaveStatus from './shared/SaveStatus.js';
-import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons.js';
+import ObjectForm, { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
+import SaveStatus from './shared/SaveStatus';
+import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
+import type { MapObject, ObjectFormData, ObjectSavePayload, LibraryIcon, SaveStatus as SaveStatusType } from '../../types';
 
-export default function ObjectModal( { obj, defaultX, defaultY, onSave, onClose } ) {
-	const [ formData, setFormData ] = useState( () => defaultObjectFormData( obj, defaultX, defaultY ) );
-	const [ icons, setIcons ]       = useState( iconLibraryCache || [] );
-	const [ status, setStatus ]     = useState( { text: '', type: '' } );
+interface Props {
+	obj: MapObject | null;
+	defaultX: number | null;
+	defaultY: number | null;
+	onSave: ( payload: ObjectSavePayload ) => Promise<void>;
+	onClose: () => void;
+}
+
+export default function ObjectModal( { obj, defaultX, defaultY, onSave, onClose }: Props ) {
+	const [ formData, setFormData ] = useState<ObjectFormData>( () => defaultObjectFormData( obj, defaultX, defaultY ) );
+	const [ icons, setIcons ]       = useState<LibraryIcon[]>( iconLibraryCache || [] );
+	const [ status, setStatus ]     = useState<SaveStatusType>( { text: '', type: '' } );
 	const [ saving, setSaving ]     = useState( false );
 
-	// Reset form when the target object changes
 	useEffect( () => {
 		setFormData( defaultObjectFormData( obj, defaultX, defaultY ) );
 		setStatus( { text: '', type: '' } );
 	}, [ obj?.id ] );
 
-	// Ensure icon cache is loaded
 	useEffect( () => {
 		if ( ! iconLibraryCache ) {
 			loadIconLibraryIntoCache().then( () => setIcons( iconLibraryCache || [] ) );
@@ -29,14 +36,14 @@ export default function ObjectModal( { obj, defaultX, defaultY, onSave, onClose 
 			await onSave( collectObjectPayload( formData ) );
 			setStatus( { text: 'Saved.', type: 'ok' } );
 		} catch ( err ) {
-			setStatus( { text: err.message, type: 'error' } );
+			setStatus( { text: ( err as Error ).message, type: 'error' } );
 		} finally {
 			setSaving( false );
 		}
 	}
 
 	return (
-		<div className="cns-modal" role="dialog" aria-modal="true" aria-labelledby="cns-object-modal-title">
+		<div className="cns-modal" role="dialog" aria-modal={ true } aria-labelledby="cns-object-modal-title">
 			<div className="cns-modal__backdrop" onClick={ onClose } />
 			<div className="cns-modal__dialog">
 				<div className="cns-modal__header">

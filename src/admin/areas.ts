@@ -1,10 +1,11 @@
-import { drawMapCanvas } from './canvas.js';
+import { drawMapCanvas } from './canvas';
+import type { MapArea, Node, ShapeType, DrawState, CanvasPoint } from '../types';
 
 const NODE_HALF = 5;
 
 // ── Path builders ─────────────────────────────────────────────────────────────
 
-function buildPolygonPath( ctx, nodes, W, H ) {
+function buildPolygonPath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ): void {
 	ctx.moveTo( nodes[ 0 ].x * W, nodes[ 0 ].y * H );
 	for ( let i = 1; i < nodes.length; i++ ) {
 		ctx.lineTo( nodes[ i ].x * W, nodes[ i ].y * H );
@@ -12,7 +13,7 @@ function buildPolygonPath( ctx, nodes, W, H ) {
 	ctx.closePath();
 }
 
-function buildBezierPath( ctx, nodes, W, H ) {
+function buildBezierPath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ): void {
 	const n      = nodes.length;
 	const startX = ( nodes[ n - 1 ].x + nodes[ 0 ].x ) / 2 * W;
 	const startY = ( nodes[ n - 1 ].y + nodes[ 0 ].y ) / 2 * H;
@@ -25,7 +26,7 @@ function buildBezierPath( ctx, nodes, W, H ) {
 	ctx.closePath();
 }
 
-function buildCirclePath( ctx, nodes, W, H ) {
+function buildCirclePath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ): void {
 	const cx = nodes[ 0 ].x * W;
 	const cy = nodes[ 0 ].y * H;
 	const rx = Math.max( Math.abs( nodes[ 1 ].x - nodes[ 0 ].x ) * W, 1 );
@@ -33,7 +34,13 @@ function buildCirclePath( ctx, nodes, W, H ) {
 	ctx.ellipse( cx, cy, rx, ry, 0, 0, Math.PI * 2 );
 }
 
-function buildAreaPathFromNodes( ctx, nodes, shapeType, W, H ) {
+function buildAreaPathFromNodes(
+	ctx: CanvasRenderingContext2D,
+	nodes: Node[],
+	shapeType: ShapeType,
+	W: number,
+	H: number,
+): void {
 	ctx.beginPath();
 	if ( ! nodes.length ) return;
 	switch ( shapeType ) {
@@ -53,7 +60,12 @@ function buildAreaPathFromNodes( ctx, nodes, shapeType, W, H ) {
 // ── Shape helpers ─────────────────────────────────────────────────────────────
 
 // Nodes are TL(0) TR(1) BR(2) BL(3); adjacent pairs share one axis.
-export function applyRectangleConstraint( nodes, movedIdx, newX, newY ) {
+export function applyRectangleConstraint(
+	nodes: Node[],
+	movedIdx: number,
+	newX: number,
+	newY: number,
+): Node[] | null {
 	if ( nodes.length !== 4 ) return null;
 	const n = nodes.map( ( nd ) => ( { ...nd } ) );
 	n[ movedIdx ] = { x: newX, y: newY };
@@ -66,7 +78,7 @@ export function applyRectangleConstraint( nodes, movedIdx, newX, newY ) {
 	return n;
 }
 
-export function getDefaultNodes( shapeType ) {
+export function getDefaultNodes( shapeType: ShapeType ): Node[] {
 	if ( shapeType === 'CIRCLE' ) {
 		return [ { x: 0.5, y: 0.5 }, { x: 0.7, y: 0.65 } ];
 	}
@@ -76,7 +88,7 @@ export function getDefaultNodes( shapeType ) {
 	];
 }
 
-export function normalizeNodesForShapeType( nodes, shapeType ) {
+export function normalizeNodesForShapeType( nodes: Node[], shapeType: ShapeType ): Node[] {
 	if ( shapeType === 'RECTANGLE' ) {
 		return nodes.length === 4 ? nodes : getDefaultNodes( 'RECTANGLE' );
 	}
@@ -88,7 +100,14 @@ export function normalizeNodesForShapeType( nodes, shapeType ) {
 	return nodes;
 }
 
-function getLiveNodes( nodes, shapeType, movingIdx, cursor, W, H ) {
+function getLiveNodes(
+	nodes: Node[],
+	shapeType: ShapeType,
+	movingIdx: number | null,
+	cursor: CanvasPoint | null,
+	W: number,
+	H: number,
+): Node[] {
 	if ( movingIdx === null || ! cursor ) return nodes;
 	const newX = cursor.x / W;
 	const newY = cursor.y / H;
@@ -110,12 +129,20 @@ function getLiveNodes( nodes, shapeType, movingIdx, cursor, W, H ) {
 // ── Canvas rendering ──────────────────────────────────────────────────────────
 
 // repoNodeIdx / repoCursor are only meaningful when isSelected === true.
-export function drawAreaShape( ctx, area, W, H, isSelected, repoNodeIdx, repoCursor ) {
+export function drawAreaShape(
+	ctx: CanvasRenderingContext2D,
+	area: MapArea,
+	W: number,
+	H: number,
+	isSelected: boolean,
+	repoNodeIdx: number | null,
+	repoCursor: CanvasPoint | null,
+): void {
 	const rawNodes  = area.nodes || [];
 	if ( ! rawNodes.length ) return;
 	const shapeType = area.shape_type || 'POLYGON';
 	const liveNodes = isSelected
-		? getLiveNodes( rawNodes, shapeType, repoNodeIdx ?? null, repoCursor ?? null, W, H )
+		? getLiveNodes( rawNodes, shapeType, repoNodeIdx, repoCursor, W, H )
 		: rawNodes;
 
 	const minNodes = shapeType === 'CIRCLE' ? 2 : 3;
@@ -152,14 +179,22 @@ export function drawAreaShape( ctx, area, W, H, isSelected, repoNodeIdx, repoCur
 	} );
 }
 
-export async function drawAreasOnCanvas( canvas, drawState, areas, selectedAreaId, repoNodeIdx, repoCursor ) {
+export async function drawAreasOnCanvas(
+	canvas: HTMLCanvasElement,
+	drawState: DrawState,
+	areas: MapArea[],
+	selectedAreaId: number | null,
+	repoNodeIdx: number | null,
+	repoCursor: CanvasPoint | null,
+): Promise<void> {
 	await drawMapCanvas( canvas, drawState );
-	const ctx = canvas.getContext( '2d' );
+	const ctx = canvas.getContext( '2d' )!;
 	const W   = canvas.width;
 	const H   = canvas.height;
 	for ( const area of areas ) {
 		const isSel = area.id === selectedAreaId;
-		drawAreaShape( ctx, area, W, H, isSel,
+		drawAreaShape(
+			ctx, area, W, H, isSel,
 			isSel ? repoNodeIdx : null,
 			isSel ? repoCursor  : null,
 		);
@@ -168,7 +203,14 @@ export async function drawAreasOnCanvas( canvas, drawState, areas, selectedAreaI
 
 // ── Hit detection ─────────────────────────────────────────────────────────────
 
-export function findNodeAtPoint( ctx, x, y, nodes, W, H ) {
+export function findNodeAtPoint(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	nodes: Node[],
+	W: number,
+	H: number,
+): number {
 	for ( let i = nodes.length - 1; i >= 0; i-- ) {
 		ctx.beginPath();
 		ctx.rect( nodes[ i ].x * W - NODE_HALF, nodes[ i ].y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2 );
@@ -177,7 +219,14 @@ export function findNodeAtPoint( ctx, x, y, nodes, W, H ) {
 	return -1;
 }
 
-export function findAreaAtPoint( ctx, x, y, areas, W, H ) {
+export function findAreaAtPoint(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	areas: MapArea[],
+	W: number,
+	H: number,
+): MapArea | null {
 	for ( let i = areas.length - 1; i >= 0; i-- ) {
 		const area      = areas[ i ];
 		const nodes     = area.nodes || [];

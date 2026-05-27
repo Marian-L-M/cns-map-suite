@@ -1,11 +1,35 @@
 import { useRef, useEffect, useState } from '@wordpress/element';
-import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, applyRectangleConstraint } from '../../areas.js';
-import { getCanvasCoords } from '../../canvas.js';
+import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, applyRectangleConstraint } from '../../areas';
+import { getCanvasCoords } from '../../canvas';
+import type { DrawState, MapArea, Node, CanvasPoint } from '../../../types';
 
-function commitNodePosition( canvas, area, idx, x, y ) {
-	const W   = canvas.width;
-	const H   = canvas.height;
-	const st  = area.shape_type || 'POLYGON';
+interface Props {
+	drawState: DrawState;
+	areas: MapArea[];
+	selectedAreaId: number | null;
+	onSelect: ( id: number ) => void;
+	onDeselect: () => void;
+	onNodesChange: ( areaId: number, nodes: Node[] ) => void;
+}
+
+interface AreasCanvasState {
+	areas: MapArea[];
+	selectedAreaId: number | null;
+	onNodesChange: ( areaId: number, nodes: Node[] ) => void;
+	repoNodeIdx: number | null;
+	repoCursor: CanvasPoint | null;
+}
+
+function commitNodePosition(
+	canvas: HTMLCanvasElement,
+	area: MapArea,
+	idx: number,
+	x: number,
+	y: number,
+): Node[] {
+	const W    = canvas.width;
+	const H    = canvas.height;
+	const st   = area.shape_type || 'POLYGON';
 	const newX = x / W;
 	const newY = y / H;
 	let updated = area.nodes.map( ( n ) => ( { ...n } ) );
@@ -23,26 +47,22 @@ function commitNodePosition( canvas, area, idx, x, y ) {
 	return updated;
 }
 
-/**
- * Props:
- *   drawState        — canvas draw state from settings
- *   areas            — current areas array
- *   selectedAreaId   — null or number
- *   onSelect         — fn(id)
- *   onDeselect       — fn()
- *   onNodesChange    — fn(areaId, newNodes)
- */
 export default function AreasCanvas( {
 	drawState, areas, selectedAreaId,
 	onSelect, onDeselect, onNodesChange,
-} ) {
-	const canvasRef = useRef( null );
+}: Props ) {
+	const canvasRef = useRef<HTMLCanvasElement>( null );
 
-	const [ repoNodeIdx, setRepoNodeIdx ] = useState( null );
-	const [ repoCursor,  setRepoCursor  ] = useState( null );
+	const [ repoNodeIdx, setRepoNodeIdx ] = useState<number | null>( null );
+	const [ repoCursor,  setRepoCursor  ] = useState<CanvasPoint | null>( null );
 
-	// stateRef keeps current values for the document keydown handler (avoids stale closures).
-	const stateRef = useRef( {} );
+	const stateRef = useRef<AreasCanvasState>( {
+		areas: [],
+		selectedAreaId: null,
+		onNodesChange,
+		repoNodeIdx: null,
+		repoCursor: null,
+	} );
 	stateRef.current = { areas, selectedAreaId, onNodesChange, repoNodeIdx, repoCursor };
 
 	// ── Draw ────────────────────────────────────────────────────────────────────
@@ -55,22 +75,22 @@ export default function AreasCanvas( {
 
 	// ── JSX event handlers — always read current props/state, no stale closures ──
 
-	function handleMouseMove( e ) {
+	function handleMouseMove( e: React.MouseEvent<HTMLCanvasElement> ) {
 		if ( repoNodeIdx === null ) return;
-		setRepoCursor( getCanvasCoords( canvasRef.current, e ) );
+		setRepoCursor( getCanvasCoords( canvasRef.current!, e.nativeEvent ) );
 	}
 
-	function handleClick( e ) {
-		const canvas = canvasRef.current;
-		const { x, y } = getCanvasCoords( canvas, e );
-		const ctx = canvas.getContext( '2d' );
+	function handleClick( e: React.MouseEvent<HTMLCanvasElement> ) {
+		const canvas = canvasRef.current!;
+		const { x, y } = getCanvasCoords( canvas, e.nativeEvent );
+		const ctx = canvas.getContext( '2d' )!;
 		const W   = canvas.width;
 		const H   = canvas.height;
 
 		if ( repoNodeIdx !== null ) {
 			const area = areas.find( ( a ) => a.id === selectedAreaId );
 			if ( area ) {
-				onNodesChange?.( selectedAreaId, commitNodePosition( canvas, area, repoNodeIdx, x, y ) );
+				onNodesChange?.( selectedAreaId!, commitNodePosition( canvas, area, repoNodeIdx, x, y ) );
 			}
 			setRepoNodeIdx( null );
 			setRepoCursor( null );
@@ -93,7 +113,7 @@ export default function AreasCanvas( {
 		if ( selArea ) {
 			const st = selArea.shape_type || 'POLYGON';
 			if ( st !== 'RECTANGLE' && st !== 'CIRCLE' ) {
-				onNodesChange?.( selectedAreaId, [ ...selArea.nodes, { x: x / W, y: y / H } ] );
+				onNodesChange?.( selectedAreaId!, [ ...selArea.nodes, { x: x / W, y: y / H } ] );
 			}
 			return;
 		}
@@ -104,7 +124,7 @@ export default function AreasCanvas( {
 	// ── document keydown — bind once; reads live values via stateRef ─────────────
 
 	useEffect( () => {
-		function onKeyDown( e ) {
+		function onKeyDown( e: KeyboardEvent ) {
 			const areasActive = document.querySelector( '[data-panel="areas"].cns-tab-panel--active' );
 			if ( ! areasActive ) return;
 			const { areas: areaList, selectedAreaId: selId, onNodesChange: onChange,
@@ -112,8 +132,8 @@ export default function AreasCanvas( {
 
 			if ( e.key === 'Enter' && nodeIdx !== null && cursor ) {
 				const area = areaList.find( ( a ) => a.id === selId );
-				if ( area ) {
-					onChange?.( selId, commitNodePosition( canvasRef.current, area, nodeIdx, cursor.x, cursor.y ) );
+				if ( area && selId !== null ) {
+					onChange?.( selId, commitNodePosition( canvasRef.current!, area, nodeIdx, cursor.x, cursor.y ) );
 				}
 			}
 			if ( e.key === 'Escape' || e.key === 'Enter' ) {

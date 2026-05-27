@@ -1,35 +1,33 @@
-/* global wp */
 import { useRef } from '@wordpress/element';
+import type { MediaAttachment } from '../../../types';
 
-/**
- * Wraps the WordPress media frame.
- *
- * Props:
- *   imageId    {number}   current attachment ID (0 = none)
- *   imageUrl   {string}   current preview URL
- *   title      {string}   media-frame title
- *   onChange   {fn}       called with { id, url } or null on remove
- */
-export default function MediaPicker( { imageId, imageUrl, title = 'Select Image', onChange } ) {
-	const frameRef = useRef( null );
+interface Props {
+	imageId: number;
+	imageUrl: string;
+	title?: string;
+	onChange: ( attachment: MediaAttachment | null ) => void;
+}
 
-	function openPicker( e ) {
+export default function MediaPicker( { imageId, imageUrl, title = 'Select Image', onChange }: Props ) {
+	const frameRef = useRef<ReturnType<typeof window.wp.media> | null>( null );
+
+	function openPicker( e: React.MouseEvent ) {
 		e.preventDefault();
 		if ( frameRef.current ) { frameRef.current.open(); return; }
-		frameRef.current = wp.media( {
+		frameRef.current = window.wp.media( {
 			title,
 			button:   { text: 'Use this image' },
 			multiple: false,
 			library:  { type: 'image' },
 		} );
 		frameRef.current.on( 'select', () => {
-			const att = frameRef.current.state().get( 'selection' ).first().toJSON();
-			onChange?.( { id: att.id, url: att.url } );
+			const att = frameRef.current!.state().get( 'selection' ).first().toJSON();
+			onChange?.( { id: att.id, url: att.url as string } );
 		} );
 		frameRef.current.open();
 	}
 
-	function removePicker( e ) {
+	function removePicker( e: React.MouseEvent ) {
 		e.preventDefault();
 		onChange?.( null );
 	}

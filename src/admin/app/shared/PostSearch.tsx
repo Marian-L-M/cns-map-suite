@@ -1,38 +1,37 @@
 import { useState, useRef, useEffect } from '@wordpress/element';
+import type { PostSearchResult } from '../../../types';
 
-/**
- * Async post-search typeahead backed by the WP REST /search endpoint.
- *
- * Props:
- *   linkedPostId    {number}
- *   linkedPostLabel {string}   display label for the currently linked post
- *   onChange        {fn}       called with { id, title } or { id: 0, title: '' } on clear
- */
-export default function PostSearch( { linkedPostId, linkedPostLabel, onChange } ) {
-	const [ query, setQuery ]     = useState( '' );
-	const [ results, setResults ] = useState( [] );
-	const [ open, setOpen ]       = useState( false );
-	const timer = useRef( null );
+interface Props {
+	linkedPostId: number;
+	linkedPostLabel: string;
+	onChange: ( item: { id: number; title: string } | null ) => void;
+}
 
-	useEffect( () => () => clearTimeout( timer.current ), [] );
+export default function PostSearch( { linkedPostId, linkedPostLabel, onChange }: Props ) {
+	const [ query,   setQuery   ] = useState( '' );
+	const [ results, setResults ] = useState<PostSearchResult[]>( [] );
+	const [ open,    setOpen    ] = useState( false );
+	const timer = useRef<ReturnType<typeof setTimeout> | null>( null );
 
-	function handleInput( e ) {
+	useEffect( () => () => { if ( timer.current ) clearTimeout( timer.current ); }, [] );
+
+	function handleInput( e: React.ChangeEvent<HTMLInputElement> ) {
 		const val = e.target.value;
 		setQuery( val );
-		clearTimeout( timer.current );
+		if ( timer.current ) clearTimeout( timer.current );
 		if ( val.length < 2 ) { setOpen( false ); return; }
 		timer.current = setTimeout( async () => {
 			try {
 				const url = window.cnsMapSuite.wpRestUrl + '/search?search=' +
 					encodeURIComponent( val ) + '&type=post&subtype=any&per_page=10';
 				const res  = await fetch( url, { headers: { 'X-WP-Nonce': window.cnsMapSuite.nonce } } );
-				const data = await res.json();
+				const data = await res.json() as PostSearchResult[];
 				if ( Array.isArray( data ) ) { setResults( data ); setOpen( true ); }
 			} catch { /* silent */ }
 		}, 350 );
 	}
 
-	function selectResult( item ) {
+	function selectResult( item: PostSearchResult ) {
 		onChange?.( { id: item.id, title: item.title } );
 		setQuery( '' );
 		setResults( [] );

@@ -1,17 +1,23 @@
-import { applyRectangleConstraint } from '../../areas.js';
+import { applyRectangleConstraint } from '../../areas';
+import type { MapArea, Node, ShapeType } from '../../../types';
 
-const NODE_LABELS = {
+const NODE_LABELS: Partial<Record<ShapeType, string[]>> = {
 	RECTANGLE: [ 'TL', 'TR', 'BR', 'BL' ],
 	CIRCLE:    [ 'Center', 'Edge' ],
 };
 
-export default function NodeList( { area, onNodesChange } ) {
+interface Props {
+	area: MapArea;
+	onNodesChange: ( nodes: Node[] ) => void;
+}
+
+export default function NodeList( { area, onNodesChange }: Props ) {
 	const nodes     = area.nodes || [];
 	const shapeType = area.shape_type || 'POLYGON';
 	const isFixed   = shapeType === 'RECTANGLE' || shapeType === 'CIRCLE';
 	const labels    = NODE_LABELS[ shapeType ] || null;
 
-	function updateNode( idx, axis, rawVal ) {
+	function updateNode( idx: number, axis: 'x' | 'y', rawVal: string ) {
 		const val = Math.max( 0, Math.min( 100, parseFloat( rawVal ) || 0 ) ) / 100;
 		let updated = nodes.map( ( n ) => ( { ...n } ) );
 
@@ -35,7 +41,7 @@ export default function NodeList( { area, onNodesChange } ) {
 		onNodesChange( [ ...nodes, { x: 0.5, y: 0.5 } ] );
 	}
 
-	function deleteNode( idx ) {
+	function deleteNode( idx: number ) {
 		onNodesChange( nodes.filter( ( _, i ) => i !== idx ) );
 	}
 

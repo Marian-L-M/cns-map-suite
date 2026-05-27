@@ -1,6 +1,6 @@
 import { createRoot } from '@wordpress/element';
-import MapEditorApp   from './app/MapEditorApp.js';
-import IconLibraryApp from './app/IconLibraryApp.js';
+import MapEditorApp   from './app/MapEditorApp';
+import IconLibraryApp from './app/IconLibraryApp';
 import './admin.scss';
 
 document.addEventListener( 'DOMContentLoaded', () => {

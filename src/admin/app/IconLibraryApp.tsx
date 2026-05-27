@@ -1,41 +1,41 @@
-/* global wp */
 import { useState, useEffect } from '@wordpress/element';
-import { apiFetch } from '../utils.js';
-import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons.js';
+import { apiFetch } from '../utils';
+import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
+import type { LibraryIcon } from '../../types';
 
 export default function IconLibraryApp() {
-	const [ icons, setIcons ] = useState( [] );
+	const [ icons, setIcons ] = useState<LibraryIcon[]>( [] );
 
 	useEffect( () => {
 		loadIconLibraryIntoCache().then( () => setIcons( iconLibraryCache || [] ) );
 	}, [] );
 
 	function handleAdd() {
-		const frame = wp.media( {
-			title:   'Select or Upload SVG Icon',
-			button:  { text: 'Add to library' },
+		const frame = window.wp.media( {
+			title:    'Select or Upload SVG Icon',
+			button:   { text: 'Add to library' },
 			multiple: false,
-			library: { type: 'image/svg+xml' },
+			library:  { type: 'image/svg+xml' },
 		} );
 		frame.on( 'select', async () => {
 			const att = frame.state().get( 'selection' ).first().toJSON();
 			try {
 				const res  = await apiFetch( 'POST', '/icons', { attachment_id: att.id } );
-				const data = await res.json();
-				if ( ! res.ok ) throw new Error( data.message || 'Failed to add icon.' );
+				const data = await res.json() as LibraryIcon;
+				if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed to add icon.' );
 				setIcons( ( prev ) => [ ...prev, data ] );
-			} catch ( err ) { alert( err.message ); }
+			} catch ( err ) { alert( ( err as Error ).message ); }
 		} );
 		frame.open();
 	}
 
-	async function handleRemove( id ) {
+	async function handleRemove( id: number ) {
 		if ( ! confirm( 'Remove this icon from the library? (The attachment itself is kept.)' ) ) return;
 		try {
 			const res = await apiFetch( 'DELETE', `/icons/${ id }` );
 			if ( ! res.ok ) throw new Error( 'Remove failed.' );
 			setIcons( ( prev ) => prev.filter( ( i ) => i.id !== id ) );
-		} catch ( err ) { alert( err.message ); }
+		} catch ( err ) { alert( ( err as Error ).message ); }
 	}
 
 	return (
@@ -48,7 +48,7 @@ export default function IconLibraryApp() {
 			<div id="cns-icon-library-grid" className="cns-icon-library-grid">
 				{ icons.length === 0 ? (
 					<p className="cns-icon-library-grid__empty">
-						No icons yet. Click "Add Icon" to upload an SVG.
+						No icons yet. Click &ldquo;Add Icon&rdquo; to upload an SVG.
 					</p>
 				) : (
 					icons.map( ( icon ) => (

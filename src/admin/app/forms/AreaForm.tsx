@@ -1,7 +1,8 @@
 import { useRef } from '@wordpress/element';
-import PostSearch from '../shared/PostSearch.js';
+import PostSearch from '../shared/PostSearch';
+import type { AreaFormData, AreaType, ShapeType, MapArea, InfoboxSource } from '../../../types';
 
-const TYPES = [
+const TYPES: { value: AreaType; label: string }[] = [
 	{ value: 'GEOGRAPHY', label: 'Geography' },
 	{ value: 'HISTORY',   label: 'History' },
 	{ value: 'NATURAL',   label: 'Natural' },
@@ -9,27 +10,29 @@ const TYPES = [
 	{ value: 'OTHER',     label: 'Other' },
 ];
 
-const SHAPES = [
+const SHAPES: { value: ShapeType; label: string }[] = [
 	{ value: 'POLYGON',   label: 'Polygon (Nodes)' },
 	{ value: 'RECTANGLE', label: 'Rectangle' },
 	{ value: 'BEZIER',    label: 'Bezier Curve' },
 	{ value: 'CIRCLE',    label: 'Circle / Oval' },
 ];
 
-/**
- * Controlled area metadata form.  Does NOT manage node data — that lives
- * in the area object in parent state and is edited via <NodeList />.
- *
- * Props: formData, onChange, onShapeTypeChange
- */
-export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
+interface Props {
+	formData: AreaFormData;
+	onChange: ( formData: AreaFormData ) => void;
+	onShapeTypeChange: ( shapeType: ShapeType ) => void;
+}
+
+export default function AreaForm( { formData, onChange, onShapeTypeChange }: Props ) {
 	const uid = useRef( Math.random().toString( 36 ).slice( 2 ) );
 	const n   = uid.current;
 
-	function set( key, val ) { onChange( { ...formData, [ key ]: val } ); }
+	function set<K extends keyof AreaFormData>( key: K, val: AreaFormData[ K ] ) {
+		onChange( { ...formData, [ key ]: val } );
+	}
 
-	function handleShapeChange( e ) {
-		const st = e.target.value;
+	function handleShapeChange( e: React.ChangeEvent<HTMLSelectElement> ) {
+		const st = e.target.value as ShapeType;
 		set( 'shape_type', st );
 		onShapeTypeChange?.( st );
 	}
@@ -43,11 +46,12 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 				<div className="cns-form-grid">
 					<div className="cns-form-row cns-form-row--full">
 						<label>Title</label>
-						<input type="text" className="large-text" value={ formData.title } onChange={ ( e ) => set( 'title', e.target.value ) } />
+						<input type="text" className="large-text" value={ formData.title }
+							onChange={ ( e ) => set( 'title', e.target.value ) } />
 					</div>
 					<div className="cns-form-row">
 						<label>Type</label>
-						<select value={ formData.type } onChange={ ( e ) => set( 'type', e.target.value ) }>
+						<select value={ formData.type } onChange={ ( e ) => set( 'type', e.target.value as AreaType ) }>
 							{ TYPES.map( ( t ) => <option key={ t.value } value={ t.value }>{ t.label }</option> ) }
 						</select>
 					</div>
@@ -59,7 +63,8 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 					</div>
 					<div className="cns-form-row">
 						<label>Object Time</label>
-						<input type="number" className="small-text" value={ formData.object_time } onChange={ ( e ) => set( 'object_time', parseInt( e.target.value, 10 ) || 0 ) } />
+						<input type="number" className="small-text" value={ formData.object_time }
+							onChange={ ( e ) => set( 'object_time', parseInt( e.target.value, 10 ) || 0 ) } />
 					</div>
 				</div>
 			</section>
@@ -68,11 +73,13 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 				<h3>Infobox</h3>
 				<div className="cns-radio-toggle">
 					<label>
-						<input type="radio" name={ `area-ib-src-${ n }` } value="manual" checked={ ! isPost } onChange={ () => set( 'infobox_source', 'manual' ) } />
+						<input type="radio" name={ `area-ib-src-${ n }` } value="manual" checked={ ! isPost }
+							onChange={ () => set( 'infobox_source', 'manual' ) } />
 						{ ' ' }Manual
 					</label>
 					<label>
-						<input type="radio" name={ `area-ib-src-${ n }` } value="post" checked={ isPost } onChange={ () => set( 'infobox_source', 'post' ) } />
+						<input type="radio" name={ `area-ib-src-${ n }` } value="post" checked={ isPost }
+							onChange={ () => set( 'infobox_source', 'post' ) } />
 						{ ' ' }From post
 					</label>
 				</div>
@@ -80,11 +87,13 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 					<div className="cns-form-grid">
 						<div className="cns-form-row cns-form-row--full">
 							<label>Infobox Title</label>
-							<input type="text" className="large-text" value={ formData.infobox_title } onChange={ ( e ) => set( 'infobox_title', e.target.value ) } />
+							<input type="text" className="large-text" value={ formData.infobox_title }
+								onChange={ ( e ) => set( 'infobox_title', e.target.value ) } />
 						</div>
 						<div className="cns-form-row cns-form-row--full">
 							<label>Description</label>
-							<textarea rows="3" className="large-text" value={ formData.infobox_description } onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
+							<textarea rows={ 3 } className="large-text" value={ formData.infobox_description }
+								onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
 						</div>
 					</div>
 				) }
@@ -92,7 +101,11 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 					<PostSearch
 						linkedPostId={ formData.linked_post_id }
 						linkedPostLabel={ formData.linked_post_label }
-						onChange={ ( item ) => onChange( { ...formData, linked_post_id: item ? item.id : 0, linked_post_label: item ? item.title : '' } ) }
+						onChange={ ( item ) => onChange( {
+							...formData,
+							linked_post_id:    item ? item.id : 0,
+							linked_post_label: item ? item.title : '',
+						} ) }
 					/>
 				) }
 			</section>
@@ -102,7 +115,8 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 				<div className="cns-form-grid">
 					<div className="cns-form-row">
 						<label>Fill Color</label>
-						<input type="color" value={ formData.style_fill } onChange={ ( e ) => set( 'style_fill', e.target.value ) } />
+						<input type="color" value={ formData.style_fill }
+							onChange={ ( e ) => set( 'style_fill', e.target.value ) } />
 					</div>
 					<div className="cns-form-row">
 						<label>Fill Opacity</label>
@@ -111,12 +125,13 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 								value={ formData.style_fill_opacity }
 								onChange={ ( e ) => set( 'style_fill_opacity', parseFloat( e.target.value ) ) }
 							/>
-							<output className="cns-range-value">{ parseFloat( formData.style_fill_opacity ).toFixed( 2 ) }</output>
+							<output className="cns-range-value">{ parseFloat( String( formData.style_fill_opacity ) ).toFixed( 2 ) }</output>
 						</div>
 					</div>
 					<div className="cns-form-row">
 						<label>Stroke Color</label>
-						<input type="color" value={ formData.style_stroke } onChange={ ( e ) => set( 'style_stroke', e.target.value ) } />
+						<input type="color" value={ formData.style_stroke }
+							onChange={ ( e ) => set( 'style_stroke', e.target.value ) } />
 					</div>
 					<div className="cns-form-row">
 						<label>Stroke Width (px)</label>
@@ -131,14 +146,14 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange } ) {
 	);
 }
 
-export function defaultAreaFormData( area ) {
+export function defaultAreaFormData( area?: MapArea ): AreaFormData {
 	const styles = area?.canvas_styles || {};
 	return {
 		title:               area?.title               || '',
-		type:                area?.type                || 'GEOGRAPHY',
+		type:                ( area?.type as AreaType | undefined ) || 'GEOGRAPHY',
 		shape_type:          area?.shape_type          || 'POLYGON',
 		object_time:         area?.object_time         ?? 0,
-		infobox_source:      area?.infobox_source      || 'manual',
+		infobox_source:      ( area?.infobox_source as InfoboxSource | undefined ) || 'manual',
 		infobox_title:       area?.infobox_data?.title       || '',
 		infobox_description: area?.infobox_data?.description || '',
 		linked_post_id:      area?.linked_post_id      || 0,

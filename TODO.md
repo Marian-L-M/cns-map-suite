@@ -9,6 +9,7 @@
 -   [x] Add `languages/` directory and generate `.pot` file with `wp i18n make-pot`
 -   [x] Add `readme.txt` for WordPress.org / plugin documentation
 -   [x] Add opt-in setting to delete map posts on uninstall
+-   [ ] Static sites/chaching to take load off of database
 
 ## Editor — Save
 

@@ -1,13 +1,16 @@
-/* global wp */
-import { useRef } from '@wordpress/element';
-import MediaPicker   from '../shared/MediaPicker.js';
-import SettingsCanvas from '../canvases/SettingsCanvas.js';
+import MediaPicker   from '../shared/MediaPicker';
+import SettingsCanvas from '../canvases/SettingsCanvas';
+import type { MapSettings } from '../../../types';
 
-/**
- * Props: settings, onChange(patchFn)
- */
-export default function SettingsPanel( { settings, onChange } ) {
-	function set( key, val ) { onChange( ( prev ) => ( { ...prev, [ key ]: val } ) ); }
+interface Props {
+	settings: MapSettings;
+	onChange: ( updater: ( prev: MapSettings ) => MapSettings ) => void;
+}
+
+export default function SettingsPanel( { settings, onChange }: Props ) {
+	function set<K extends keyof MapSettings>( key: K, val: MapSettings[ K ] ) {
+		onChange( ( prev ) => ( { ...prev, [ key ]: val } ) );
+	}
 
 	return (
 		<div className="cns-tab-panel cns-tab-panel--active" data-panel="settings" role="tabpanel">
@@ -115,7 +118,6 @@ export default function SettingsPanel( { settings, onChange } ) {
 							<p className="description">1.0 = full canvas width. Height follows image ratio.</p>
 						</div>
 
-						{ /* ── Background ── */ }
 						<div className="cns-form-row cns-form-row--full">
 							<label>Background</label>
 							<div className="cns-bg-type-toggle">

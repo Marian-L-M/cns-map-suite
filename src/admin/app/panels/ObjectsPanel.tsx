@@ -1,10 +1,33 @@
 import { useState, useEffect } from '@wordpress/element';
-import ObjectsCanvas from '../canvases/ObjectsCanvas.js';
-import ObjectsList   from '../lists/ObjectsList.js';
-import ObjectModal   from '../ObjectModal.js';
-import { apiFetch }  from '../../utils.js';
-import { settingsToDrawState } from '../../canvas.js';
-import { defaultObjectFormData } from '../forms/ObjectForm.js';
+import ObjectsCanvas from '../canvases/ObjectsCanvas';
+import ObjectsList   from '../lists/ObjectsList';
+import ObjectModal   from '../ObjectModal';
+import { apiFetch }  from '../../utils';
+import { settingsToDrawState } from '../../canvas';
+import { defaultObjectFormData } from '../forms/ObjectForm';
+import type { MapSettings, MapObject, ObjectSavePayload } from '../../../types';
+
+interface ModalState {
+	obj: MapObject | null;
+	x: number | null;
+	y: number | null;
+}
+
+interface Props {
+	mapId: number;
+	settings: MapSettings;
+	objects: MapObject[];
+	selectedObjectId: number | null;
+	repositioningObjectId: number | null;
+	onObjectsLoaded: ( objects: MapObject[] ) => void;
+	onSelect: ( id: number ) => void;
+	onDeselect: () => void;
+	onAdd: ( payload: ObjectSavePayload ) => Promise<MapObject>;
+	onPositionUpdate: ( id: number, x: number, y: number ) => Promise<void>;
+	onRepositionStart: ( id: number ) => void;
+	onRepositionComplete: () => void;
+	onDelete: ( id: number ) => Promise<void>;
+}
 
 export default function ObjectsPanel( {
 	mapId, settings, objects, selectedObjectId,
@@ -13,15 +36,14 @@ export default function ObjectsPanel( {
 	onAdd, onPositionUpdate,
 	onRepositionStart, onRepositionComplete,
 	onDelete,
-} ) {
+}: Props ) {
 	const [ initialized, setInitialized ] = useState( false );
-	const [ modal, setModal ]             = useState( null ); // null | { obj, x, y }
+	const [ modal, setModal ]             = useState<ModalState | null>( null );
 
-	// Load objects once when the tab mounts
 	useEffect( () => {
 		if ( initialized || ! mapId ) return;
 		apiFetch( 'GET', `/maps/${ mapId }/objects` )
-			.then( ( r ) => r.json() )
+			.then( ( r ) => r.json() as Promise<MapObject[]> )
 			.then( ( data ) => { if ( Array.isArray( data ) ) onObjectsLoaded( data ); } )
 			.catch( () => {} )
 			.finally( () => setInitialized( true ) );
@@ -33,13 +55,12 @@ export default function ObjectsPanel( {
 		setModal( { obj: null, x: cx, y: cy } );
 	}
 
-	async function handleModalSave( formPayload ) {
-		if ( modal.obj ) {
-			// edit from list
+	async function handleModalSave( formPayload: ObjectSavePayload ) {
+		if ( modal?.obj ) {
 			const res  = await apiFetch( 'POST', `/objects/${ modal.obj.id }`, formPayload );
-			const data = await res.json();
-			if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
-			onObjectsLoaded( objects.map( ( o ) => o.id === modal.obj.id ? data : o ) );
+			const data = await res.json() as MapObject;
+			if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Save failed.' );
+			onObjectsLoaded( objects.map( ( o ) => o.id === modal.obj!.id ? data : o ) );
 		} else {
 			const newObj = await onAdd( formPayload );
 			onSelect( newObj.id );
@@ -47,7 +68,7 @@ export default function ObjectsPanel( {
 		setModal( null );
 	}
 
-	async function handleDelete( id ) {
+	async function handleDelete( id: number ) {
 		if ( ! confirm( 'Delete this object?' ) ) return;
 		await onDelete( id );
 	}

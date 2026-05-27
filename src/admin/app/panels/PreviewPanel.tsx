@@ -1,7 +1,15 @@
-import PreviewCanvas from '../canvases/PreviewCanvas.js';
-import { settingsToDrawState } from '../../canvas.js';
+import PreviewCanvas from '../canvases/PreviewCanvas';
+import { settingsToDrawState } from '../../canvas';
+import type { MapSettings, MapObject, MapArea } from '../../../types';
 
-export default function PreviewPanel( { settings, objects, areas, viewUrl } ) {
+interface Props {
+	settings: MapSettings;
+	objects: MapObject[];
+	areas: MapArea[];
+	viewUrl: string;
+}
+
+export default function PreviewPanel( { settings, objects, areas, viewUrl }: Props ) {
 	return (
 		<div className="cns-tab-panel cns-tab-panel--active" data-panel="preview" role="tabpanel">
 			<PreviewCanvas

@@ -1,17 +1,22 @@
 import { useState } from '@wordpress/element';
-import EditorHeader    from './EditorHeader.js';
-import TabBar          from './TabBar.js';
-import ContextPanel    from './ContextPanel.js';
-import SettingsPanel   from './panels/SettingsPanel.js';
-import ObjectsPanel    from './panels/ObjectsPanel.js';
-import AreasPanel      from './panels/AreasPanel.js';
-import HierarchyPanel  from './panels/HierarchyPanel.js';
-import PreviewPanel    from './panels/PreviewPanel.js';
-import { apiFetch }    from '../utils.js';
-import { normalizeNodesForShapeType } from '../areas.js';
+import EditorHeader    from './EditorHeader';
+import TabBar          from './TabBar';
+import ContextPanel    from './ContextPanel';
+import SettingsPanel   from './panels/SettingsPanel';
+import ObjectsPanel    from './panels/ObjectsPanel';
+import AreasPanel      from './panels/AreasPanel';
+import HierarchyPanel  from './panels/HierarchyPanel';
+import PreviewPanel    from './panels/PreviewPanel';
+import { apiFetch }    from '../utils';
+import { normalizeNodesForShapeType } from '../areas';
+import type {
+	MapSettings, MapObject, MapArea, Node,
+	ObjectSavePayload, AreaFormData, ShapeType,
+	Tab, SaveStatus,
+} from '../../types';
 
-function buildInitialSettings() {
-	const d = window.cnsMapEditor || {};
+function buildInitialSettings(): MapSettings {
+	const d = window.cnsMapEditor || {} as typeof window.cnsMapEditor;
 	return {
 		title:       d.title       ?? '',
 		width:       d.width       ?? 1000,
@@ -32,27 +37,27 @@ function buildInitialSettings() {
 }
 
 export default function MapEditorApp() {
-	const d          = window.cnsMapEditor || {};
-	const mapId      = d.mapId      || 0;
-	const isNew      = d.isNew      || false;
+	const d           = window.cnsMapEditor || {} as typeof window.cnsMapEditor;
+	const mapId       = d.mapId       || 0;
+	const isNew       = d.isNew       || false;
 	const overviewUrl = d.overviewUrl || '#';
-	const viewUrl    = d.viewUrl    || '';
+	const viewUrl     = d.viewUrl     || '';
 
-	const [ settings,             setSettings             ] = useState( buildInitialSettings );
-	const [ activeTab,            setActiveTab            ] = useState( 'settings' );
-	const [ objectsList,          setObjectsList          ] = useState( [] );
-	const [ areasList,            setAreasList            ] = useState( [] );
-	const [ selectedObjectId,     setSelectedObjectId     ] = useState( null );
-	const [ selectedAreaId,       setSelectedAreaId       ] = useState( null );
-	const [ repositioningObjId,   setRepositioningObjId   ] = useState( null );
-	const [ saveStatus,           setSaveStatus           ] = useState( { text: '', type: '' } );
+	const [ settings,           setSettings           ] = useState<MapSettings>( buildInitialSettings );
+	const [ activeTab,          setActiveTab          ] = useState<Tab>( 'settings' );
+	const [ objectsList,        setObjectsList        ] = useState<MapObject[]>( [] );
+	const [ areasList,          setAreasList          ] = useState<MapArea[]>( [] );
+	const [ selectedObjectId,   setSelectedObjectId   ] = useState<number | null>( null );
+	const [ selectedAreaId,     setSelectedAreaId     ] = useState<number | null>( null );
+	const [ repositioningObjId, setRepositioningObjId ] = useState<number | null>( null );
+	const [ saveStatus,         setSaveStatus         ] = useState<SaveStatus>( { text: '', type: '' } );
 
 	const selectedObject = objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
 	const selectedArea   = areasList.find(   ( a ) => a.id === selectedAreaId   ) || null;
 
 	// ── Tab switching ─────────────────────────────────────────────────────────
 
-	function handleTabChange( tab ) {
+	function handleTabChange( tab: Tab ) {
 		if ( tab !== 'objects' ) { setSelectedObjectId( null ); setRepositioningObjId( null ); }
 		if ( tab !== 'areas'   )   setSelectedAreaId( null );
 		setActiveTab( tab );
@@ -81,33 +86,33 @@ export default function MapEditorApp() {
 		};
 		try {
 			const res  = await apiFetch( 'POST', '/maps', payload );
-			const data = await res.json();
+			const data = await res.json() as { created?: boolean; edit_url?: string; message?: string };
 			if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
-			if ( data.created ) {
+			if ( data.created && data.edit_url ) {
 				window.location.href = data.edit_url;
 			} else {
 				setSaveStatus( { text: 'Saved.', type: 'ok' } );
 				setTimeout( () => setSaveStatus( { text: '', type: '' } ), 2000 );
 			}
 		} catch ( err ) {
-			setSaveStatus( { text: err.message, type: 'error' } );
+			setSaveStatus( { text: ( err as Error ).message, type: 'error' } );
 		}
 	}
 
 	// ── Object operations ─────────────────────────────────────────────────────
 
-	async function handleObjectSave( formPayload ) {
+	async function handleObjectSave( formPayload: ObjectSavePayload ): Promise<MapObject | undefined> {
 		if ( ! selectedObjectId ) return;
 		const res  = await apiFetch( 'POST', `/objects/${ selectedObjectId }`, formPayload );
-		const data = await res.json();
-		if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
+		const data = await res.json() as MapObject;
+		if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Save failed.' );
 		setObjectsList( ( prev ) => prev.map( ( o ) => o.id === selectedObjectId ? data : o ) );
 		return data;
 	}
 
-	async function handleObjectPositionUpdate( id, x, y ) {
+	async function handleObjectPositionUpdate( id: number, x: number, y: number ): Promise<void> {
 		const res  = await apiFetch( 'PATCH', `/objects/${ id }/position`, { x, y } );
-		const data = await res.json();
+		const data = await res.json() as MapObject;
 		if ( res.ok ) {
 			setObjectsList( ( prev ) => prev.map( ( o ) => o.id === id ? data : o ) );
 		}
@@ -115,47 +120,47 @@ export default function MapEditorApp() {
 
 	// ── Area operations ───────────────────────────────────────────────────────
 
-	async function handleAreaSave( formData ) {
+	async function handleAreaSave( formData: AreaFormData ): Promise<MapArea | undefined> {
 		if ( ! selectedAreaId ) return;
 		const area = areasList.find( ( a ) => a.id === selectedAreaId );
 		if ( ! area ) return;
 		const payload = { ...formData, nodes: JSON.stringify( area.nodes ) };
 		const res  = await apiFetch( 'POST', `/areas/${ selectedAreaId }`, payload );
-		const data = await res.json();
-		if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
+		const data = await res.json() as MapArea;
+		if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Save failed.' );
 		setAreasList( ( prev ) => prev.map( ( a ) => a.id === selectedAreaId ? data : a ) );
 		return data;
 	}
 
-	function handleAreaNodesUpdate( areaId, nodes ) {
+	function handleAreaNodesUpdate( areaId: number, nodes: Node[] ) {
 		setAreasList( ( prev ) => prev.map( ( a ) => a.id === areaId ? { ...a, nodes } : a ) );
 	}
 
-	function handleAreaShapeTypeChange( areaId, shapeType ) {
+	function handleAreaShapeTypeChange( areaId: number, shapeType: ShapeType ) {
 		setAreasList( ( prev ) => prev.map( ( a ) => {
 			if ( a.id !== areaId ) return a;
 			return { ...a, shape_type: shapeType, nodes: normalizeNodesForShapeType( a.nodes || [], shapeType ) };
 		} ) );
 	}
 
-	// ── Object add helper (used by ObjectsPanel) ──────────────────────────────
+	// ── Object add / delete ───────────────────────────────────────────────────
 
-	async function handleObjectAdd( payload ) {
+	async function handleObjectAdd( payload: ObjectSavePayload ): Promise<MapObject> {
 		const res  = await apiFetch( 'POST', `/maps/${ mapId }/objects`, payload );
-		const data = await res.json();
-		if ( ! res.ok ) throw new Error( data.message || 'Failed.' );
+		const data = await res.json() as MapObject;
+		if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed.' );
 		setObjectsList( ( prev ) => [ ...prev, data ] );
 		return data;
 	}
 
-	async function handleObjectDeleteById( id ) {
+	async function handleObjectDeleteById( id: number ) {
 		const res = await apiFetch( 'DELETE', `/objects/${ id }` );
 		if ( ! res.ok ) throw new Error( 'Delete failed.' );
 		setObjectsList( ( prev ) => prev.filter( ( o ) => o.id !== id ) );
 		if ( selectedObjectId === id ) setSelectedObjectId( null );
 	}
 
-	async function handleAreaDeleteById( id ) {
+	async function handleAreaDeleteById( id: number ) {
 		const res = await apiFetch( 'DELETE', `/areas/${ id }` );
 		if ( ! res.ok ) throw new Error( 'Delete failed.' );
 		setAreasList( ( prev ) => prev.filter( ( a ) => a.id !== id ) );
@@ -241,11 +246,11 @@ export default function MapEditorApp() {
 					selectedObject={ selectedObject }
 					selectedArea={ selectedArea }
 					onObjectSave={ handleObjectSave }
-					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId ) }
+					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId! ) }
 					onObjectClose={ () => setSelectedObjectId( null ) }
 					onObjectReposition={ () => setRepositioningObjId( selectedObjectId ) }
 					onAreaSave={ handleAreaSave }
-					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId ) }
+					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId! ) }
 					onAreaClose={ () => setSelectedAreaId( null ) }
 					onAreaNodesUpdate={ handleAreaNodesUpdate }
 					onAreaShapeTypeChange={ handleAreaShapeTypeChange }

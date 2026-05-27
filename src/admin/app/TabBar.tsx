@@ -1,4 +1,13 @@
-const TABS = [
+import type { Tab } from '../../types';
+
+interface TabDef {
+	id: Tab;
+	label: string;
+	masterHide: boolean;
+	masterShow: boolean;
+}
+
+const TABS: TabDef[] = [
 	{ id: 'settings',  label: 'Settings',  masterHide: false, masterShow: false },
 	{ id: 'objects',   label: 'Objects',   masterHide: true,  masterShow: false },
 	{ id: 'areas',     label: 'Areas',     masterHide: true,  masterShow: false },
@@ -6,7 +15,13 @@ const TABS = [
 	{ id: 'preview',   label: 'Preview',   masterHide: false, masterShow: false },
 ];
 
-export default function TabBar( { activeTab, isMaster, onChange } ) {
+interface Props {
+	activeTab: Tab;
+	isMaster: boolean;
+	onChange: ( tab: Tab ) => void;
+}
+
+export default function TabBar( { activeTab, isMaster, onChange }: Props ) {
 	const visible = TABS.filter( ( t ) => {
 		if ( t.masterHide && isMaster ) return false;
 		if ( t.masterShow && ! isMaster ) return false;

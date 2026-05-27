@@ -1,34 +1,39 @@
-import { useRef, useEffect, useCallback } from '@wordpress/element';
-import { drawObjectsOnCanvas, findObjectAtPoint } from '../../objects.js';
-import { getCanvasCoords } from '../../canvas.js';
+import { useRef, useEffect } from '@wordpress/element';
+import { drawObjectsOnCanvas, findObjectAtPoint } from '../../objects';
+import { getCanvasCoords } from '../../canvas';
+import type { DrawState, MapObject, CanvasPoint } from '../../../types';
 
-/**
- * Props:
- *   drawState         — { width, aspectRatio, bgType, bgColor, bgImageUrl, imgUrl, imageX, imageY, imageW }
- *   objects           — current object list
- *   selectedObjectId  — null or number
- *   repositioningObjectId — null or number (set from outside via "Reposition" btn)
- *   onSelect          — fn(id)
- *   onDeselect        — fn()
- *   onPositionUpdate  — fn(id, x, y) after a move
- *   onRepositionComplete — fn()
- */
+interface Props {
+	drawState: DrawState;
+	objects: MapObject[];
+	selectedObjectId: number | null;
+	repositioningObjectId: number | null;
+	onSelect: ( id: number ) => void;
+	onDeselect: () => void;
+	onPositionUpdate: ( id: number, x: number, y: number ) => Promise<void>;
+	onRepositionComplete: () => void;
+}
+
+interface CanvasState {
+	objects: MapObject[];
+	selectedObjectId: number | null;
+	repositioningObjectId: number | null;
+}
+
 export default function ObjectsCanvas( {
 	drawState, objects, selectedObjectId,
 	repositioningObjectId,
 	onSelect, onDeselect, onPositionUpdate, onRepositionComplete,
-} ) {
-	const canvasRef     = useRef( null );
-	// Keep a ref for values that canvas event handlers need (avoids stale closures).
-	const stateRef = useRef( {} );
+}: Props ) {
+	const canvasRef  = useRef<HTMLCanvasElement>( null );
+	const stateRef   = useRef<CanvasState>( { objects: [], selectedObjectId: null, repositioningObjectId: null } );
 	stateRef.current = { objects, selectedObjectId, repositioningObjectId };
 
-	// Local canvas-interaction state (not in React state — canvas redraws handle it)
-	const repoLocalRef = useRef( { cursor: null } );
+	const repoLocalRef = useRef<{ cursor: CanvasPoint | null }>( { cursor: null } );
 
 	// ── Draw ────────────────────────────────────────────────────────────────────
 
-	function redraw( repoId, repoCursor ) {
+	function redraw( repoId: number | null, repoCursor: CanvasPoint | null ) {
 		const canvas = canvasRef.current;
 		if ( ! canvas ) return;
 		const { objects: objs } = stateRef.current;
@@ -37,7 +42,7 @@ export default function ObjectsCanvas( {
 
 	useEffect( () => {
 		redraw( repositioningObjectId, repoLocalRef.current.cursor );
-	} ); // run after every render — lightweight since drawMapCanvas caches images
+	} ); // run after every render
 
 	// ── Events ──────────────────────────────────────────────────────────────────
 
@@ -45,16 +50,16 @@ export default function ObjectsCanvas( {
 		const canvas = canvasRef.current;
 		if ( ! canvas ) return;
 
-		function onMouseMove( e ) {
+		function onMouseMove( e: MouseEvent ) {
 			const { repositioningObjectId: repoId } = stateRef.current;
 			if ( ! repoId ) return;
-			repoLocalRef.current.cursor = getCanvasCoords( canvas, e );
+			repoLocalRef.current.cursor = getCanvasCoords( canvas!, e );
 			redraw( repoId, repoLocalRef.current.cursor );
 		}
 
-		async function onClick( e ) {
-			const coords = getCanvasCoords( canvas, e );
-			const ctx    = canvas.getContext( '2d' );
+		async function onClick( e: MouseEvent ) {
+			const coords = getCanvasCoords( canvas!, e );
+			const ctx    = canvas!.getContext( '2d' )!;
 			const { objects: objs, selectedObjectId: selId, repositioningObjectId: repoId } = stateRef.current;
 
 			if ( repoId ) {
@@ -65,7 +70,6 @@ export default function ObjectsCanvas( {
 			}
 
 			const hit = findObjectAtPoint( ctx, coords.x, coords.y, objs );
-
 			if ( hit ) {
 				onSelect?.( hit.id );
 			} else if ( selId ) {
@@ -75,7 +79,7 @@ export default function ObjectsCanvas( {
 			}
 		}
 
-		function onKeyDown( e ) {
+		function onKeyDown( e: KeyboardEvent ) {
 			const { repositioningObjectId: repoId, selectedObjectId: selId } = stateRef.current;
 			if ( e.key === 'Escape' ) {
 				if ( repoId ) {

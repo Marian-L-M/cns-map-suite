@@ -1,8 +1,13 @@
 import { useRef, useEffect } from '@wordpress/element';
-import { drawMapCanvas } from '../../canvas.js';
+import { drawMapCanvas } from '../../canvas';
+import type { MapSettings } from '../../../types';
 
-export default function SettingsCanvas( { settings } ) {
-	const canvasRef = useRef( null );
+interface Props {
+	settings: MapSettings;
+}
+
+export default function SettingsCanvas( { settings }: Props ) {
+	const canvasRef = useRef<HTMLCanvasElement>( null );
 
 	useEffect( () => {
 		const canvas = canvasRef.current;

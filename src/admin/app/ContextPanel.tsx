@@ -1,10 +1,30 @@
 import { useState, useEffect } from '@wordpress/element';
-import ObjectForm, { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm.js';
-import AreaForm,   { defaultAreaFormData }   from './forms/AreaForm.js';
-import NodeList    from './forms/NodeList.js';
-import SaveStatus  from './shared/SaveStatus.js';
-import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons.js';
-import { normalizeNodesForShapeType } from '../areas.js';
+import ObjectForm, { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
+import AreaForm,   { defaultAreaFormData }   from './forms/AreaForm';
+import NodeList    from './forms/NodeList';
+import SaveStatus  from './shared/SaveStatus';
+import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
+import { normalizeNodesForShapeType } from '../areas';
+import type {
+	Tab, MapObject, MapArea, ObjectFormData, AreaFormData,
+	ObjectSavePayload, ShapeType, Node, LibraryIcon,
+	SaveStatus as SaveStatusType,
+} from '../../types';
+
+interface Props {
+	activeTab: Tab;
+	selectedObject: MapObject | null;
+	selectedArea: MapArea | null;
+	onObjectSave: ( payload: ObjectSavePayload ) => Promise<MapObject | undefined>;
+	onObjectDelete: () => Promise<void>;
+	onObjectClose: () => void;
+	onObjectReposition: () => void;
+	onAreaSave: ( formData: AreaFormData ) => Promise<MapArea | undefined>;
+	onAreaDelete: () => Promise<void>;
+	onAreaClose: () => void;
+	onAreaNodesUpdate: ( areaId: number, nodes: Node[] ) => void;
+	onAreaShapeTypeChange: ( areaId: number, shapeType: ShapeType ) => void;
+}
 
 export default function ContextPanel( {
 	activeTab,
@@ -12,14 +32,13 @@ export default function ContextPanel( {
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
 	onAreaSave,   onAreaDelete,   onAreaClose,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
-} ) {
-	const [ objFormData,  setObjFormData  ] = useState( null );
-	const [ areaFormData, setAreaFormData ] = useState( null );
-	const [ icons, setIcons ]               = useState( iconLibraryCache || [] );
-	const [ status, setStatus ]             = useState( { text: '', type: '' } );
+}: Props ) {
+	const [ objFormData,  setObjFormData  ] = useState<ObjectFormData | null>( null );
+	const [ areaFormData, setAreaFormData ] = useState<AreaFormData | null>( null );
+	const [ icons, setIcons ]               = useState<LibraryIcon[]>( iconLibraryCache || [] );
+	const [ status, setStatus ]             = useState<SaveStatusType>( { text: '', type: '' } );
 	const [ saving, setSaving ]             = useState( false );
 
-	// Sync form when selected item changes
 	useEffect( () => {
 		if ( selectedObject ) {
 			setObjFormData( defaultObjectFormData( selectedObject, null, null ) );
@@ -37,7 +56,6 @@ export default function ContextPanel( {
 		}
 	}, [ selectedArea?.id ] );
 
-	// Empty state
 	if ( ! selectedObject && ! selectedArea ) {
 		return (
 			<aside className="cns-editor-context" aria-label="Context panel">
@@ -53,23 +71,23 @@ export default function ContextPanel( {
 
 	const isObject = !! selectedObject;
 	const title    = isObject
-		? ( selectedObject.title || '(no title)' )
-		: ( selectedArea.title   || '(no title)' );
+		? ( selectedObject!.title || '(no title)' )
+		: ( selectedArea!.title   || '(no title)' );
 
 	async function handleSave() {
 		setSaving( true );
 		setStatus( { text: 'Saving…', type: '' } );
 		try {
-			if ( isObject ) {
+			if ( isObject && objFormData ) {
 				const data = await onObjectSave( collectObjectPayload( objFormData ) );
-				if ( data?.title ) setObjFormData( ( prev ) => ( { ...prev, title: data.title } ) );
-			} else {
+				if ( data?.title ) setObjFormData( ( prev ) => prev ? ( { ...prev, title: data.title } ) : prev );
+			} else if ( areaFormData ) {
 				await onAreaSave( areaFormData );
 			}
 			setStatus( { text: 'Saved.', type: 'ok' } );
 			setTimeout( () => setStatus( { text: '', type: '' } ), 2000 );
 		} catch ( err ) {
-			setStatus( { text: err.message, type: 'error' } );
+			setStatus( { text: ( err as Error ).message, type: 'error' } );
 		} finally {
 			setSaving( false );
 		}
@@ -117,15 +135,16 @@ export default function ContextPanel( {
 								formData={ areaFormData }
 								onChange={ setAreaFormData }
 								onShapeTypeChange={ ( st ) => {
-									onAreaShapeTypeChange?.( selectedArea.id, st );
-									// Keep local form in sync
-									setAreaFormData( ( prev ) => ( { ...prev, shape_type: st } ) );
+									if ( selectedArea ) onAreaShapeTypeChange?.( selectedArea.id, st );
+									setAreaFormData( ( prev ) => prev ? ( { ...prev, shape_type: st } ) : prev );
 								} }
 							/>
-							<NodeList
-								area={ selectedArea }
-								onNodesChange={ ( nodes ) => onAreaNodesUpdate?.( selectedArea.id, nodes ) }
-							/>
+							{ selectedArea && (
+								<NodeList
+									area={ selectedArea }
+									onNodesChange={ ( nodes ) => onAreaNodesUpdate?.( selectedArea.id, nodes ) }
+								/>
+							) }
 						</>
 					) }
 				</div>

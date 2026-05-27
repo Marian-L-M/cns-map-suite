@@ -1,8 +1,11 @@
-import { loadImage } from './utils.js';
+import { loadImage } from './utils';
+import type { DrawState, MapSettings, MapObject, MapArea, CanvasPoint, DrawAreaFn, DrawObjectFn } from '../types';
 
-// state shape: { width, aspectRatio, bgType, bgColor, bgImageUrl, imgUrl, imageX, imageY, imageW }
-export async function drawMapCanvas( canvasEl, state ) {
-	const ctx    = canvasEl.getContext( '2d' );
+export async function drawMapCanvas(
+	canvasEl: HTMLCanvasElement,
+	state: DrawState,
+): Promise<void> {
+	const ctx    = canvasEl.getContext( '2d' )!;
 	const width  = state.width;
 	const height = Math.round( width / state.aspectRatio );
 
@@ -28,13 +31,16 @@ export async function drawMapCanvas( canvasEl, state ) {
 
 	const mapImg = await loadImage( state.imgUrl );
 	if ( mapImg ) {
-		const drawW = width * state.imageW;
+		const drawW = width  * state.imageW;
 		const drawH = drawW * ( mapImg.naturalHeight / mapImg.naturalWidth );
 		ctx.drawImage( mapImg, width * state.imageX, height * state.imageY, drawW, drawH );
 	}
 }
 
-export function getCanvasCoords( canvas, event ) {
+export function getCanvasCoords(
+	canvas: HTMLCanvasElement,
+	event: MouseEvent,
+): CanvasPoint {
 	const rect = canvas.getBoundingClientRect();
 	return {
 		x: Math.round( ( event.clientX - rect.left ) * ( canvas.width  / rect.width ) ),
@@ -42,18 +48,31 @@ export function getCanvasCoords( canvas, event ) {
 	};
 }
 
-export function settingsToDrawState( s ) {
+export function settingsToDrawState( s: MapSettings ): DrawState {
 	return {
-		width: s.width, aspectRatio: s.aspectRatio,
-		bgType: s.bgType, bgColor: s.bgColor, bgImageUrl: s.bgImageUrl,
-		imgUrl: s.imageUrl, imageX: s.imageX, imageY: s.imageY, imageW: s.imageW,
+		width:       s.width,
+		aspectRatio: s.aspectRatio,
+		bgType:      s.bgType,
+		bgColor:     s.bgColor,
+		bgImageUrl:  s.bgImageUrl,
+		imgUrl:      s.imageUrl,
+		imageX:      s.imageX,
+		imageY:      s.imageY,
+		imageW:      s.imageW,
 	};
 }
 
-// drawAreaShape / drawObjectMarker are passed in to avoid circular imports.
-export async function drawFullCanvas( canvas, objects, areas, state, drawAreaFn, drawObjectFn ) {
+// drawAreaFn / drawObjectFn are passed in to avoid circular imports.
+export async function drawFullCanvas(
+	canvas: HTMLCanvasElement,
+	objects: MapObject[],
+	areas: MapArea[],
+	state: DrawState,
+	drawAreaFn: DrawAreaFn,
+	drawObjectFn: DrawObjectFn,
+): Promise<void> {
 	await drawMapCanvas( canvas, state );
-	const ctx = canvas.getContext( '2d' );
+	const ctx = canvas.getContext( '2d' )!;
 	for ( const area of areas ) drawAreaFn( ctx, area, canvas.width, canvas.height, false, null, null );
 	for ( const obj  of objects ) await drawObjectFn( ctx, obj, false );
 }
