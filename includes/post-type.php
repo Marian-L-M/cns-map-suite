@@ -2,8 +2,7 @@
 
 defined('ABSPATH') || exit;
 
-add_action('init', 'cns_map_suite_register_post_type');
-
+// Register Map post type
 function cns_map_suite_register_post_type(): void {
 	if (post_type_exists('maps')) {
 		return;
@@ -26,7 +25,7 @@ function cns_map_suite_register_post_type(): void {
 		'publicly_queryable'  => true,
 		'show_in_rest'        => true,   // Required for block editor REST queries.
 		'show_ui'             => true,
-		'show_in_menu'        => false,  // Managed via our custom admin menu.
+		'show_in_menu'        => false,  // Managed via custom admin menu.
 		'show_in_nav_menus'   => false,
 		'exclude_from_search' => true,
 		'has_archive'         => false,
@@ -35,18 +34,7 @@ function cns_map_suite_register_post_type(): void {
 		'capability_type'     => 'post',
 	]);
 }
-
-// Disable Gutenberg for the maps CPT; we provide a custom editor.
-add_filter('use_block_editor_for_post_type', 'cns_map_suite_disable_gutenberg', 10, 2);
-
-function cns_map_suite_disable_gutenberg(bool $use_editor, string $post_type): bool {
-	if ($post_type === 'maps') {
-		return false;
-	}
-	return $use_editor;
-}
-
-add_action('init', 'cns_map_suite_register_post_meta');
+add_action('init', 'cns_map_suite_register_post_type');
 
 function cns_map_suite_register_post_meta(): void {
 	$fields = [
@@ -73,13 +61,21 @@ function cns_map_suite_register_post_meta(): void {
 		]);
 	}
 }
+add_action('init', 'cns_map_suite_register_post_meta');
+
+// Disable Gutenberg for the maps CPT; Custom editor used.
+function cns_map_suite_disable_gutenberg(bool $use_editor, string $post_type): bool {
+	if ($post_type === 'maps') {
+		return false;
+	}
+	return $use_editor;
+}
+add_filter('use_block_editor_for_post_type', 'cns_map_suite_disable_gutenberg', 10, 2);
+
 
 // ── Standalone map page ───────────────────────────────────────────────────────
 // On /maps/slug/ the CPT has no native content (Gutenberg disabled).
 // Render the map block so the page shows the interactive canvas.
-
-add_filter('the_content', 'cns_map_suite_inject_map_content', 5);
-
 function cns_map_suite_inject_map_content(string $content): string {
 	static $rendering = false;
 	if ($rendering || ! is_singular('maps') || ! in_the_loop() || ! is_main_query()) {
@@ -93,18 +89,13 @@ function cns_map_suite_inject_map_content(string $content): string {
 	$rendering = false;
 	return $result;
 }
+add_filter('the_content', 'cns_map_suite_inject_map_content', 5);
 
 // Enqueue block assets early (styles in <head>) for single map pages.
 // render_block() handles the viewScript, but style must be queued before wp_head().
-
-add_action('wp_enqueue_scripts', 'cns_map_suite_enqueue_map_page_assets');
-
 function cns_map_suite_enqueue_map_page_assets(): void {
-	if (! is_singular('maps')) {
-		return;
-	}
 	$block = WP_Block_Type_Registry::get_instance()->get_registered('cns-map-suite/map');
-	if (! $block) {
+	if (!is_singular('maps') && !$block) {
 		return;
 	}
 	foreach ($block->style_handles as $handle) {
@@ -114,3 +105,4 @@ function cns_map_suite_enqueue_map_page_assets(): void {
 		wp_enqueue_script($handle);
 	}
 }
+add_action('wp_enqueue_scripts', 'cns_map_suite_enqueue_map_page_assets');
