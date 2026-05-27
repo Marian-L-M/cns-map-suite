@@ -95,7 +95,7 @@ add_filter('the_content', 'cns_map_suite_inject_map_content', 5);
 // render_block() handles the viewScript, but style must be queued before wp_head().
 function cns_map_suite_enqueue_map_page_assets(): void {
 	$block = WP_Block_Type_Registry::get_instance()->get_registered('cns-map-suite/map');
-	if (!is_singular('maps') && !$block) {
+	if (!is_singular('maps') || !$block) {
 		return;
 	}
 	foreach ($block->style_handles as $handle) {
