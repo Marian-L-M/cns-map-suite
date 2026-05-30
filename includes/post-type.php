@@ -106,3 +106,19 @@ function cns_map_suite_enqueue_map_page_assets(): void {
 	}
 }
 add_action('wp_enqueue_scripts', 'cns_map_suite_enqueue_map_page_assets');
+
+function cns_map_suite_get_all_maps(int $take = -1, int $skip = 0): array {
+	return get_posts([
+		'post_type'      => 'maps',
+		'posts_per_page' => $take,
+		'offset'         => $skip,
+		'post_status'    => ['publish', 'draft', 'private'],
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+	]);
+}
+
+function cns_map_suite_count_maps(): int {
+	$counts = wp_count_posts('maps');
+	return (int) $counts->publish + (int) $counts->draft + (int) $counts->private;
+}

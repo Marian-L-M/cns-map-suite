@@ -25,8 +25,8 @@ function cns_map_suite_register_rest_routes(): void {
 			],
 			'status' => [
 				'type'    => 'string',
-				'default' => 'publish',
-				'enum'    => ['publish', 'draft'],
+				'default' => 'draft',
+				'enum'    => ['publish', 'draft', 'private'],
 			],
 			'width' => [
 				'type'    => 'integer',
@@ -233,13 +233,19 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 		update_post_meta($map_id, $key, $value);
 	}
 
+	$saved_status = $request->get_param('status');
+
 	return new WP_REST_Response([
 		'map_id'   => $map_id,
+		'status'   => $saved_status,
 		'created'  => $request->get_param('map_id') === 0,
 		'edit_url' => add_query_arg(
-			['page' => 'cns-map-editor', 'map_id' => $map_id],
+			['page' => CNS_MAP_PAGE_EDITOR, 'map_id' => $map_id],
 			admin_url('admin.php')
 		),
+		'view_url' => in_array($saved_status, ['publish', 'private'], true)
+			? (get_permalink($map_id) ?: '')
+			: '',
 	], 200);
 }
 

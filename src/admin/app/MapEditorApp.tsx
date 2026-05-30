@@ -16,6 +16,7 @@ import type {
 	Node,
 	ObjectSavePayload,
 	AreaFormData,
+	PostStatus,
 	ShapeType,
 	Tab,
 	SaveStatus,
@@ -24,6 +25,7 @@ import type {
 function buildInitialSettings(): MapSettings {
 	const d = window.cnsMapEditor || ( {} as typeof window.cnsMapEditor );
 	return {
+		status: d.status ?? 'draft',
 		title: d.title ?? '',
 		width: d.width ?? 1000,
 		aspectRatio: d.aspectRatio ?? 1.0,
@@ -47,10 +49,10 @@ export default function MapEditorApp() {
 	const mapId = d.mapId || 0;
 	const isNew = d.isNew || false;
 	const overviewUrl = d.overviewUrl || '#';
-	const viewUrl = d.viewUrl || '';
 
 	const [ settings, setSettings ] =
 		useState< MapSettings >( buildInitialSettings );
+	const [ viewUrl, setViewUrl ] = useState< string >( d.viewUrl || '' );
 	const [ activeTab, setActiveTab ] = useState< Tab >( 'settings' );
 	const [ objectsList, setObjectsList ] = useState< MapObject[] >( [] );
 	const [ areasList, setAreasList ] = useState< MapArea[] >( [] );
@@ -91,7 +93,7 @@ export default function MapEditorApp() {
 		const payload = {
 			map_id: mapId,
 			title: settings.title,
-			status: 'publish',
+			status: settings.status,
 			width: settings.width,
 			aspect_ratio: settings.aspectRatio,
 			time: settings.time,
@@ -110,12 +112,16 @@ export default function MapEditorApp() {
 			const data = ( await res.json() ) as {
 				created?: boolean;
 				edit_url?: string;
+				view_url?: string;
 				message?: string;
 			};
 			if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
 			if ( data.created && data.edit_url ) {
 				window.location.href = data.edit_url;
 			} else {
+				if ( data.view_url !== undefined ) {
+					setViewUrl( data.view_url );
+				}
 				setSaveStatus( { text: 'Saved.', type: 'ok' } );
 				setTimeout(
 					() => setSaveStatus( { text: '', type: '' } ),
@@ -260,6 +266,10 @@ export default function MapEditorApp() {
 				pageTitle={ pageTitle }
 				overviewUrl={ overviewUrl }
 				viewUrl={ ! isNew && viewUrl ? viewUrl : '' }
+				status={ settings.status }
+				onStatusChange={ ( s: PostStatus ) =>
+					setSettings( ( prev ) => ( { ...prev, status: s } ) )
+				}
 				saveStatus={ saveStatus }
 				onSave={ handleSave }
 			/>

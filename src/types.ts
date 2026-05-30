@@ -29,6 +29,7 @@ declare global {
 export interface CnsMapEditorGlobal {
 	mapId: number;
 	isNew: boolean;
+	status: PostStatus;
 	title: string;
 	width: number;
 	aspectRatio: number;
@@ -57,6 +58,7 @@ export interface CnsMapSuiteGlobal {
 
 // ── Primitive unions ──────────────────────────────────────────────────────────
 
+export type PostStatus    = 'publish' | 'draft' | 'private';
 export type ShapeType     = 'POLYGON' | 'BEZIER' | 'CIRCLE' | 'RECTANGLE';
 export type ObjectType    = 'LOCATION' | 'HISTORY' | 'NATURAL' | 'EVENT' | 'OTHER';
 export type AreaType      = 'GEOGRAPHY' | 'HISTORY' | 'NATURAL' | 'EVENT' | 'OTHER';
@@ -170,6 +172,7 @@ export interface PostSearchResult {
 // ── Editor state ──────────────────────────────────────────────────────────────
 
 export interface MapSettings {
+	status: PostStatus;
 	title: string;
 	width: number;
 	aspectRatio: number;

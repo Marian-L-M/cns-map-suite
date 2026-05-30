@@ -28,10 +28,10 @@ $meta = $map_id ? [
 $image_url    = $meta['image_id']    ? wp_get_attachment_image_url($meta['image_id'], 'large') : '';
 $bg_image_url = $meta['bg_image_id'] ? wp_get_attachment_image_url($meta['bg_image_id'], 'large') : '';
 $overview_url = add_query_arg(
-    ['page' => get_template() === 'clouds-and-spaceships' ? 'cns-settings-maps' : 'cns-maps'],
+    ['page' => get_template() === 'clouds-and-spaceships' ? CNS_MAP_PAGE_SETTINGS_MAPS : CNS_MAP_PAGE_MAPS],
     admin_url('admin.php')
 );
-$view_url = (! $is_new && $map && $map->post_status === 'publish')
+$view_url = (! $is_new && $map && in_array($map->post_status, ['publish', 'private'], true))
     ? get_permalink($map->ID)
     : '';
 ?>
@@ -39,6 +39,7 @@ $view_url = (! $is_new && $map && $map->post_status === 'publish')
 window.cnsMapEditor = {
     mapId:       <?php echo (int) $map_id; ?>,
     isNew:       <?php echo $is_new ? 'true' : 'false'; ?>,
+    status:      <?php echo wp_json_encode($map ? $map->post_status : 'draft'); ?>,
     title:       <?php echo wp_json_encode($map ? $map->post_title : ''); ?>,
     width:       <?php echo (int) $meta['width']; ?>,
     aspectRatio: <?php echo (float) $meta['aspect_ratio']; ?>,

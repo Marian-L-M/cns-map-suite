@@ -99,6 +99,10 @@
 -   [ ] Object/area change detection for global save is iffy. Just always submit the active form on save
 -   [ ] Delete node/object on delete button
 
+## Check
+
+-   [ ] Uninstall behaviour: Checkbox, deleting database tables but keeping mas seems pointless since area nodes/objects are stored in a custom table
+
 ## Done
 
 -   ✅ Plugin scaffold (CPT, DB tables, admin menu, block)

@@ -2,7 +2,6 @@
 
 defined('ABSPATH') || exit;
 
-add_action('admin_menu', 'cns_map_suite_register_menus', 10);
 
 function cns_map_suite_register_menus(): void {
 	if (get_template() === 'clouds-and-spaceships') {
@@ -11,6 +10,14 @@ function cns_map_suite_register_menus(): void {
 		cns_map_suite_register_standalone();
 	}
 }
+add_action('admin_menu', 'cns_map_suite_register_menus', 10);
+
+add_action('admin_init', function (): void {
+	$page = sanitize_key($_GET['page'] ?? '');
+	if (in_array($page, [CNS_MAP_PAGE_MAPS, CNS_MAP_PAGE_SETTINGS_MAPS], true)) {
+		require_once CNS_MAP_SUITE_DIR . 'includes/admin/actions.php';
+	}
+});
 
 /**
  * CNS theme active: overview + icons tabs via cns_admin_tabs + hidden editor sub-page.
@@ -41,10 +48,10 @@ function cns_map_suite_register_under_cns_theme(): void {
 		__('Map Editor', 'cns-map-suite'),
 		__('Map Editor', 'cns-map-suite'),
 		'manage_maps',
-		'cns-map-editor',
+		CNS_MAP_PAGE_EDITOR,
 		'cns_map_suite_render_editor'
 	);
-	remove_submenu_page('cns-settings', 'cns-map-editor');
+	remove_submenu_page('cns-settings', CNS_MAP_PAGE_EDITOR);
 }
 
 /**
@@ -55,41 +62,41 @@ function cns_map_suite_register_standalone(): void {
 		__('Maps', 'cns-map-suite'),
 		__('Maps', 'cns-map-suite'),
 		'manage_maps',
-		'cns-maps',
+		CNS_MAP_PAGE_MAPS,
 		'cns_map_suite_render_overview',
 		'dashicons-location-alt',
 		58
 	);
 
 	add_submenu_page(
-		'cns-maps',
+		CNS_MAP_PAGE_MAPS,
 		__('All Maps', 'cns-map-suite'),
 		__('All Maps', 'cns-map-suite'),
 		'manage_maps',
-		'cns-maps',
+		CNS_MAP_PAGE_MAPS,
 		'cns_map_suite_render_overview'
 	);
 
 	add_submenu_page(
-		'cns-maps',
+		CNS_MAP_PAGE_MAPS,
 		__('Icon Library', 'cns-map-suite'),
 		__('Icon Library', 'cns-map-suite'),
 		'manage_maps',
-		'cns-map-icons',
+		CNS_MAP_PAGE_ICONS,
 		'cns_map_suite_render_icons'
 	);
 
 	add_submenu_page(
-		'cns-maps',
+		CNS_MAP_PAGE_MAPS,
 		__('New Map', 'cns-map-suite'),
 		__('New Map', 'cns-map-suite'),
 		'manage_maps',
-		'cns-map-editor',
+		CNS_MAP_PAGE_EDITOR,
 		'cns_map_suite_render_editor'
 	);
 }
 
-add_action('admin_enqueue_scripts', 'cns_map_suite_enqueue_admin_assets');
+
 
 function cns_map_suite_enqueue_admin_assets(): void {
 	$screen = get_current_screen();
@@ -99,14 +106,18 @@ function cns_map_suite_enqueue_admin_assets(): void {
 
 	$page         = sanitize_key($_GET['page'] ?? '');
 	$is_maps_page = in_array($page, [
-		'cns-maps', 'cns-map-editor', 'cns-map-icons',
-		'cns-settings-maps', 'cns-settings-icons',
+		CNS_MAP_PAGE_MAPS,
+		CNS_MAP_PAGE_EDITOR,
+		CNS_MAP_PAGE_ICONS,
+		CNS_MAP_PAGE_SETTINGS_MAPS,
+		CNS_MAP_PAGE_SETTINGS_ICONS,
 	], true);
 
 	if (! $is_maps_page) {
 		return;
 	}
 
+	// Load assets
 	wp_enqueue_style(
 		'cns-map-admin',
 		CNS_MAP_SUITE_URL . 'build/admin/index.css',
@@ -127,7 +138,7 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		true
 	);
 
-	$icons_page = get_template() === 'clouds-and-spaceships' ? 'cns-settings-icons' : 'cns-map-icons';
+	$icons_page = get_template() === 'clouds-and-spaceships' ? CNS_MAP_PAGE_SETTINGS_ICONS : CNS_MAP_PAGE_ICONS;
 
 	wp_localize_script('cns-map-admin', 'cnsMapSuite', [
 		'restUrl'   => rest_url('cns-map-suite/v1'),
@@ -136,12 +147,16 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		'iconsUrl'  => add_query_arg(['page' => $icons_page], admin_url('admin.php')),
 	]);
 
-	if (in_array($page, ['cns-map-editor', 'cns-map-icons', 'cns-settings-icons'], true)) {
+	if (in_array($page, [CNS_MAP_PAGE_EDITOR, CNS_MAP_PAGE_ICONS, CNS_MAP_PAGE_SETTINGS_ICONS], true)) {
 		wp_enqueue_media();
 		wp_enqueue_style('wp-color-picker');
 	}
 }
 
+add_action('admin_enqueue_scripts', 'cns_map_suite_enqueue_admin_assets');
+
+
+// Render callbacks for custom pages
 function cns_map_suite_render_overview(): void {
 	include CNS_MAP_SUITE_DIR . 'includes/admin/views/overview.php';
 }

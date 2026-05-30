@@ -14,6 +14,14 @@ if (! $map || $map->post_type !== 'maps') {
 	return;
 }
 
+// Respect post status: draft/pending only visible to map managers; private requires read_private_posts.
+if ($map->post_status === 'private' && ! current_user_can('read_private_posts')) {
+	return;
+}
+if (! in_array($map->post_status, ['publish', 'private'], true) && ! current_user_can('manage_maps')) {
+	return;
+}
+
 global $wpdb;
 
 // ── Map settings ──────────────────────────────────────────────────────────────

@@ -9,4 +9,11 @@ document.addEventListener( 'DOMContentLoaded', () => {
 
 	const iconsEl = document.getElementById( 'cns-icons-root' );
 	if ( iconsEl ) createRoot( iconsEl ).render( <IconLibraryApp /> );
+
+	document.body.addEventListener( 'click', ( e ) => {
+		const link = ( e.target as Element ).closest<HTMLAnchorElement>( 'a[data-confirm]' );
+		if ( link && ! window.confirm( link.dataset.confirm ) ) {
+			e.preventDefault();
+		}
+	} );
 } );
