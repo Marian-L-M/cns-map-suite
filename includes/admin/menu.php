@@ -151,6 +151,10 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		wp_enqueue_media();
 		wp_enqueue_style('wp-color-picker');
 	}
+
+	if ($page === CNS_MAP_PAGE_EDITOR) {
+		do_action('cns_map_suite_editor_enqueue_assets');
+	}
 }
 
 add_action('admin_enqueue_scripts', 'cns_map_suite_enqueue_admin_assets');

@@ -116,6 +116,57 @@
 		}
 	}
 
+	function drawHierarchyRegion(ctx, region, W, H) {
+		const nodes = region.nodes || [];
+		if (nodes.length < 3) return;
+
+		const styles      = region.canvas_styles || {};
+		const fill        = styles.fill        || '#e8a020';
+		const fillOpacity = styles.fillOpacity ?? 0.25;
+		const stroke      = styles.stroke      || '#e8a020';
+		const strokeWidth = styles.strokeWidth || 2;
+
+		ctx.beginPath();
+		buildPolygonPath(ctx, nodes, W, H);
+
+		ctx.save();
+		ctx.globalAlpha = fillOpacity;
+		ctx.fillStyle   = fill;
+		ctx.fill();
+		ctx.restore();
+
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth   = strokeWidth;
+		ctx.stroke();
+
+		if (region.child_map_title) {
+			const cx = nodes.reduce(function (s, n) { return s + n.x; }, 0) / nodes.length * W;
+			const cy = nodes.reduce(function (s, n) { return s + n.y; }, 0) / nodes.length * H;
+			ctx.save();
+			ctx.font         = 'bold 12px sans-serif';
+			ctx.textAlign    = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillStyle    = '#fff';
+			ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
+			ctx.lineWidth    = 3;
+			ctx.strokeText(region.child_map_title, cx, cy);
+			ctx.fillText(region.child_map_title, cx, cy);
+			ctx.restore();
+		}
+	}
+
+	function findHierarchyRegionAtPoint(ctx, x, y, regions, W, H) {
+		for (var i = regions.length - 1; i >= 0; i--) {
+			var region = regions[i];
+			var nodes  = region.nodes || [];
+			if (nodes.length < 3) continue;
+			ctx.beginPath();
+			buildPolygonPath(ctx, nodes, W, H);
+			if (ctx.isPointInPath(x, y)) return region;
+		}
+		return null;
+	}
+
 	function drawAreaShape(ctx, area, W, H) {
 		const nodes = area.nodes || [];
 		if (!nodes.length) return;
@@ -274,6 +325,45 @@
 		if (drawer) closeDrawer(drawer);
 	}
 
+	// ── Hierarchy tooltip ─────────────────────────────────────────────────────
+	// A small tooltip that follows the cursor (or appears near the region) on
+	// hover, showing the child map's thumbnail, title and excerpt.
+	// All thumbnail images are pre-loaded during initMap for a smooth experience.
+
+	function getOrCreateHierarchyTooltip() {
+		var tip = document.getElementById('cns-map-hierarchy-tip');
+		if (!tip) {
+			tip = document.createElement('div');
+			tip.id        = 'cns-map-hierarchy-tip';
+			tip.className = 'cns-map-hierarchy-tip';
+			tip.setAttribute('aria-hidden', 'true');
+			document.body.appendChild(tip);
+		}
+		return tip;
+	}
+
+	function showHierarchyTooltip(region, canvasRect, canvasX, canvasY, scaleX, scaleY) {
+		var tip     = getOrCreateHierarchyTooltip();
+		var imgHtml = region.child_map_thumbnail
+			? '<img class="cns-map-hierarchy-tip__thumb" src="' + encodeURI(region.child_map_thumbnail) + '" alt="" />'
+			: '';
+		var titleHtml   = region.child_map_title   ? '<strong class="cns-map-hierarchy-tip__title">'   + escHtml(region.child_map_title)   + '</strong>' : '';
+		var excerptHtml = region.child_map_excerpt  ? '<p class="cns-map-hierarchy-tip__excerpt">' + escHtml(region.child_map_excerpt) + '</p>'       : '';
+		tip.innerHTML = imgHtml + titleHtml + excerptHtml;
+
+		// Position near cursor, offset so it doesn't obscure the pointer.
+		var clientX = canvasRect.left + canvasX * scaleX;
+		var clientY = canvasRect.top  + canvasY * scaleY;
+		tip.style.left = (clientX + 14 + window.scrollX) + 'px';
+		tip.style.top  = (clientY - 10 + window.scrollY) + 'px';
+		tip.classList.add('is-visible');
+	}
+
+	function hideHierarchyTooltip() {
+		var tip = document.getElementById('cns-map-hierarchy-tip');
+		if (tip) tip.classList.remove('is-visible');
+	}
+
 	// ── Map initialiser ───────────────────────────────────────────────────────
 
 	async function initMap(wrapper) {
@@ -292,14 +382,28 @@
 		await drawBackground(canvas, data);
 
 		const ctx = canvas.getContext('2d');
+		const W   = canvas.width;
+		const H   = canvas.height;
+
 		for (const area of (data.areas || [])) {
-			drawAreaShape(ctx, area, canvas.width, canvas.height);
+			drawAreaShape(ctx, area, W, H);
+		}
+		for (const region of (data.hierarchyRegions || [])) {
+			drawHierarchyRegion(ctx, region, W, H);
 		}
 		for (const obj of (data.objects || [])) {
 			await drawObjectMarker(ctx, obj);
 		}
 
-		// Only wire click handling if anything has infobox content.
+		// Pre-load all hierarchy region thumbnails for smooth hover.
+		for (const region of (data.hierarchyRegions || [])) {
+			if (region.child_map_thumbnail) loadImage(region.child_map_thumbnail);
+		}
+
+		const hierarchyRegions = data.hierarchyRegions || [];
+		const hasHierarchy     = hierarchyRegions.length > 0;
+
+		// Infobox click check.
 		const hasClickable =
 			(data.objects || []).some(function (o) {
 				const ib = o.infobox_resolved || {};
@@ -310,18 +414,57 @@
 				return ib.title || ib.description || ib.image_url;
 			});
 
-		if (!hasClickable) return;
+		if (!hasClickable && !hasHierarchy) return;
 
 		canvas.style.cursor = 'pointer';
+
+		// ── Hover: hierarchy tooltip ──────────────────────────────────────────
+		if (hasHierarchy) {
+			canvas.addEventListener('mousemove', function (e) {
+				const rect   = canvas.getBoundingClientRect();
+				const scaleX = rect.width  / W;
+				const scaleY = rect.height / H;
+				const x = (e.clientX - rect.left) / scaleX;
+				const y = (e.clientY - rect.top)  / scaleY;
+
+				const hitRegion = findHierarchyRegionAtPoint(ctx, x, y, hierarchyRegions, W, H);
+				if (hitRegion) {
+					canvas.style.cursor = 'pointer';
+					showHierarchyTooltip(hitRegion, rect, x, y, scaleX, scaleY);
+				} else {
+					hideHierarchyTooltip();
+				}
+			});
+
+			canvas.addEventListener('mouseleave', function () {
+				hideHierarchyTooltip();
+			});
+		}
+
+		// ── Click: hierarchy navigation or infobox ────────────────────────────
 		canvas.addEventListener('click', function (e) {
-			const rect = canvas.getBoundingClientRect();
-			const x    = (e.clientX - rect.left) * (canvas.width  / rect.width);
-			const y    = (e.clientY - rect.top)  * (canvas.height / rect.height);
+			const rect   = canvas.getBoundingClientRect();
+			const scaleX = rect.width  / W;
+			const scaleY = rect.height / H;
+			const x = (e.clientX - rect.left) / scaleX;
+			const y = (e.clientY - rect.top)  / scaleY;
+
+			// Hierarchy regions take top priority — click navigates to child map.
+			if (hasHierarchy) {
+				const hitRegion = findHierarchyRegionAtPoint(ctx, x, y, hierarchyRegions, W, H);
+				if (hitRegion && hitRegion.child_map_url) {
+					hideHierarchyTooltip();
+					window.location.href = hitRegion.child_map_url;
+					return;
+				}
+			}
+
+			if (!hasClickable) return;
 
 			const hitObj = findObjectAtPoint(ctx, x, y, data.objects || []);
 			if (hitObj) { showInfobox(wrapper, hitObj); return; }
 
-			const hitArea = findAreaAtPoint(ctx, x, y, data.areas || [], canvas.width, canvas.height);
+			const hitArea = findAreaAtPoint(ctx, x, y, data.areas || [], W, H);
 			if (hitArea) { showInfobox(wrapper, hitArea); return; }
 
 			hideInfobox();

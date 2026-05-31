@@ -13,6 +13,8 @@ import type {
 	MapSettings,
 	MapObject,
 	MapArea,
+	HierarchyRegion,
+	HierarchyFormData,
 	Node,
 	ObjectSavePayload,
 	AreaFormData,
@@ -20,6 +22,7 @@ import type {
 	ShapeType,
 	Tab,
 	SaveStatus,
+	ParentMapRef,
 } from '../../types';
 
 function buildInitialSettings(): MapSettings {
@@ -46,9 +49,10 @@ function buildInitialSettings(): MapSettings {
 
 export default function MapEditorApp() {
 	const d = window.cnsMapEditor || ( {} as typeof window.cnsMapEditor );
-	const mapId = d.mapId || 0;
-	const isNew = d.isNew || false;
+	const mapId      = d.mapId      || 0;
+	const isNew      = d.isNew      || false;
 	const overviewUrl = d.overviewUrl || '#';
+	const initialParentMaps: ParentMapRef[] = d.parentMaps || [];
 
 	const [ settings, setSettings ] =
 		useState< MapSettings >( buildInitialSettings );
@@ -56,24 +60,16 @@ export default function MapEditorApp() {
 	const [ activeTab, setActiveTab ] = useState< Tab >( 'settings' );
 	const [ objectsList, setObjectsList ] = useState< MapObject[] >( [] );
 	const [ areasList, setAreasList ] = useState< MapArea[] >( [] );
-	const [ selectedObjectId, setSelectedObjectId ] = useState< number | null >(
-		null
-	);
-	const [ selectedAreaId, setSelectedAreaId ] = useState< number | null >(
-		null
-	);
-	const [ repositioningObjId, setRepositioningObjId ] = useState<
-		number | null
-	>( null );
-	const [ saveStatus, setSaveStatus ] = useState< SaveStatus >( {
-		text: '',
-		type: '',
-	} );
+	const [ selectedObjectId,   setSelectedObjectId   ] = useState< number | null >( null );
+	const [ selectedAreaId,     setSelectedAreaId     ] = useState< number | null >( null );
+	const [ selectedRegionId,   setSelectedRegionId   ] = useState< number | null >( null );
+	const [ regionsList,        setRegionsList        ] = useState< HierarchyRegion[] >( [] );
+	const [ repositioningObjId, setRepositioningObjId ] = useState< number | null >( null );
+	const [ saveStatus, setSaveStatus ] = useState< SaveStatus >( { text: '', type: '' } );
 
-	const selectedObject =
-		objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
-	const selectedArea =
-		areasList.find( ( a ) => a.id === selectedAreaId ) || null;
+	const selectedObject = objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
+	const selectedArea   = areasList.find( ( a ) => a.id === selectedAreaId )   || null;
+	const selectedRegion = regionsList.find( ( r ) => r.id === selectedRegionId ) || null;
 
 	// ── Tab switching ─────────────────────────────────────────────────────────
 
@@ -82,7 +78,8 @@ export default function MapEditorApp() {
 			setSelectedObjectId( null );
 			setRepositioningObjId( null );
 		}
-		if ( tab !== 'areas' ) setSelectedAreaId( null );
+		if ( tab !== 'areas' )     setSelectedAreaId( null );
+		if ( tab !== 'hierarchy' ) setSelectedRegionId( null );
 		setActiveTab( tab );
 	}
 
@@ -254,6 +251,63 @@ export default function MapEditorApp() {
 		if ( selectedAreaId === id ) setSelectedAreaId( null );
 	}
 
+	// ── Hierarchy region operations ───────────────────────────────────────────
+
+	function handleRegionNodesUpdate( regionId: number, nodes: Node[] ) {
+		setRegionsList( ( prev ) =>
+			prev.map( ( r ) => ( r.id === regionId ? { ...r, nodes } : r ) )
+		);
+	}
+
+	async function handleRegionSave( formData: HierarchyFormData ): Promise< HierarchyRegion | undefined > {
+		if ( ! selectedRegionId || ! formData.child_map_id ) {
+			throw new Error( 'Select a child map before saving.' );
+		}
+
+		const region = regionsList.find( ( r ) => r.id === selectedRegionId );
+		if ( ! region ) return;
+
+		const payload = {
+			child_map_id:        formData.child_map_id,
+			nodes:               JSON.stringify( region.nodes ),
+			style_fill:          formData.style_fill,
+			style_fill_opacity:  formData.style_fill_opacity,
+			style_stroke:        formData.style_stroke,
+			style_stroke_width:  formData.style_stroke_width,
+		};
+
+		let res: Response;
+		if ( selectedRegionId === -1 ) {
+			// Unsaved draft — create.
+			res = await apiFetch( 'POST', `/maps/${ mapId }/hierarchy`, payload );
+		} else {
+			res = await apiFetch( 'POST', `/hierarchy/${ selectedRegionId }`, payload );
+		}
+
+		const data = ( await res.json() ) as HierarchyRegion;
+		if ( ! res.ok )
+			throw new Error( ( data as unknown as { message?: string } ).message || 'Save failed.' );
+
+		setRegionsList( ( prev ) =>
+			prev.map( ( r ) => ( r.id === selectedRegionId ? data : r ) )
+		);
+		// After creating a draft, update the selected ID to the real one.
+		if ( selectedRegionId === -1 ) setSelectedRegionId( data.id );
+		return data;
+	}
+
+	async function handleRegionDeleteById( id: number ) {
+		if ( id === -1 ) {
+			setRegionsList( ( prev ) => prev.filter( ( r ) => r.id !== -1 ) );
+			setSelectedRegionId( null );
+			return;
+		}
+		const res = await apiFetch( 'DELETE', `/hierarchy/${ id }` );
+		if ( ! res.ok ) throw new Error( 'Delete failed.' );
+		setRegionsList( ( prev ) => prev.filter( ( r ) => r.id !== id ) );
+		if ( selectedRegionId === id ) setSelectedRegionId( null );
+	}
+
 	// ── Render ────────────────────────────────────────────────────────────────
 
 	const pageTitle = isNew
@@ -326,7 +380,18 @@ export default function MapEditorApp() {
 							( settings.isMaster &&
 								activeTab !== 'settings' &&
 								activeTab !== 'preview' ) ) && (
-							<HierarchyPanel />
+							<HierarchyPanel
+								mapId={ mapId }
+								settings={ settings }
+								regions={ regionsList }
+								selectedRegionId={ selectedRegionId }
+								parentMaps={ initialParentMaps }
+								onRegionsLoaded={ setRegionsList }
+								onSelect={ setSelectedRegionId }
+								onDeselect={ () => setSelectedRegionId( null ) }
+								onNodesUpdate={ handleRegionNodesUpdate }
+								onDelete={ handleRegionDeleteById }
+							/>
 						) }
 						{ activeTab === 'preview' && (
 							<PreviewPanel
@@ -336,27 +401,32 @@ export default function MapEditorApp() {
 								viewUrl={ ! isNew && viewUrl ? viewUrl : '' }
 							/>
 						) }
+						{ activeTab === 'stories' && (
+							<div
+								id="cns-map-stories-panel"
+								data-map-id={ mapId }
+								data-overview-url={ window.cnsMapEditorExtensions?.storySuiteOverviewUrl || '' }
+							/>
+						) }
 					</div>
 				</div>
 				<ContextPanel
 					activeTab={ activeTab }
 					selectedObject={ selectedObject }
 					selectedArea={ selectedArea }
+					selectedRegion={ selectedRegion }
 					onObjectSave={ handleObjectSave }
-					onObjectDelete={ () =>
-						handleObjectDeleteById( selectedObjectId! )
-					}
+					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId! ) }
 					onObjectClose={ () => setSelectedObjectId( null ) }
-					onObjectReposition={ () =>
-						setRepositioningObjId( selectedObjectId )
-					}
+					onObjectReposition={ () => setRepositioningObjId( selectedObjectId ) }
 					onAreaSave={ handleAreaSave }
-					onAreaDelete={ () =>
-						handleAreaDeleteById( selectedAreaId! )
-					}
+					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId! ) }
 					onAreaClose={ () => setSelectedAreaId( null ) }
 					onAreaNodesUpdate={ handleAreaNodesUpdate }
 					onAreaShapeTypeChange={ handleAreaShapeTypeChange }
+					onRegionSave={ handleRegionSave }
+					onRegionDelete={ () => handleRegionDeleteById( selectedRegionId! ) }
+					onRegionClose={ () => setSelectedRegionId( null ) }
 				/>
 			</div>
 		</div>

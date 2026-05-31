@@ -34,8 +34,37 @@ $overview_url = add_query_arg(
 $view_url = (! $is_new && $map && in_array($map->post_status, ['publish', 'private'], true))
     ? get_permalink($map->ID)
     : '';
+
+// Parent maps — maps that include this map as a hierarchy child region.
+$parent_maps = [];
+if ($map_id && ! $is_new) {
+    global $wpdb;
+    $parent_rows = $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT parent_map_id FROM {$wpdb->prefix}cns_map_hierarchy WHERE child_map_id = %d",
+            $map_id
+        ),
+        ARRAY_A
+    );
+    foreach ($parent_rows as $row) {
+        $parent   = get_post((int) $row['parent_map_id']);
+        if (!$parent || $parent->post_type !== 'maps') continue;
+        $image_id = (int) get_post_meta($parent->ID, '_cns_map_image_id', true);
+        $parent_maps[] = [
+            'map_id'    => $parent->ID,
+            'title'     => $parent->post_title ?: __('(no title)', 'cns-map-suite'),
+            'thumbnail' => $image_id ? (wp_get_attachment_image_url($image_id, 'thumbnail') ?: '') : '',
+            'url'       => add_query_arg(['page' => CNS_MAP_PAGE_EDITOR, 'map_id' => $parent->ID], admin_url('admin.php')),
+        ];
+    }
+}
+$extensions = apply_filters('cns_map_editor_extensions', [
+    'hasStorySuite'          => false,
+    'storySuiteOverviewUrl'  => '',
+]);
 ?>
 <script>
+window.cnsMapEditorExtensions = <?php echo wp_json_encode($extensions); ?>;
 window.cnsMapEditor = {
     mapId:       <?php echo (int) $map_id; ?>,
     isNew:       <?php echo $is_new ? 'true' : 'false'; ?>,
@@ -57,6 +86,7 @@ window.cnsMapEditor = {
     bgImageUrl:  <?php echo wp_json_encode($bg_image_url ?: ''); ?>,
     overviewUrl: <?php echo wp_json_encode($overview_url); ?>,
     viewUrl:     <?php echo wp_json_encode($view_url); ?>,
+    parentMaps:  <?php echo wp_json_encode($parent_maps); ?>,
 };
 </script>
 

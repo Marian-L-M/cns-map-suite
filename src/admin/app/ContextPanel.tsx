@@ -1,12 +1,14 @@
 import { useState, useEffect } from '@wordpress/element';
-import ObjectForm, { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
-import AreaForm,   { defaultAreaFormData }   from './forms/AreaForm';
-import NodeList    from './forms/NodeList';
-import SaveStatus  from './shared/SaveStatus';
+import ObjectForm,         { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
+import AreaForm,           { defaultAreaFormData }   from './forms/AreaForm';
+import HierarchyRegionForm, { defaultHierarchyFormData } from './forms/HierarchyRegionForm';
+import NodeList            from './forms/NodeList';
+import SaveStatus          from './shared/SaveStatus';
 import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
 import { normalizeNodesForShapeType } from '../areas';
 import type {
-	Tab, MapObject, MapArea, ObjectFormData, AreaFormData,
+	Tab, MapObject, MapArea, HierarchyRegion, HierarchyFormData,
+	ObjectFormData, AreaFormData,
 	ObjectSavePayload, ShapeType, Node, LibraryIcon,
 	SaveStatus as SaveStatusType,
 } from '../../types';
@@ -15,6 +17,7 @@ interface Props {
 	activeTab: Tab;
 	selectedObject: MapObject | null;
 	selectedArea: MapArea | null;
+	selectedRegion: HierarchyRegion | null;
 	onObjectSave: ( payload: ObjectSavePayload ) => Promise<MapObject | undefined>;
 	onObjectDelete: () => Promise<void>;
 	onObjectClose: () => void;
@@ -24,20 +27,25 @@ interface Props {
 	onAreaClose: () => void;
 	onAreaNodesUpdate: ( areaId: number, nodes: Node[] ) => void;
 	onAreaShapeTypeChange: ( areaId: number, shapeType: ShapeType ) => void;
+	onRegionSave: ( formData: HierarchyFormData ) => Promise<HierarchyRegion | undefined>;
+	onRegionDelete: () => Promise<void>;
+	onRegionClose: () => void;
 }
 
 export default function ContextPanel( {
 	activeTab,
-	selectedObject, selectedArea,
+	selectedObject, selectedArea, selectedRegion,
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
 	onAreaSave,   onAreaDelete,   onAreaClose,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
+	onRegionSave, onRegionDelete, onRegionClose,
 }: Props ) {
-	const [ objFormData,  setObjFormData  ] = useState<ObjectFormData | null>( null );
-	const [ areaFormData, setAreaFormData ] = useState<AreaFormData | null>( null );
-	const [ icons, setIcons ]               = useState<LibraryIcon[]>( iconLibraryCache || [] );
-	const [ status, setStatus ]             = useState<SaveStatusType>( { text: '', type: '' } );
-	const [ saving, setSaving ]             = useState( false );
+	const [ objFormData,    setObjFormData    ] = useState<ObjectFormData | null>( null );
+	const [ areaFormData,   setAreaFormData   ] = useState<AreaFormData | null>( null );
+	const [ regionFormData, setRegionFormData ] = useState<HierarchyFormData | null>( null );
+	const [ icons,          setIcons          ] = useState<LibraryIcon[]>( iconLibraryCache || [] );
+	const [ status,         setStatus         ] = useState<SaveStatusType>( { text: '', type: '' } );
+	const [ saving,         setSaving         ] = useState( false );
 
 	useEffect( () => {
 		if ( selectedObject ) {
@@ -56,12 +64,23 @@ export default function ContextPanel( {
 		}
 	}, [ selectedArea?.id ] );
 
-	if ( ! selectedObject && ! selectedArea ) {
+	useEffect( () => {
+		if ( selectedRegion ) {
+			setRegionFormData( defaultHierarchyFormData( selectedRegion ) );
+			setStatus( { text: '', type: '' } );
+		}
+	}, [ selectedRegion?.id ] );
+
+	const hasSelection = !! selectedObject || !! selectedArea || !! selectedRegion;
+
+	if ( ! hasSelection ) {
 		return (
 			<aside className="cns-editor-context" aria-label="Context panel">
 				<div className="cns-editor-context__empty">
 					<p>{ activeTab === 'areas'
 						? 'Select an area on the canvas to edit it here.'
+						: activeTab === 'hierarchy'
+						? 'Select a region on the canvas to edit it here.'
 						: 'Select an object on the canvas to edit it here.'
 					}</p>
 				</div>
@@ -70,9 +89,12 @@ export default function ContextPanel( {
 	}
 
 	const isObject = !! selectedObject;
+	const isRegion = ! isObject && !! selectedRegion;
 	const title    = isObject
 		? ( selectedObject!.title || '(no title)' )
-		: ( selectedArea!.title   || '(no title)' );
+		: isRegion
+		? ( selectedRegion!.child_map_title || 'New Region' )
+		: ( selectedArea!.title || '(no title)' );
 
 	async function handleSave() {
 		setSaving( true );
@@ -80,7 +102,10 @@ export default function ContextPanel( {
 		try {
 			if ( isObject && objFormData ) {
 				const data = await onObjectSave( collectObjectPayload( objFormData ) );
-				if ( data?.title ) setObjFormData( ( prev ) => prev ? ( { ...prev, title: data.title } ) : prev );
+				if ( data?.title ) setObjFormData( ( prev ) => prev ? { ...prev, title: data.title } : prev );
+			} else if ( isRegion && regionFormData ) {
+				const data = await onRegionSave( regionFormData );
+				if ( data ) setRegionFormData( defaultHierarchyFormData( data ) );
 			} else if ( areaFormData ) {
 				await onAreaSave( areaFormData );
 			}
@@ -97,10 +122,19 @@ export default function ContextPanel( {
 		if ( isObject ) {
 			if ( ! confirm( 'Delete this object?' ) ) return;
 			await onObjectDelete();
+		} else if ( isRegion ) {
+			if ( ! confirm( 'Delete this hierarchy region?' ) ) return;
+			await onRegionDelete();
 		} else {
 			if ( ! confirm( 'Delete this area?' ) ) return;
 			await onAreaDelete();
 		}
+	}
+
+	function handleClose() {
+		if ( isObject ) onObjectClose();
+		else if ( isRegion ) onRegionClose();
+		else onAreaClose();
 	}
 
 	return (
@@ -117,7 +151,7 @@ export default function ContextPanel( {
 						type="button"
 						className="cns-editor-context__close"
 						aria-label="Close"
-						onClick={ isObject ? onObjectClose : onAreaClose }
+						onClick={ handleClose }
 					>&times;</button>
 				</div>
 
@@ -129,14 +163,14 @@ export default function ContextPanel( {
 							icons={ icons }
 						/>
 					) }
-					{ ! isObject && areaFormData && (
+					{ ! isObject && ! isRegion && areaFormData && (
 						<>
 							<AreaForm
 								formData={ areaFormData }
 								onChange={ setAreaFormData }
 								onShapeTypeChange={ ( st ) => {
 									if ( selectedArea ) onAreaShapeTypeChange?.( selectedArea.id, st );
-									setAreaFormData( ( prev ) => prev ? ( { ...prev, shape_type: st } ) : prev );
+									setAreaFormData( ( prev ) => prev ? { ...prev, shape_type: st } : prev );
 								} }
 							/>
 							{ selectedArea && (
@@ -146,6 +180,12 @@ export default function ContextPanel( {
 								/>
 							) }
 						</>
+					) }
+					{ isRegion && regionFormData && (
+						<HierarchyRegionForm
+							formData={ regionFormData }
+							onChange={ setRegionFormData }
+						/>
 					) }
 				</div>
 

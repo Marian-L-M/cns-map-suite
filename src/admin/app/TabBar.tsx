@@ -5,6 +5,7 @@ interface TabDef {
 	label: string;
 	masterHide: boolean;
 	masterShow: boolean;
+	extensionKey?: keyof typeof window.cnsMapEditorExtensions;
 }
 
 const TABS: TabDef[] = [
@@ -13,6 +14,7 @@ const TABS: TabDef[] = [
 	{ id: 'areas',     label: 'Areas',     masterHide: true,  masterShow: false },
 	{ id: 'hierarchy', label: 'Hierarchy', masterHide: false, masterShow: true  },
 	{ id: 'preview',   label: 'Preview',   masterHide: false, masterShow: false },
+	{ id: 'stories',   label: 'Stories',   masterHide: false, masterShow: false, extensionKey: 'hasStorySuite' },
 ];
 
 interface Props {
@@ -22,9 +24,12 @@ interface Props {
 }
 
 export default function TabBar( { activeTab, isMaster, onChange }: Props ) {
+	const ext = window.cnsMapEditorExtensions || {};
+
 	const visible = TABS.filter( ( t ) => {
 		if ( t.masterHide && isMaster ) return false;
 		if ( t.masterShow && ! isMaster ) return false;
+		if ( t.extensionKey && ! ext[ t.extensionKey ] ) return false;
 		return true;
 	} );
 

@@ -183,6 +183,43 @@ function cns_map_suite_register_rest_routes(): void {
 			'permission_callback' => fn() => current_user_can('manage_maps'),
 		],
 	]);
+
+	// ── Map hierarchy ─────────────────────────────────────────────────────────────
+
+	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/hierarchy', [
+		[
+			'methods'             => 'GET',
+			'callback'            => 'cns_map_suite_rest_list_hierarchy',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_create_hierarchy_region',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => cns_map_suite_hierarchy_rest_args(),
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/hierarchy/(?P<id>\d+)', [
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_update_hierarchy_region',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'args'                => cns_map_suite_hierarchy_rest_args(),
+		],
+		[
+			'methods'             => 'DELETE',
+			'callback'            => 'cns_map_suite_rest_delete_hierarchy_region',
+			'permission_callback' => fn() => current_user_can('manage_maps'),
+		],
+	]);
+
+	// Returns all parent maps for a given child map (maps where this map is a child region).
+	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/parents', [
+		'methods'             => 'GET',
+		'callback'            => 'cns_map_suite_rest_list_parents',
+		'permission_callback' => fn() => current_user_can('manage_maps'),
+	]);
 }
 
 // ── Map settings ──────────────────────────────────────────────────────────────
@@ -738,6 +775,226 @@ function cns_map_suite_rest_delete_area(WP_REST_Request $request): WP_REST_Respo
 
 	$wpdb->delete($wpdb->prefix . 'cns_map_areas', ['id' => $id], ['%d']);
 	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+// ── Hierarchy — shared args ───────────────────────────────────────────────────
+
+function cns_map_suite_hierarchy_rest_args(): array {
+	return [
+		'child_map_id' => [
+			'type'              => 'integer',
+			'required'          => true,
+			'sanitize_callback' => 'absint',
+		],
+		'nodes' => [
+			'type'    => 'string',
+			'default' => '[]',
+		],
+		'style_fill' => [
+			'type'    => 'string',
+			'default' => '#e8a020',
+		],
+		'style_fill_opacity' => [
+			'type'    => 'number',
+			'default' => 0.25,
+			'minimum' => 0.0,
+			'maximum' => 1.0,
+		],
+		'style_stroke' => [
+			'type'    => 'string',
+			'default' => '#e8a020',
+		],
+		'style_stroke_width' => [
+			'type'    => 'integer',
+			'default' => 2,
+			'minimum' => 1,
+			'maximum' => 10,
+		],
+	];
+}
+
+// ── Hierarchy — helpers ───────────────────────────────────────────────────────
+
+function cns_map_suite_normalize_hierarchy_row(array $row): array {
+	$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
+	$row['canvas_styles'] = $row['canvas_styles']  ? json_decode($row['canvas_styles'], true) : (object) [];
+	foreach (['id', 'parent_map_id', 'child_map_id'] as $k) {
+		$row[$k] = (int) ($row[$k] ?? 0);
+	}
+
+	// Attach child map preview data for the admin UI.
+	$child = get_post((int) $row['child_map_id']);
+	$row['child_map_title']     = $child ? ($child->post_title ?: __('(no title)', 'cns-map-suite')) : '';
+	$row['child_map_excerpt']   = $child ? (get_the_excerpt($child) ?: '') : '';
+	$row['child_map_status']    = $child ? $child->post_status : '';
+	$image_id = $child ? (int) get_post_meta($child->ID, '_cns_map_image_id', true) : 0;
+	$row['child_map_thumbnail'] = $image_id ? (wp_get_attachment_image_url($image_id, 'thumbnail') ?: '') : '';
+	$row['child_map_url']       = $child ? (get_permalink($child) ?: '') : '';
+
+	return $row;
+}
+
+// ── Hierarchy — CRUD ──────────────────────────────────────────────────────────
+
+function cns_map_suite_rest_list_hierarchy(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE parent_map_id = %d ORDER BY id ASC", $map_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(array_map('cns_map_suite_normalize_hierarchy_row', $rows ?: []), 200);
+}
+
+function cns_map_suite_rest_create_hierarchy_region(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id      = (int) $request->get_param('map_id');
+	$child_map_id = (int) $request->get_param('child_map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+	if (!get_post($child_map_id) || get_post_type($child_map_id) !== 'maps') {
+		return new WP_Error('invalid_child', __('Child map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+	if ($map_id === $child_map_id) {
+		return new WP_Error('self_link', __('A map cannot link to itself.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	$nodes_raw     = $request->get_param('nodes');
+	$nodes_decoded = json_decode($nodes_raw, true);
+	if (!is_array($nodes_decoded)) $nodes_decoded = [];
+
+	$canvas_styles = wp_json_encode([
+		'fill'        => (string) $request->get_param('style_fill'),
+		'fillOpacity' => (float)  $request->get_param('style_fill_opacity'),
+		'stroke'      => (string) $request->get_param('style_stroke'),
+		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
+	]);
+
+	$inserted = $wpdb->insert(
+		$wpdb->prefix . 'cns_map_hierarchy',
+		[
+			'parent_map_id' => $map_id,
+			'child_map_id'  => $child_map_id,
+			'nodes'         => wp_json_encode($nodes_decoded),
+			'canvas_styles' => $canvas_styles,
+		],
+		['%d', '%d', '%s', '%s']
+	);
+
+	if (!$inserted) {
+		// Duplicate (parent+child pair already exists): return existing row.
+		$row = $wpdb->get_row(
+			$wpdb->prepare(
+				"SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE parent_map_id = %d AND child_map_id = %d",
+				$map_id, $child_map_id
+			),
+			ARRAY_A
+		);
+		if ($row) return new WP_REST_Response(cns_map_suite_normalize_hierarchy_row($row), 200);
+		return new WP_Error('db_error', __('Failed to save hierarchy region.', 'cns-map-suite'), ['status' => 500]);
+	}
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE id = %d", $wpdb->insert_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_hierarchy_row($row), 201);
+}
+
+function cns_map_suite_rest_update_hierarchy_region(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_hierarchy WHERE id = %d", $id)
+	);
+	if (!$existing) {
+		return new WP_Error('not_found', __('Hierarchy region not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$nodes_raw     = $request->get_param('nodes');
+	$nodes_decoded = json_decode($nodes_raw, true);
+	if (!is_array($nodes_decoded)) $nodes_decoded = [];
+
+	$canvas_styles = wp_json_encode([
+		'fill'        => (string) $request->get_param('style_fill'),
+		'fillOpacity' => (float)  $request->get_param('style_fill_opacity'),
+		'stroke'      => (string) $request->get_param('style_stroke'),
+		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
+	]);
+
+	$wpdb->update(
+		$wpdb->prefix . 'cns_map_hierarchy',
+		[
+			'nodes'         => wp_json_encode($nodes_decoded),
+			'canvas_styles' => $canvas_styles,
+		],
+		['id' => $id],
+		['%s', '%s'],
+		['%d']
+	);
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_hierarchy_row($row), 200);
+}
+
+function cns_map_suite_rest_delete_hierarchy_region(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_hierarchy WHERE id = %d", $id)
+	);
+	if (!$existing) {
+		return new WP_Error('not_found', __('Hierarchy region not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$wpdb->delete($wpdb->prefix . 'cns_map_hierarchy', ['id' => $id], ['%d']);
+	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+function cns_map_suite_rest_list_parents(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare(
+			"SELECT h.id, h.parent_map_id FROM {$wpdb->prefix}cns_map_hierarchy h WHERE h.child_map_id = %d",
+			$map_id
+		),
+		ARRAY_A
+	);
+
+	$parents = array_map(function ($row) {
+		$parent = get_post((int) $row['parent_map_id']);
+		$image_id = $parent ? (int) get_post_meta($parent->ID, '_cns_map_image_id', true) : 0;
+		return [
+			'map_id'    => (int) $row['parent_map_id'],
+			'title'     => $parent ? ($parent->post_title ?: __('(no title)', 'cns-map-suite')) : '',
+			'status'    => $parent ? $parent->post_status : '',
+			'thumbnail' => $image_id ? (wp_get_attachment_image_url($image_id, 'thumbnail') ?: '') : '',
+			'url'       => $parent ? (get_permalink($parent) ?: '') : '',
+		];
+	}, $rows ?: []);
+
+	return new WP_REST_Response(array_values($parents), 200);
 }
 
 // ── Objects — move ────────────────────────────────────────────────────────────

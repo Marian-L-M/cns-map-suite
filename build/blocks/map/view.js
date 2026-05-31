@@ -1,1 +1,456 @@
-!function(){"use strict";const e={};function t(t){return t?e[t]?Promise.resolve(e[t]):new Promise(function(n){const a=new Image;a.onload=function(){e[t]=a,n(a)},a.onerror=function(){n(null)},a.src=t}):Promise.resolve(null)}function n(e,t,n,a,r){switch(e.beginPath(),n){case"BEZIER":t.length>=3&&function(e,t,n,a){const r=t.length,i=(t[r-1].x+t[0].x)/2*n,o=(t[r-1].y+t[0].y)/2*a;e.moveTo(i,o);for(let i=0;i<r;i++){const o=t[i],s=t[(i+1)%r];e.quadraticCurveTo(o.x*n,o.y*a,(o.x+s.x)/2*n,(o.y+s.y)/2*a)}e.closePath()}(e,t,a,r);break;case"CIRCLE":t.length>=2&&function(e,t,n,a){const r=t[0].x*n,i=t[0].y*a,o=Math.max(Math.abs(t[1].x-t[0].x)*n,1),s=Math.max(Math.abs(t[1].y-t[0].y)*a,1);e.ellipse(r,i,o,s,0,0,2*Math.PI)}(e,t,a,r);break;default:t.length>=3&&function(e,t,n,a){e.moveTo(t[0].x*n,t[0].y*a);for(let r=1;r<t.length;r++)e.lineTo(t[r].x*n,t[r].y*a);e.closePath()}(e,t,a,r)}}function a(e,t,a,r){const i=t.nodes||[];if(!i.length)return;const o=t.shape_type||"POLYGON",s="CIRCLE"===o?2:3;if(i.length<s)return;const c=t.canvas_styles||{},l=c.fill||"#2271b1",d=c.fillOpacity??.3,u=c.stroke||"#2271b1",f=c.strokeWidth||2;n(e,i,o,a,r),e.save(),e.globalAlpha=d,e.fillStyle=l,e.fill(),e.restore(),e.strokeStyle=u,e.lineWidth=f,e.stroke()}async function r(n,a){const r=a.canvas_styles?.size||32,i=a.canvas_styles?.fillStyle||"#ffffff",o=a.canvas_styles?.strokeStyle||"#2271b1";if(a.icon_url){const s="image/svg+xml"===a.icon_mime?await async function(t,n,a){const r=t+"|"+(n||"")+"|"+(a||"");if(e[r])return e[r];try{const i=await fetch(t,{credentials:"same-origin"}),o=await i.text(),s=(new DOMParser).parseFromString(o,"image/svg+xml"),c=s.documentElement;n&&c.setAttribute("fill",n),a&&c.setAttribute("stroke",a);const l=new Blob([(new XMLSerializer).serializeToString(s)],{type:"image/svg+xml"}),d=URL.createObjectURL(l);return new Promise(function(t){const n=new Image;n.onload=function(){URL.revokeObjectURL(d),e[r]=n,t(n)},n.onerror=function(){URL.revokeObjectURL(d),t(null)},n.src=d})}catch{return null}}(a.icon_url,i,o):await t(a.icon_url);if(s)return void n.drawImage(s,a.x-r/2,a.y-r/2,r,r)}!function(e,t,n,a,r,i){e.save(),e.beginPath(),e.arc(t,n,a/2,0,2*Math.PI),e.fillStyle=r||"#2271b1",e.strokeStyle=i||"#fff",e.lineWidth=2,e.fill(),e.stroke(),e.restore()}(n,a.x,a.y,r,i,o)}function i(e){e.classList.remove("is-open"),document.body.classList.remove("cns-map-drawer-open")}function o(e,t){const n=function(){let e=document.getElementById("cns-map-drawer");return e||(e=document.createElement("div"),e.id="cns-map-drawer",e.className="cns-map-drawer",e.setAttribute("role","dialog"),e.setAttribute("aria-modal","true"),e.innerHTML='<div class="cns-map-drawer__backdrop"></div><div class="cns-map-drawer__panel"><div class="cns-map-drawer__header"><button class="cns-map-drawer__close" aria-label="Close">&times;</button></div><div class="cns-map-drawer__body"></div></div>',document.body.appendChild(e),e.querySelector(".cns-map-drawer__backdrop").addEventListener("click",function(){i(e)}),e.querySelector(".cns-map-drawer__close").addEventListener("click",function(){i(e)}),document.addEventListener("keydown",function(t){"Escape"===t.key&&e.classList.contains("is-open")&&i(e)})),e}(),a=n.querySelector(".cns-map-drawer__body"),r=t.infobox_resolved||{},o=r.title||t.title||"",s=r.content||"",c=r.image_url||"",l=r.post_url||"";let d="";c&&(d+='<img class="cns-map-drawer__image" src="'+encodeURI(c)+'" alt="" />'),o&&(d+='<h2 class="cns-map-drawer__title">'+String(o).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;")+"</h2>"),s&&(d+='<div class="cns-map-drawer__content">'+s+"</div>"),l&&(d+='<a class="cns-map-drawer__link" href="'+encodeURI(l)+'">View full post &rarr;</a>'),a.innerHTML=d,n.classList.add("is-open"),document.body.classList.add("cns-map-drawer-open"),n.querySelector(".cns-map-drawer__close").focus()}async function s(e){const s=e.querySelector("script[data-cns-map]");if(!s)return;let c;try{c=JSON.parse(s.textContent)}catch{return}const l=e.querySelector(".cns-map-canvas");if(!l)return;l.width=c.width,l.height=c.height,await async function(e,n){const a=e.getContext("2d"),r=e.width,i=e.height;if(a.clearRect(0,0,r,i),"image"===n.bgType&&n.bgImageUrl){const e=await t(n.bgImageUrl);if(e){const t=Math.max(r/e.naturalWidth,i/e.naturalHeight),n=e.naturalWidth*t,o=e.naturalHeight*t;a.drawImage(e,(r-n)/2,(i-o)/2,n,o)}else a.fillStyle="#888",a.fillRect(0,0,r,i)}else a.fillStyle=n.bgColor||"#1a1a2e",a.fillRect(0,0,r,i);if(n.imgUrl){const e=await t(n.imgUrl);if(e){const t=r*(n.imageW||1),o=t*(e.naturalHeight/e.naturalWidth);a.drawImage(e,r*(n.imageX||0),i*(n.imageY||0),t,o)}}}(l,c);const d=l.getContext("2d");for(const e of c.areas||[])a(d,e,l.width,l.height);for(const e of c.objects||[])await r(d,e);((c.objects||[]).some(function(e){const t=e.infobox_resolved||{};return t.title||t.description||t.image_url})||(c.areas||[]).some(function(e){const t=e.infobox_resolved||{};return t.title||t.description||t.image_url}))&&(l.style.cursor="pointer",l.addEventListener("click",function(e){const t=l.getBoundingClientRect(),a=(e.clientX-t.left)*(l.width/t.width),r=(e.clientY-t.top)*(l.height/t.height),s=function(e,t,n,a){for(let r=a.length-1;r>=0;r--){const i=a[r],o=i.canvas_styles?.size||32,s=o/2;if(e.beginPath(),e.rect(i.x-s,i.y-s,o,o),e.isPointInPath(t,n))return i}return null}(d,a,r,c.objects||[]);if(s)return void o(0,s);const u=function(e,t,a,r,i,o){for(let s=r.length-1;s>=0;s--){const c=r[s],l=c.nodes||[],d=c.shape_type||"POLYGON",u="CIRCLE"===d?2:3;if(!(l.length<u)&&(n(e,l,d,i,o),e.isPointInPath(t,a)))return c}return null}(d,a,r,c.areas||[],l.width,l.height);u?o(0,u):function(){const e=document.getElementById("cns-map-drawer");e&&i(e)}()}))}function c(){document.querySelectorAll(".wp-block-cns-map-suite-map").forEach(s)}"loading"===document.readyState?document.addEventListener("DOMContentLoaded",c):c()}();
+/******/ (() => { // webpackBootstrap
+/*!********************************!*\
+  !*** ./src/blocks/map/view.js ***!
+  \********************************/
+(function () {
+  'use strict';
+
+  // ── Image / SVG cache ─────────────────────────────────────────────────────
+  const imageCache = {};
+  function loadImage(url) {
+    if (!url) return Promise.resolve(null);
+    if (imageCache[url]) return Promise.resolve(imageCache[url]);
+    return new Promise(function (resolve) {
+      const img = new Image();
+      img.onload = function () {
+        imageCache[url] = img;
+        resolve(img);
+      };
+      img.onerror = function () {
+        resolve(null);
+      };
+      img.src = url;
+    });
+  }
+  async function loadSvgWithColors(url, fill, stroke) {
+    const key = url + '|' + (fill || '') + '|' + (stroke || '');
+    if (imageCache[key]) return imageCache[key];
+    try {
+      const resp = await fetch(url, {
+        credentials: 'same-origin'
+      });
+      const text = await resp.text();
+      const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+      const svg = doc.documentElement;
+      if (fill) svg.setAttribute('fill', fill);
+      if (stroke) svg.setAttribute('stroke', stroke);
+      const blob = new Blob([new XMLSerializer().serializeToString(doc)], {
+        type: 'image/svg+xml'
+      });
+      const blobUrl = URL.createObjectURL(blob);
+      return new Promise(function (resolve) {
+        const img = new Image();
+        img.onload = function () {
+          URL.revokeObjectURL(blobUrl);
+          imageCache[key] = img;
+          resolve(img);
+        };
+        img.onerror = function () {
+          URL.revokeObjectURL(blobUrl);
+          resolve(null);
+        };
+        img.src = blobUrl;
+      });
+    } catch {
+      return null;
+    }
+  }
+
+  // ── Draw pipeline ─────────────────────────────────────────────────────────
+
+  async function drawBackground(canvas, data) {
+    const ctx = canvas.getContext('2d');
+    const width = canvas.width;
+    const height = canvas.height;
+    ctx.clearRect(0, 0, width, height);
+    if (data.bgType === 'image' && data.bgImageUrl) {
+      const bgImg = await loadImage(data.bgImageUrl);
+      if (bgImg) {
+        const scale = Math.max(width / bgImg.naturalWidth, height / bgImg.naturalHeight);
+        const drawW = bgImg.naturalWidth * scale;
+        const drawH = bgImg.naturalHeight * scale;
+        ctx.drawImage(bgImg, (width - drawW) / 2, (height - drawH) / 2, drawW, drawH);
+      } else {
+        ctx.fillStyle = '#888';
+        ctx.fillRect(0, 0, width, height);
+      }
+    } else {
+      ctx.fillStyle = data.bgColor || '#1a1a2e';
+      ctx.fillRect(0, 0, width, height);
+    }
+    if (data.imgUrl) {
+      const mapImg = await loadImage(data.imgUrl);
+      if (mapImg) {
+        const drawW = width * (data.imageW || 1);
+        const drawH = drawW * (mapImg.naturalHeight / mapImg.naturalWidth);
+        ctx.drawImage(mapImg, width * (data.imageX || 0), height * (data.imageY || 0), drawW, drawH);
+      }
+    }
+  }
+  function buildPolygonPath(ctx, nodes, W, H) {
+    ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
+    for (let i = 1; i < nodes.length; i++) {
+      ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
+    }
+    ctx.closePath();
+  }
+  function buildBezierPath(ctx, nodes, W, H) {
+    const n = nodes.length;
+    const startX = (nodes[n - 1].x + nodes[0].x) / 2 * W;
+    const startY = (nodes[n - 1].y + nodes[0].y) / 2 * H;
+    ctx.moveTo(startX, startY);
+    for (let i = 0; i < n; i++) {
+      const cp = nodes[i];
+      const next = nodes[(i + 1) % n];
+      ctx.quadraticCurveTo(cp.x * W, cp.y * H, (cp.x + next.x) / 2 * W, (cp.y + next.y) / 2 * H);
+    }
+    ctx.closePath();
+  }
+  function buildCirclePath(ctx, nodes, W, H) {
+    const cx = nodes[0].x * W;
+    const cy = nodes[0].y * H;
+    const rx = Math.max(Math.abs(nodes[1].x - nodes[0].x) * W, 1);
+    const ry = Math.max(Math.abs(nodes[1].y - nodes[0].y) * H, 1);
+    ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+  }
+  function buildAreaPathFromNodes(ctx, nodes, shapeType, W, H) {
+    ctx.beginPath();
+    switch (shapeType) {
+      case 'BEZIER':
+        if (nodes.length >= 3) buildBezierPath(ctx, nodes, W, H);
+        break;
+      case 'CIRCLE':
+        if (nodes.length >= 2) buildCirclePath(ctx, nodes, W, H);
+        break;
+      case 'RECTANGLE':
+      default:
+        if (nodes.length >= 3) buildPolygonPath(ctx, nodes, W, H);
+        break;
+    }
+  }
+  function drawHierarchyRegion(ctx, region, W, H) {
+    const nodes = region.nodes || [];
+    if (nodes.length < 3) return;
+    const styles = region.canvas_styles || {};
+    const fill = styles.fill || '#e8a020';
+    const fillOpacity = styles.fillOpacity ?? 0.25;
+    const stroke = styles.stroke || '#e8a020';
+    const strokeWidth = styles.strokeWidth || 2;
+    ctx.beginPath();
+    buildPolygonPath(ctx, nodes, W, H);
+    ctx.save();
+    ctx.globalAlpha = fillOpacity;
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeWidth;
+    ctx.stroke();
+    if (region.child_map_title) {
+      const cx = nodes.reduce(function (s, n) {
+        return s + n.x;
+      }, 0) / nodes.length * W;
+      const cy = nodes.reduce(function (s, n) {
+        return s + n.y;
+      }, 0) / nodes.length * H;
+      ctx.save();
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+      ctx.lineWidth = 3;
+      ctx.strokeText(region.child_map_title, cx, cy);
+      ctx.fillText(region.child_map_title, cx, cy);
+      ctx.restore();
+    }
+  }
+  function findHierarchyRegionAtPoint(ctx, x, y, regions, W, H) {
+    for (var i = regions.length - 1; i >= 0; i--) {
+      var region = regions[i];
+      var nodes = region.nodes || [];
+      if (nodes.length < 3) continue;
+      ctx.beginPath();
+      buildPolygonPath(ctx, nodes, W, H);
+      if (ctx.isPointInPath(x, y)) return region;
+    }
+    return null;
+  }
+  function drawAreaShape(ctx, area, W, H) {
+    const nodes = area.nodes || [];
+    if (!nodes.length) return;
+    const shapeType = area.shape_type || 'POLYGON';
+    const minNodes = shapeType === 'CIRCLE' ? 2 : 3;
+    if (nodes.length < minNodes) return;
+    const styles = area.canvas_styles || {};
+    const fill = styles.fill || '#2271b1';
+    const fillOpacity = styles.fillOpacity ?? 0.3;
+    const stroke = styles.stroke || '#2271b1';
+    const strokeWidth = styles.strokeWidth || 2;
+    buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
+    ctx.save();
+    ctx.globalAlpha = fillOpacity;
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = strokeWidth;
+    ctx.stroke();
+  }
+  function drawFallbackMarker(ctx, x, y, size, fill, stroke) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+    ctx.fillStyle = fill || '#2271b1';
+    ctx.strokeStyle = stroke || '#fff';
+    ctx.lineWidth = 2;
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+  async function drawObjectMarker(ctx, obj) {
+    const size = obj.canvas_styles?.size || 32;
+    const fill = obj.canvas_styles?.fillStyle || '#ffffff';
+    const stroke = obj.canvas_styles?.strokeStyle || '#2271b1';
+    if (obj.icon_url) {
+      const img = obj.icon_mime === 'image/svg+xml' ? await loadSvgWithColors(obj.icon_url, fill, stroke) : await loadImage(obj.icon_url);
+      if (img) {
+        ctx.drawImage(img, obj.x - size / 2, obj.y - size / 2, size, size);
+        return;
+      }
+    }
+    drawFallbackMarker(ctx, obj.x, obj.y, size, fill, stroke);
+  }
+
+  // ── Hit detection ─────────────────────────────────────────────────────────
+
+  function findObjectAtPoint(ctx, x, y, objects) {
+    for (let i = objects.length - 1; i >= 0; i--) {
+      const obj = objects[i];
+      const size = obj.canvas_styles?.size || 32;
+      const half = size / 2;
+      ctx.beginPath();
+      ctx.rect(obj.x - half, obj.y - half, size, size);
+      if (ctx.isPointInPath(x, y)) return obj;
+    }
+    return null;
+  }
+  function findAreaAtPoint(ctx, x, y, areas, W, H) {
+    for (let i = areas.length - 1; i >= 0; i--) {
+      const area = areas[i];
+      const nodes = area.nodes || [];
+      const shapeType = area.shape_type || 'POLYGON';
+      const minNodes = shapeType === 'CIRCLE' ? 2 : 3;
+      if (nodes.length < minNodes) continue;
+      buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
+      if (ctx.isPointInPath(x, y)) return area;
+    }
+    return null;
+  }
+
+  // ── Infobox drawer ────────────────────────────────────────────────────────
+  // A single side drawer shared across all map instances on the page.
+  // Lives on document.body; class toggle (not hidden attr) controls visibility
+  // so author display:flex/block never fights the UA [hidden] rule.
+
+  function escHtml(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+  function closeDrawer(drawer) {
+    drawer.classList.remove('is-open');
+    document.body.classList.remove('cns-map-drawer-open');
+  }
+  function getOrCreateDrawer() {
+    let drawer = document.getElementById('cns-map-drawer');
+    if (!drawer) {
+      drawer = document.createElement('div');
+      drawer.id = 'cns-map-drawer';
+      drawer.className = 'cns-map-drawer';
+      drawer.setAttribute('role', 'dialog');
+      drawer.setAttribute('aria-modal', 'true');
+      drawer.innerHTML = '<div class="cns-map-drawer__backdrop"></div>' + '<div class="cns-map-drawer__panel">' + '<div class="cns-map-drawer__header">' + '<button class="cns-map-drawer__close" aria-label="Close">&times;</button>' + '</div>' + '<div class="cns-map-drawer__body"></div>' + '</div>';
+      document.body.appendChild(drawer);
+      drawer.querySelector('.cns-map-drawer__backdrop').addEventListener('click', function () {
+        closeDrawer(drawer);
+      });
+      drawer.querySelector('.cns-map-drawer__close').addEventListener('click', function () {
+        closeDrawer(drawer);
+      });
+      document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer(drawer);
+      });
+    }
+    return drawer;
+  }
+  function showInfobox(wrap, item) {
+    const drawer = getOrCreateDrawer();
+    const body = drawer.querySelector('.cns-map-drawer__body');
+    const resolved = item.infobox_resolved || {};
+    const title = resolved.title || item.title || '';
+    const content = resolved.content || '';
+    const imgUrl = resolved.image_url || '';
+    const postUrl = resolved.post_url || '';
+    let html = '';
+    if (imgUrl) html += '<img class="cns-map-drawer__image" src="' + encodeURI(imgUrl) + '" alt="" />';
+    if (title) html += '<h2 class="cns-map-drawer__title">' + escHtml(title) + '</h2>';
+    if (content) html += '<div class="cns-map-drawer__content">' + content + '</div>';
+    if (postUrl) html += '<a class="cns-map-drawer__link" href="' + encodeURI(postUrl) + '">View full post &rarr;</a>';
+    body.innerHTML = html;
+    drawer.classList.add('is-open');
+    document.body.classList.add('cns-map-drawer-open');
+    drawer.querySelector('.cns-map-drawer__close').focus();
+  }
+  function hideInfobox() {
+    const drawer = document.getElementById('cns-map-drawer');
+    if (drawer) closeDrawer(drawer);
+  }
+
+  // ── Hierarchy tooltip ─────────────────────────────────────────────────────
+  // A small tooltip that follows the cursor (or appears near the region) on
+  // hover, showing the child map's thumbnail, title and excerpt.
+  // All thumbnail images are pre-loaded during initMap for a smooth experience.
+
+  function getOrCreateHierarchyTooltip() {
+    var tip = document.getElementById('cns-map-hierarchy-tip');
+    if (!tip) {
+      tip = document.createElement('div');
+      tip.id = 'cns-map-hierarchy-tip';
+      tip.className = 'cns-map-hierarchy-tip';
+      tip.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(tip);
+    }
+    return tip;
+  }
+  function showHierarchyTooltip(region, canvasRect, canvasX, canvasY, scaleX, scaleY) {
+    var tip = getOrCreateHierarchyTooltip();
+    var imgHtml = region.child_map_thumbnail ? '<img class="cns-map-hierarchy-tip__thumb" src="' + encodeURI(region.child_map_thumbnail) + '" alt="" />' : '';
+    var titleHtml = region.child_map_title ? '<strong class="cns-map-hierarchy-tip__title">' + escHtml(region.child_map_title) + '</strong>' : '';
+    var excerptHtml = region.child_map_excerpt ? '<p class="cns-map-hierarchy-tip__excerpt">' + escHtml(region.child_map_excerpt) + '</p>' : '';
+    tip.innerHTML = imgHtml + titleHtml + excerptHtml;
+
+    // Position near cursor, offset so it doesn't obscure the pointer.
+    var clientX = canvasRect.left + canvasX * scaleX;
+    var clientY = canvasRect.top + canvasY * scaleY;
+    tip.style.left = clientX + 14 + window.scrollX + 'px';
+    tip.style.top = clientY - 10 + window.scrollY + 'px';
+    tip.classList.add('is-visible');
+  }
+  function hideHierarchyTooltip() {
+    var tip = document.getElementById('cns-map-hierarchy-tip');
+    if (tip) tip.classList.remove('is-visible');
+  }
+
+  // ── Map initialiser ───────────────────────────────────────────────────────
+
+  async function initMap(wrapper) {
+    const scriptEl = wrapper.querySelector('script[data-cns-map]');
+    if (!scriptEl) return;
+    let data;
+    try {
+      data = JSON.parse(scriptEl.textContent);
+    } catch {
+      return;
+    }
+    const canvas = wrapper.querySelector('.cns-map-canvas');
+    if (!canvas) return;
+    canvas.width = data.width;
+    canvas.height = data.height;
+    await drawBackground(canvas, data);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    for (const area of data.areas || []) {
+      drawAreaShape(ctx, area, W, H);
+    }
+    for (const region of data.hierarchyRegions || []) {
+      drawHierarchyRegion(ctx, region, W, H);
+    }
+    for (const obj of data.objects || []) {
+      await drawObjectMarker(ctx, obj);
+    }
+
+    // Pre-load all hierarchy region thumbnails for smooth hover.
+    for (const region of data.hierarchyRegions || []) {
+      if (region.child_map_thumbnail) loadImage(region.child_map_thumbnail);
+    }
+    const hierarchyRegions = data.hierarchyRegions || [];
+    const hasHierarchy = hierarchyRegions.length > 0;
+
+    // Infobox click check.
+    const hasClickable = (data.objects || []).some(function (o) {
+      const ib = o.infobox_resolved || {};
+      return ib.title || ib.description || ib.image_url;
+    }) || (data.areas || []).some(function (a) {
+      const ib = a.infobox_resolved || {};
+      return ib.title || ib.description || ib.image_url;
+    });
+    if (!hasClickable && !hasHierarchy) return;
+    canvas.style.cursor = 'pointer';
+
+    // ── Hover: hierarchy tooltip ──────────────────────────────────────────
+    if (hasHierarchy) {
+      canvas.addEventListener('mousemove', function (e) {
+        const rect = canvas.getBoundingClientRect();
+        const scaleX = rect.width / W;
+        const scaleY = rect.height / H;
+        const x = (e.clientX - rect.left) / scaleX;
+        const y = (e.clientY - rect.top) / scaleY;
+        const hitRegion = findHierarchyRegionAtPoint(ctx, x, y, hierarchyRegions, W, H);
+        if (hitRegion) {
+          canvas.style.cursor = 'pointer';
+          showHierarchyTooltip(hitRegion, rect, x, y, scaleX, scaleY);
+        } else {
+          hideHierarchyTooltip();
+        }
+      });
+      canvas.addEventListener('mouseleave', function () {
+        hideHierarchyTooltip();
+      });
+    }
+
+    // ── Click: hierarchy navigation or infobox ────────────────────────────
+    canvas.addEventListener('click', function (e) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = rect.width / W;
+      const scaleY = rect.height / H;
+      const x = (e.clientX - rect.left) / scaleX;
+      const y = (e.clientY - rect.top) / scaleY;
+
+      // Hierarchy regions take top priority — click navigates to child map.
+      if (hasHierarchy) {
+        const hitRegion = findHierarchyRegionAtPoint(ctx, x, y, hierarchyRegions, W, H);
+        if (hitRegion && hitRegion.child_map_url) {
+          hideHierarchyTooltip();
+          window.location.href = hitRegion.child_map_url;
+          return;
+        }
+      }
+      if (!hasClickable) return;
+      const hitObj = findObjectAtPoint(ctx, x, y, data.objects || []);
+      if (hitObj) {
+        showInfobox(wrapper, hitObj);
+        return;
+      }
+      const hitArea = findAreaAtPoint(ctx, x, y, data.areas || [], W, H);
+      if (hitArea) {
+        showInfobox(wrapper, hitArea);
+        return;
+      }
+      hideInfobox();
+    });
+  }
+
+  // ── Boot ──────────────────────────────────────────────────────────────────
+
+  function init() {
+    document.querySelectorAll('.wp-block-cns-map-suite-map').forEach(initMap);
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+/******/ })()
+;
+//# sourceMappingURL=view.js.map

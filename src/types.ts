@@ -18,12 +18,25 @@ interface WpMediaOptions {
 	library?: { type: string };
 }
 
+export interface CnsMapEditorExtensions {
+	hasStorySuite?: boolean;
+	storySuiteOverviewUrl?: string;
+}
+
 declare global {
 	interface Window {
 		cnsMapEditor: CnsMapEditorGlobal;
 		cnsMapSuite: CnsMapSuiteGlobal;
+		cnsMapEditorExtensions: CnsMapEditorExtensions;
 		wp: { media: (options: WpMediaOptions) => WpMediaFrame };
 	}
+}
+
+export interface ParentMapRef {
+	map_id: number;
+	title: string;
+	thumbnail: string;
+	url: string;
 }
 
 export interface CnsMapEditorGlobal {
@@ -47,6 +60,7 @@ export interface CnsMapEditorGlobal {
 	bgImageUrl: string;
 	overviewUrl: string;
 	viewUrl: string;
+	parentMaps: ParentMapRef[];
 }
 
 export interface CnsMapSuiteGlobal {
@@ -66,7 +80,7 @@ export type InfoboxSource = 'manual' | 'post';
 export type IconSource    = 'svg' | 'image';
 export type BgType        = 'color' | 'image';
 export type SaveStatusKind = '' | 'ok' | 'error';
-export type Tab           = 'settings' | 'objects' | 'areas' | 'hierarchy' | 'preview';
+export type Tab           = 'settings' | 'objects' | 'areas' | 'hierarchy' | 'preview' | 'stories';
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
 
@@ -144,6 +158,39 @@ export interface MapArea {
 	canvas_styles: AreaCanvasStyles | null;
 	created_at: string;
 	updated_at: string;
+}
+
+// ── Domain: HierarchyRegion ───────────────────────────────────────────────────
+
+export interface HierarchyCanvasStyles {
+	fill?: string;
+	fillOpacity?: number;
+	stroke?: string;
+	strokeWidth?: number;
+}
+
+export interface HierarchyRegion {
+	id: number;
+	parent_map_id: number;
+	child_map_id: number;
+	nodes: Node[];
+	canvas_styles: HierarchyCanvasStyles | null;
+	child_map_title: string;
+	child_map_excerpt: string;
+	child_map_status: string;
+	child_map_thumbnail: string;
+	child_map_url: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface HierarchyFormData {
+	child_map_id: number;
+	child_map_label: string;
+	style_fill: string;
+	style_fill_opacity: number;
+	style_stroke: string;
+	style_stroke_width: number;
 }
 
 // ── Domain: LibraryIcon ───────────────────────────────────────────────────────

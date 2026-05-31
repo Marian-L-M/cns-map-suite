@@ -93,21 +93,66 @@ $areas = array_map(
 	$area_rows ?: []
 );
 
+// ── Hierarchy regions (this map as parent) ────────────────────────────────────
+
+$hierarchy_rows = $wpdb->get_results(
+	$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE parent_map_id = %d ORDER BY id ASC", $map_id),
+	ARRAY_A
+);
+
+$hierarchy_regions = array_map(function ($row) {
+	$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
+	$row['canvas_styles'] = $row['canvas_styles']  ? json_decode($row['canvas_styles'], true) : (object) [];
+	foreach (['id', 'parent_map_id', 'child_map_id'] as $k) {
+		$row[$k] = (int) ($row[$k] ?? 0);
+	}
+
+	$child    = get_post((int) $row['child_map_id']);
+	$image_id = $child ? (int) get_post_meta($child->ID, '_cns_map_image_id', true) : 0;
+	$row['child_map_title']     = $child ? ($child->post_title ?: '') : '';
+	$row['child_map_excerpt']   = $child ? (get_the_excerpt($child) ?: '') : '';
+	$row['child_map_thumbnail'] = $image_id ? (wp_get_attachment_image_url($image_id, 'medium') ?: '') : '';
+	$row['child_map_url']       = $child ? (get_permalink($child) ?: '') : '';
+
+	return $row;
+}, $hierarchy_rows ?: []);
+
+// ── Parent maps (this map as child) ──────────────────────────────────────────
+
+$parent_rows = $wpdb->get_results(
+	$wpdb->prepare("SELECT parent_map_id FROM {$wpdb->prefix}cns_map_hierarchy WHERE child_map_id = %d", $map_id),
+	ARRAY_A
+);
+
+$parent_maps = array_values(array_filter(array_map(function ($row) {
+	$parent   = get_post((int) $row['parent_map_id']);
+	if (!$parent || $parent->post_type !== 'maps') return null;
+	$image_id = (int) get_post_meta($parent->ID, '_cns_map_image_id', true);
+	return [
+		'map_id'    => $parent->ID,
+		'title'     => $parent->post_title ?: '',
+		'thumbnail' => $image_id ? (wp_get_attachment_image_url($image_id, 'thumbnail') ?: '') : '',
+		'url'       => get_permalink($parent) ?: '',
+	];
+}, $parent_rows ?: [])));
+
 // ── Inline data ───────────────────────────────────────────────────────────────
 
 $map_data = [
-	'mapId'      => $map_id,
-	'width'      => $width,
-	'height'     => $height,
-	'bgType'     => $bg_type,
-	'bgColor'    => $bg_color,
-	'bgImageUrl' => $bg_image_id ? (wp_get_attachment_image_url($bg_image_id, 'full') ?: '') : '',
-	'imgUrl'     => $image_id    ? (wp_get_attachment_image_url($image_id, 'full')    ?: '') : '',
-	'imageX'     => $image_x,
-	'imageY'     => $image_y,
-	'imageW'     => $image_w,
-	'objects'    => $objects,
-	'areas'      => $areas,
+	'mapId'            => $map_id,
+	'width'            => $width,
+	'height'           => $height,
+	'bgType'           => $bg_type,
+	'bgColor'          => $bg_color,
+	'bgImageUrl'       => $bg_image_id ? (wp_get_attachment_image_url($bg_image_id, 'full') ?: '') : '',
+	'imgUrl'           => $image_id    ? (wp_get_attachment_image_url($image_id, 'full')    ?: '') : '',
+	'imageX'           => $image_x,
+	'imageY'           => $image_y,
+	'imageW'           => $image_w,
+	'objects'          => $objects,
+	'areas'            => $areas,
+	'hierarchyRegions' => $hierarchy_regions,
+	'parentMaps'       => $parent_maps,
 ];
 
 $wrapper_attrs = get_block_wrapper_attributes([

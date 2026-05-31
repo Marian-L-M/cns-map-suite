@@ -979,6 +979,91 @@ body.cns-modal-open {
 	width: 20px;
 }
 
+// ── Hierarchy panel ───────────────────────────────────────────────────────────
+
+.cns-hierarchy-parents {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	background: #f0f6fc;
+	border: 1px solid #c3d9ef;
+	border-radius: 4px;
+	margin-bottom: 12px;
+	font-size: 0.85rem;
+
+	&__label {
+		font-weight: 600;
+		color: #646970;
+	}
+
+	&__link {
+		display: inline-flex;
+		align-items: center;
+		gap: 6px;
+		color: #2271b1;
+		text-decoration: none;
+		font-weight: 500;
+
+		&:hover { text-decoration: underline; }
+
+		img {
+			width: 24px;
+			height: 24px;
+			object-fit: cover;
+			border-radius: 2px;
+		}
+	}
+}
+
+// ── Generic items list (hierarchy regions, etc.) ──────────────────────────────
+
+.cns-items-list {
+	list-style: none;
+	margin: 8px 0 0;
+	padding: 0;
+
+	&__item {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		padding: 6px 8px;
+		border-bottom: 1px solid #dcdcde;
+		font-size: 0.85rem;
+
+		&:last-child { border-bottom: none; }
+	}
+
+	&__thumb {
+		width: 32px;
+		height: 32px;
+		object-fit: cover;
+		border-radius: 3px;
+		flex-shrink: 0;
+	}
+
+	&__label {
+		flex: 1;
+		font-weight: 500;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	&__status {
+		font-weight: 400;
+		color: #8c8f94;
+		font-style: normal;
+	}
+
+	&__actions {
+		display: flex;
+		gap: 4px;
+		flex-shrink: 0;
+	}
+}
+
 // ── Utility ───────────────────────────────────────────────────────────────────
 
 .cns-hidden {
