@@ -102,6 +102,25 @@ export default function HierarchyRegionForm( { formData, onChange }: Props ) {
 			</section>
 
 			<section className="cns-modal-section">
+				<h3>Infobox Override</h3>
+				<p className="description">Leave blank to use the child map's title and excerpt.</p>
+				<div className="cns-form-grid">
+					<div className="cns-form-row cns-form-row--full">
+						<label>Title</label>
+						<input type="text" className="large-text" value={ formData.title_override }
+							placeholder={ formData.child_map_label || 'Child map title' }
+							onChange={ ( e ) => set( 'title_override', e.target.value ) } />
+					</div>
+					<div className="cns-form-row cns-form-row--full">
+						<label>Description</label>
+						<textarea rows={ 3 } className="large-text" value={ formData.description_override }
+							placeholder="Child map excerpt"
+							onChange={ ( e ) => set( 'description_override', e.target.value ) } />
+					</div>
+				</div>
+			</section>
+
+			<section className="cns-modal-section">
 				<h3>Region Style</h3>
 				<div className="cns-form-grid">
 					<div className="cns-form-row">
@@ -142,11 +161,13 @@ export default function HierarchyRegionForm( { formData, onChange }: Props ) {
 export function defaultHierarchyFormData( region?: HierarchyRegion ): HierarchyFormData {
 	const styles = region?.canvas_styles || {};
 	return {
-		child_map_id:    region?.child_map_id    || 0,
-		child_map_label: region?.child_map_title  || '',
-		style_fill:          styles.fill          || '#e8a020',
-		style_fill_opacity:  styles.fillOpacity   ?? 0.25,
-		style_stroke:        styles.stroke        || '#e8a020',
-		style_stroke_width:  styles.strokeWidth   || 2,
+		child_map_id:         region?.child_map_id         || 0,
+		child_map_label:      region?.child_map_title       || '',
+		title_override:       region?.title_override        || '',
+		description_override: region?.description_override  || '',
+		style_fill:           styles.fill                  || '#e8a020',
+		style_fill_opacity:   styles.fillOpacity           ?? 0.25,
+		style_stroke:         styles.stroke                || '#e8a020',
+		style_stroke_width:   styles.strokeWidth           || 2,
 	};
 }

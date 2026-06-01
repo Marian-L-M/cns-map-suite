@@ -3,6 +3,7 @@ import ObjectForm,         { defaultObjectFormData, collectObjectPayload } from 
 import AreaForm,           { defaultAreaFormData }   from './forms/AreaForm';
 import HierarchyRegionForm, { defaultHierarchyFormData } from './forms/HierarchyRegionForm';
 import NodeList            from './forms/NodeList';
+import RegionNodeList      from './forms/RegionNodeList';
 import SaveStatus          from './shared/SaveStatus';
 import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
 import { normalizeNodesForShapeType } from '../areas';
@@ -30,6 +31,7 @@ interface Props {
 	onRegionSave: ( formData: HierarchyFormData ) => Promise<HierarchyRegion | undefined>;
 	onRegionDelete: () => Promise<void>;
 	onRegionClose: () => void;
+	onRegionNodesUpdate: ( regionId: number, nodes: Node[] ) => void;
 }
 
 export default function ContextPanel( {
@@ -38,7 +40,7 @@ export default function ContextPanel( {
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
 	onAreaSave,   onAreaDelete,   onAreaClose,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
-	onRegionSave, onRegionDelete, onRegionClose,
+	onRegionSave, onRegionDelete, onRegionClose, onRegionNodesUpdate,
 }: Props ) {
 	const [ objFormData,    setObjFormData    ] = useState<ObjectFormData | null>( null );
 	const [ areaFormData,   setAreaFormData   ] = useState<AreaFormData | null>( null );
@@ -182,10 +184,18 @@ export default function ContextPanel( {
 						</>
 					) }
 					{ isRegion && regionFormData && (
-						<HierarchyRegionForm
-							formData={ regionFormData }
-							onChange={ setRegionFormData }
-						/>
+						<>
+							<HierarchyRegionForm
+								formData={ regionFormData }
+								onChange={ setRegionFormData }
+							/>
+							{ selectedRegion && (
+								<RegionNodeList
+									region={ selectedRegion }
+									onNodesChange={ ( nodes ) => onRegionNodesUpdate( selectedRegion.id, nodes ) }
+								/>
+							) }
+						</>
 					) }
 				</div>
 

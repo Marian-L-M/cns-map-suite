@@ -810,6 +810,14 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'minimum' => 1,
 			'maximum' => 10,
 		],
+		'title_override' => [
+			'type'    => 'string',
+			'default' => '',
+		],
+		'description_override' => [
+			'type'    => 'string',
+			'default' => '',
+		],
 	];
 }
 
@@ -821,6 +829,8 @@ function cns_map_suite_normalize_hierarchy_row(array $row): array {
 	foreach (['id', 'parent_map_id', 'child_map_id'] as $k) {
 		$row[$k] = (int) ($row[$k] ?? 0);
 	}
+	$row['title_override']       = $row['title_override']       ?? null;
+	$row['description_override'] = $row['description_override'] ?? null;
 
 	// Attach child map preview data for the admin UI.
 	$child = get_post((int) $row['child_map_id']);
@@ -878,15 +888,20 @@ function cns_map_suite_rest_create_hierarchy_region(WP_REST_Request $request): W
 		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
 	]);
 
+	$title_override       = (string) $request->get_param('title_override');
+	$description_override = (string) $request->get_param('description_override');
+
 	$inserted = $wpdb->insert(
 		$wpdb->prefix . 'cns_map_hierarchy',
 		[
-			'parent_map_id' => $map_id,
-			'child_map_id'  => $child_map_id,
-			'nodes'         => wp_json_encode($nodes_decoded),
-			'canvas_styles' => $canvas_styles,
+			'parent_map_id'        => $map_id,
+			'child_map_id'         => $child_map_id,
+			'nodes'                => wp_json_encode($nodes_decoded),
+			'canvas_styles'        => $canvas_styles,
+			'title_override'       => $title_override !== '' ? $title_override : null,
+			'description_override' => $description_override !== '' ? $description_override : null,
 		],
-		['%d', '%d', '%s', '%s']
+		['%d', '%d', '%s', '%s', '%s', '%s']
 	);
 
 	if (!$inserted) {
@@ -932,14 +947,19 @@ function cns_map_suite_rest_update_hierarchy_region(WP_REST_Request $request): W
 		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
 	]);
 
+	$title_override       = (string) $request->get_param('title_override');
+	$description_override = (string) $request->get_param('description_override');
+
 	$wpdb->update(
 		$wpdb->prefix . 'cns_map_hierarchy',
 		[
-			'nodes'         => wp_json_encode($nodes_decoded),
-			'canvas_styles' => $canvas_styles,
+			'nodes'                => wp_json_encode($nodes_decoded),
+			'canvas_styles'        => $canvas_styles,
+			'title_override'       => $title_override !== '' ? $title_override : null,
+			'description_override' => $description_override !== '' ? $description_override : null,
 		],
 		['id' => $id],
-		['%s', '%s'],
+		['%s', '%s', '%s', '%s'],
 		['%d']
 	);
 

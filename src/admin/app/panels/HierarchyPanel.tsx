@@ -46,18 +46,20 @@ export default function HierarchyPanel( {
 		// It won't be persisted until the user saves from the context panel (which requires
 		// a valid child_map_id). We mark it with id=-1 as an unsaved sentinel.
 		const draft: HierarchyRegion = {
-			id:                  -1,
-			parent_map_id:       mapId,
-			child_map_id:        0,
-			nodes:               getDefaultNodes( 'POLYGON' ),
-			canvas_styles:       { fill: '#e8a020', fillOpacity: 0.25, stroke: '#e8a020', strokeWidth: 2 },
-			child_map_title:     '',
-			child_map_excerpt:   '',
-			child_map_status:    '',
-			child_map_thumbnail: '',
-			child_map_url:       '',
-			created_at:          '',
-			updated_at:          '',
+			id:                   -1,
+			parent_map_id:        mapId,
+			child_map_id:         0,
+			nodes:                getDefaultNodes( 'POLYGON' ),
+			canvas_styles:        { fill: '#e8a020', fillOpacity: 0.25, stroke: '#e8a020', strokeWidth: 2 },
+			title_override:       null,
+			description_override: null,
+			child_map_title:      '',
+			child_map_excerpt:    '',
+			child_map_status:     '',
+			child_map_thumbnail:  '',
+			child_map_url:        '',
+			created_at:           '',
+			updated_at:           '',
 		};
 		onRegionsLoaded( [ ...regions, draft ] );
 		onSelect( -1 );

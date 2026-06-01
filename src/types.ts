@@ -175,6 +175,8 @@ export interface HierarchyRegion {
 	child_map_id: number;
 	nodes: Node[];
 	canvas_styles: HierarchyCanvasStyles | null;
+	title_override: string | null;
+	description_override: string | null;
 	child_map_title: string;
 	child_map_excerpt: string;
 	child_map_status: string;
@@ -187,6 +189,8 @@ export interface HierarchyRegion {
 export interface HierarchyFormData {
 	child_map_id: number;
 	child_map_label: string;
+	title_override: string;
+	description_override: string;
 	style_fill: string;
 	style_fill_opacity: number;
 	style_stroke: string;

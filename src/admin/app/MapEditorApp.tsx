@@ -268,12 +268,14 @@ export default function MapEditorApp() {
 		if ( ! region ) return;
 
 		const payload = {
-			child_map_id:        formData.child_map_id,
-			nodes:               JSON.stringify( region.nodes ),
-			style_fill:          formData.style_fill,
-			style_fill_opacity:  formData.style_fill_opacity,
-			style_stroke:        formData.style_stroke,
-			style_stroke_width:  formData.style_stroke_width,
+			child_map_id:         formData.child_map_id,
+			nodes:                JSON.stringify( region.nodes ),
+			style_fill:           formData.style_fill,
+			style_fill_opacity:   formData.style_fill_opacity,
+			style_stroke:         formData.style_stroke,
+			style_stroke_width:   formData.style_stroke_width,
+			title_override:       formData.title_override,
+			description_override: formData.description_override,
 		};
 
 		let res: Response;
@@ -427,6 +429,7 @@ export default function MapEditorApp() {
 					onRegionSave={ handleRegionSave }
 					onRegionDelete={ () => handleRegionDeleteById( selectedRegionId! ) }
 					onRegionClose={ () => setSelectedRegionId( null ) }
+					onRegionNodesUpdate={ handleRegionNodesUpdate }
 				/>
 			</div>
 		</div>

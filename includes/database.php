@@ -72,6 +72,8 @@ function cns_map_suite_create_tables(): void {
 		child_map_id BIGINT UNSIGNED NOT NULL,
 		nodes LONGTEXT NOT NULL,
 		canvas_styles LONGTEXT NULL DEFAULT NULL,
+		title_override VARCHAR(255) NULL DEFAULT NULL,
+		description_override LONGTEXT NULL DEFAULT NULL,
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY (id),
