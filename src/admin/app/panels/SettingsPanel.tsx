@@ -12,6 +12,21 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 		onChange( ( prev ) => ( { ...prev, [ key ]: val } ) );
 	}
 
+	function openThumbnailPicker() {
+		const frame = window.wp?.media?.( {
+			title:    'Select Map Thumbnail',
+			button:   { text: 'Use as thumbnail' },
+			multiple: false,
+			library:  { type: 'image' },
+		} );
+		if ( ! frame ) return;
+		frame.on( 'select', () => {
+			const att = frame.state().get( 'selection' ).first().toJSON();
+			onChange( ( prev ) => ( { ...prev, thumbnailId: att.id, thumbnailUrl: att.url } ) );
+		} );
+		frame.open();
+	}
+
 	return (
 		<div className="cns-tab-panel cns-tab-panel--active" data-panel="settings" role="tabpanel">
 			<div className="cns-settings-layout">
@@ -172,6 +187,30 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 								{ ' ' }MasterMap mode
 							</label>
 							<p className="description">Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy.</p>
+						</div>
+
+						<div className="cns-form-row cns-form-row--full">
+							<label>Thumbnail</label>
+							{ settings.thumbnailUrl && (
+								<div style={ { marginBottom: 8 } }>
+									<img
+										src={ settings.thumbnailUrl }
+										alt=""
+										style={ { maxWidth: 120, maxHeight: 80, display: 'block', borderRadius: 4, border: '1px solid #ddd' } }
+									/>
+								</div>
+							) }
+							<div style={ { display: 'flex', gap: 8 } }>
+								<button type="button" className="button" onClick={ openThumbnailPicker }>
+									{ settings.thumbnailId ? 'Change thumbnail' : 'Set thumbnail' }
+								</button>
+								{ settings.thumbnailId && (
+									<button type="button" className="button" onClick={ () => onChange( ( p ) => ( { ...p, thumbnailId: null, thumbnailUrl: '' } ) ) }>
+										Remove
+									</button>
+								) }
+							</div>
+							<p className="description">Used as the map&rsquo;s featured image in listings.</p>
 						</div>
 
 						<div className="cns-form-row">

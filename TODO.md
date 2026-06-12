@@ -117,3 +117,10 @@
 -   ✅ Frontend block — server-side data pre-loading, full canvas render, hit detection, side drawer infobox with full post content
 -   ✅ Standalone map pages — `the_content` filter, re-entrancy guard, asset enqueue
 -   ✅ Admin.js refactoring — `performSaveArea`, `_setupMediaPicker`, `showContextPanel` extracted
+
+### Vibing List
+
+-   Cns Story Suite: Fix issue: Cannot click objects/area in live view
+-   Cns Story Suite: Enable settings global & individual for active node marker color and size
+-   Cns Story Suite: Enable alternative display option for active node marker: Icon instead of outline, set on a per path level or per node level. The user should be able to select the size and position of the marker, however default should be above the node marker.
+-   Map how are post queried -> filter for infobox? parse_blocks() api endpoint

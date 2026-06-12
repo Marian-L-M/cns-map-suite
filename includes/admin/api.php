@@ -2,6 +2,17 @@
 
 defined('ABSPATH') || exit;
 
+function cns_map_suite_permission_check(): true|WP_Error {
+	if (current_user_can('manage_maps')) {
+		return true;
+	}
+	return new WP_Error(
+		'rest_forbidden',
+		__('You do not have permission to manage maps.', 'cns-map-suite'),
+		['status' => is_user_logged_in() ? 403 : 401]
+	);
+}
+
 add_action('rest_api_init', 'cns_map_suite_register_rest_routes');
 
 function cns_map_suite_register_rest_routes(): void {
@@ -11,7 +22,7 @@ function cns_map_suite_register_rest_routes(): void {
 	register_rest_route('cns-map-suite/v1', '/maps', [
 		'methods'             => 'POST',
 		'callback'            => 'cns_map_suite_rest_save_map',
-		'permission_callback' => fn() => current_user_can('manage_maps'),
+		'permission_callback' => 'cns_map_suite_permission_check',
 		'args'                => [
 			'map_id' => [
 				'type'              => 'integer',
@@ -92,12 +103,12 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'GET',
 			'callback'            => 'cns_map_suite_rest_list_icons',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_add_icon',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => [
 				'attachment_id' => [
 					'type'              => 'integer',
@@ -111,7 +122,7 @@ function cns_map_suite_register_rest_routes(): void {
 	register_rest_route('cns-map-suite/v1', '/icons/(?P<id>\d+)', [
 		'methods'             => 'DELETE',
 		'callback'            => 'cns_map_suite_rest_remove_icon',
-		'permission_callback' => fn() => current_user_can('manage_maps'),
+		'permission_callback' => 'cns_map_suite_permission_check',
 	]);
 
 	// ── Map objects ───────────────────────────────────────────────────────────
@@ -120,12 +131,12 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'GET',
 			'callback'            => 'cns_map_suite_rest_list_objects',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_create_object',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => cns_map_suite_object_rest_args(),
 		],
 	]);
@@ -134,20 +145,20 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_update_object',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => cns_map_suite_object_rest_args(),
 		],
 		[
 			'methods'             => 'DELETE',
 			'callback'            => 'cns_map_suite_rest_delete_object',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 	]);
 
 	register_rest_route('cns-map-suite/v1', '/objects/(?P<id>\d+)/position', [
 		'methods'             => 'PATCH',
 		'callback'            => 'cns_map_suite_rest_move_object',
-		'permission_callback' => fn() => current_user_can('manage_maps'),
+		'permission_callback' => 'cns_map_suite_permission_check',
 		'args'                => [
 			'x' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
 			'y' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
@@ -160,12 +171,12 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'GET',
 			'callback'            => 'cns_map_suite_rest_list_areas',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_create_area',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => cns_map_suite_area_rest_args(),
 		],
 	]);
@@ -174,13 +185,13 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_update_area',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => cns_map_suite_area_rest_args(),
 		],
 		[
 			'methods'             => 'DELETE',
 			'callback'            => 'cns_map_suite_rest_delete_area',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 	]);
 
@@ -190,12 +201,12 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'GET',
 			'callback'            => 'cns_map_suite_rest_list_hierarchy',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_create_hierarchy_region',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => cns_map_suite_hierarchy_rest_args(),
 		],
 	]);
@@ -204,13 +215,13 @@ function cns_map_suite_register_rest_routes(): void {
 		[
 			'methods'             => 'POST',
 			'callback'            => 'cns_map_suite_rest_update_hierarchy_region',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 			'args'                => cns_map_suite_hierarchy_rest_args(),
 		],
 		[
 			'methods'             => 'DELETE',
 			'callback'            => 'cns_map_suite_rest_delete_hierarchy_region',
-			'permission_callback' => fn() => current_user_can('manage_maps'),
+			'permission_callback' => 'cns_map_suite_permission_check',
 		],
 	]);
 
@@ -218,7 +229,7 @@ function cns_map_suite_register_rest_routes(): void {
 	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/parents', [
 		'methods'             => 'GET',
 		'callback'            => 'cns_map_suite_rest_list_parents',
-		'permission_callback' => fn() => current_user_can('manage_maps'),
+		'permission_callback' => 'cns_map_suite_permission_check',
 	]);
 }
 
@@ -268,6 +279,13 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 
 	foreach ($meta as $key => $value) {
 		update_post_meta($map_id, $key, $value);
+	}
+
+	$thumbnail_id = (int) ($request->get_param('thumbnail_id') ?? 0);
+	if ($thumbnail_id) {
+		set_post_thumbnail($map_id, $thumbnail_id);
+	} else {
+		delete_post_thumbnail($map_id);
 	}
 
 	$saved_status = $request->get_param('status');
@@ -465,11 +483,16 @@ function cns_map_suite_rest_create_object(WP_REST_Request $request): WP_REST_Res
 
 	$derived = cns_map_suite_object_from_args($request);
 
+	$linked_post_id = $request->get_param('linked_post_id') ?: null;
+	if ($linked_post_id && !get_post($linked_post_id)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
 	$wpdb->insert(
 		$wpdb->prefix . 'cns_map_objects',
 		[
 			'map_id'         => $map_id,
-			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'linked_post_id' => $linked_post_id,
 			'type'           => $request->get_param('type'),
 			'svg_slug'       => '',
 			'icon_image_id'  => $request->get_param('icon_image_id') ?: null,
@@ -510,10 +533,15 @@ function cns_map_suite_rest_update_object(WP_REST_Request $request): WP_REST_Res
 
 	$derived = cns_map_suite_object_from_args($request);
 
-	$wpdb->update(
+	$linked_post_id = $request->get_param('linked_post_id') ?: null;
+	if ($linked_post_id && !get_post($linked_post_id)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	$result = $wpdb->update(
 		$wpdb->prefix . 'cns_map_objects',
 		[
-			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'linked_post_id' => $linked_post_id,
 			'type'           => $request->get_param('type'),
 			'icon_image_id'  => $request->get_param('icon_image_id') ?: null,
 			'title'          => $request->get_param('title'),
@@ -528,6 +556,10 @@ function cns_map_suite_rest_update_object(WP_REST_Request $request): WP_REST_Res
 		['%d', '%s', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%s'],
 		['%d']
 	);
+
+	if ($result === false) {
+		return new WP_Error('db_error', __('Failed to update object.', 'cns-map-suite'), ['status' => 500]);
+	}
 
 	$row = $wpdb->get_row(
 		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE id = %d", $id),
@@ -684,11 +716,16 @@ function cns_map_suite_rest_create_area(WP_REST_Request $request): WP_REST_Respo
 		'image_id'    => (int) $request->get_param('infobox_image_id'),
 	]);
 
+	$area_linked_post_id = $request->get_param('linked_post_id') ?: null;
+	if ($area_linked_post_id && !get_post($area_linked_post_id)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
 	$wpdb->insert(
 		$wpdb->prefix . 'cns_map_areas',
 		[
 			'map_id'         => $map_id,
-			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'linked_post_id' => $area_linked_post_id,
 			'type'           => $request->get_param('type'),
 			'shape_type'     => $request->get_param('shape_type'),
 			'title'          => $request->get_param('title'),
@@ -735,10 +772,15 @@ function cns_map_suite_rest_update_area(WP_REST_Request $request): WP_REST_Respo
 		'image_id'    => (int) $request->get_param('infobox_image_id'),
 	]);
 
-	$wpdb->update(
+	$area_linked_post_id_upd = $request->get_param('linked_post_id') ?: null;
+	if ($area_linked_post_id_upd && !get_post($area_linked_post_id_upd)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	$result = $wpdb->update(
 		$wpdb->prefix . 'cns_map_areas',
 		[
-			'linked_post_id' => $request->get_param('linked_post_id') ?: null,
+			'linked_post_id' => $area_linked_post_id_upd,
 			'type'           => $request->get_param('type'),
 			'shape_type'     => $request->get_param('shape_type'),
 			'title'          => $request->get_param('title'),
@@ -752,6 +794,10 @@ function cns_map_suite_rest_update_area(WP_REST_Request $request): WP_REST_Respo
 		['%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s'],
 		['%d']
 	);
+
+	if ($result === false) {
+		return new WP_Error('db_error', __('Failed to update area.', 'cns-map-suite'), ['status' => 500]);
+	}
 
 	$row = $wpdb->get_row(
 		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $id),

@@ -133,7 +133,7 @@ function cns_map_suite_enqueue_admin_assets(): void {
 	wp_enqueue_script(
 		'cns-map-admin',
 		CNS_MAP_SUITE_URL . 'build/admin/index.js',
-		array_merge( [ 'wp-color-picker' ], $admin_asset['dependencies'] ),
+		array_merge( [ 'wp-color-picker', 'cns-toast' ], $admin_asset['dependencies'] ),
 		$admin_asset['version'],
 		true
 	);

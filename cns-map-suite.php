@@ -37,6 +37,29 @@ require_once CNS_MAP_SUITE_DIR . 'includes/admin/menu.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/admin/api.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/admin/icons.php';
 
+// ── Infobox content helper ────────────────────────────────────────────────────
+// Shared by map/render.php and story/render.php. Parses the linked post's
+// blocks and renders the first few text-oriented blocks for a clean drawer preview.
+
+function cns_map_suite_infobox_content(WP_Post $post, int $max_blocks = 3): string {
+	$blocks  = parse_blocks($post->post_content);
+	$output  = '';
+	$count   = 0;
+	$allowed = ['core/paragraph', 'core/heading', 'core/list', 'core/quote'];
+	foreach ($blocks as $block) {
+		if ($count >= $max_blocks) break;
+		$name = $block['blockName'] ?? '';
+		if ($name === '' || in_array($name, $allowed, true)) {
+			$rendered = render_block($block);
+			if (trim(wp_strip_all_tags($rendered))) {
+				$output .= $rendered;
+				$count++;
+			}
+		}
+	}
+	return $output;
+}
+
 // ── Internationalisation ──────────────────────────────────────────────────────
 
 function cns_map_suite_load_textdomain(): void {

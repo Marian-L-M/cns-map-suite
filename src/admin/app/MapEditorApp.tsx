@@ -42,8 +42,10 @@ function buildInitialSettings(): MapSettings {
 		featured: d.featured ?? false,
 		bgType: d.bgType ?? 'color',
 		bgColor: d.bgColor ?? '#1a1a2e',
-		bgImageId: d.bgImageId ?? 0,
-		bgImageUrl: d.bgImageUrl ?? '',
+		bgImageId:    d.bgImageId    ?? 0,
+		bgImageUrl:   d.bgImageUrl   ?? '',
+		thumbnailId:  d.thumbnailId  ? d.thumbnailId : null,
+		thumbnailUrl: d.thumbnailUrl ?? '',
 	};
 }
 
@@ -100,9 +102,10 @@ export default function MapEditorApp() {
 			image_width: settings.imageW,
 			is_master: settings.isMaster,
 			featured: settings.featured,
-			bg_type: settings.bgType,
-			bg_color: settings.bgColor,
-			bg_image_id: settings.bgImageId,
+			bg_type:      settings.bgType,
+			bg_color:     settings.bgColor,
+			bg_image_id:  settings.bgImageId,
+			thumbnail_id: settings.thumbnailId ?? 0,
 		};
 		try {
 			const res = await apiFetch( 'POST', '/maps', payload );
@@ -378,10 +381,7 @@ export default function MapEditorApp() {
 								onDelete={ handleAreaDeleteById }
 							/>
 						) }
-						{ ( activeTab === 'hierarchy' ||
-							( settings.isMaster &&
-								activeTab !== 'settings' &&
-								activeTab !== 'preview' ) ) && (
+						{ activeTab === 'hierarchy' && (
 							<HierarchyPanel
 								mapId={ mapId }
 								settings={ settings }

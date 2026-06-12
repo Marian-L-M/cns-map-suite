@@ -58,6 +58,8 @@ export interface CnsMapEditorGlobal {
 	bgColor: string;
 	bgImageId: number;
 	bgImageUrl: string;
+	thumbnailId: number;
+	thumbnailUrl: string;
 	overviewUrl: string;
 	viewUrl: string;
 	parentMaps: ParentMapRef[];
@@ -239,6 +241,8 @@ export interface MapSettings {
 	bgColor: string;
 	bgImageId: number;
 	bgImageUrl: string;
+	thumbnailId: number | null;
+	thumbnailUrl: string;
 }
 
 export interface DrawState {

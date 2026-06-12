@@ -4,7 +4,8 @@ import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
 import type { LibraryIcon } from '../../types';
 
 export default function IconLibraryApp() {
-	const [ icons, setIcons ] = useState<LibraryIcon[]>( [] );
+	const [ icons,   setIcons   ] = useState<LibraryIcon[]>( [] );
+	const [ error,   setError   ] = useState<string>( '' );
 
 	useEffect( () => {
 		loadIconLibraryIntoCache().then( () => setIcons( iconLibraryCache || [] ) );
@@ -19,27 +20,37 @@ export default function IconLibraryApp() {
 		} );
 		frame.on( 'select', async () => {
 			const att = frame.state().get( 'selection' ).first().toJSON();
+			setError( '' );
 			try {
 				const res  = await apiFetch( 'POST', '/icons', { attachment_id: att.id } );
 				const data = await res.json() as LibraryIcon;
 				if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed to add icon.' );
 				setIcons( ( prev ) => [ ...prev, data ] );
-			} catch ( err ) { alert( ( err as Error ).message ); }
+			} catch ( err ) { setError( ( err as Error ).message ); }
 		} );
 		frame.open();
 	}
 
 	async function handleRemove( id: number ) {
 		if ( ! confirm( 'Remove this icon from the library? (The attachment itself is kept.)' ) ) return;
+		setError( '' );
 		try {
 			const res = await apiFetch( 'DELETE', `/icons/${ id }` );
 			if ( ! res.ok ) throw new Error( 'Remove failed.' );
 			setIcons( ( prev ) => prev.filter( ( i ) => i.id !== id ) );
-		} catch ( err ) { alert( ( err as Error ).message ); }
+		} catch ( err ) { setError( ( err as Error ).message ); }
 	}
 
 	return (
 		<div>
+			{ error && (
+				<div className="notice notice-error is-dismissible" style={ { margin: '0 0 12px' } }>
+					<p>{ error }</p>
+					<button type="button" className="notice-dismiss" onClick={ () => setError( '' ) }>
+						<span className="screen-reader-text">Dismiss</span>
+					</button>
+				</div>
+			) }
 			<div className="cns-icon-library-toolbar">
 				<button type="button" id="cns-add-icon-btn" className="button button-primary" onClick={ handleAdd }>
 					Add Icon

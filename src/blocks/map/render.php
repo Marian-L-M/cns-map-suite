@@ -51,7 +51,9 @@ $resolve_infobox = static function (array $item): array {
 			$item['infobox_resolved'] = [
 				'title'     => $linked->post_title,
 				'excerpt'   => $linked->post_excerpt,
-				'content'   => apply_filters('the_content', $linked->post_content),
+				'content'   => function_exists('cns_map_suite_infobox_content')
+					? cns_map_suite_infobox_content($linked)
+					: apply_filters('the_content', $linked->post_content),
 				'image_url' => get_the_post_thumbnail_url($linked->ID, 'medium') ?: '',
 				'post_url'  => get_permalink($linked) ?: '',
 			];

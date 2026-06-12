@@ -309,10 +309,11 @@
 		const postUrl  = resolved.post_url  || '';
 
 		let html = '';
-		if (imgUrl)  html += '<img class="cns-map-drawer__image" src="' + encodeURI(imgUrl) + '" alt="" />';
+		if (imgUrl)  html += '<img class="cns-map-drawer__image" src="' + escHtml(encodeURI(imgUrl)) + '" alt="" />';
 		if (title)   html += '<h2 class="cns-map-drawer__title">' + escHtml(title) + '</h2>';
+		// content is server-rendered WordPress block HTML, sanitized via wp_kses_post() before storage
 		if (content) html += '<div class="cns-map-drawer__content">' + content + '</div>';
-		if (postUrl) html += '<a class="cns-map-drawer__link" href="' + encodeURI(postUrl) + '">View full post &rarr;</a>';
+		if (postUrl) html += '<a class="cns-map-drawer__link" href="' + escHtml(encodeURI(postUrl)) + '">View full post &rarr;</a>';
 
 		body.innerHTML = html;
 		drawer.classList.add('is-open');
@@ -371,7 +372,7 @@
 		if (!scriptEl) return;
 
 		let data;
-		try { data = JSON.parse(scriptEl.textContent); } catch { return; }
+		try { data = JSON.parse(scriptEl.textContent); } catch (err) { console.error('[cns-map-suite] Block data parse error:', err); return; }
 
 		const canvas = wrapper.querySelector('.cns-map-canvas');
 		if (!canvas) return;

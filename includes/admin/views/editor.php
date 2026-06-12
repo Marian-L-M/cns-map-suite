@@ -25,8 +25,10 @@ $meta = $map_id ? [
     'bg_type' => 'color', 'bg_color' => '#1a1a2e', 'bg_image_id' => 0,
 ];
 
-$image_url    = $meta['image_id']    ? wp_get_attachment_image_url($meta['image_id'], 'large') : '';
-$bg_image_url = $meta['bg_image_id'] ? wp_get_attachment_image_url($meta['bg_image_id'], 'large') : '';
+$image_url      = $meta['image_id']    ? wp_get_attachment_image_url($meta['image_id'], 'large') : '';
+$bg_image_url   = $meta['bg_image_id'] ? wp_get_attachment_image_url($meta['bg_image_id'], 'large') : '';
+$thumbnail_id   = $map_id ? (int) get_post_thumbnail_id($map_id) : 0;
+$thumbnail_url  = $thumbnail_id ? (wp_get_attachment_image_url($thumbnail_id, 'medium') ?: '') : '';
 $overview_url = add_query_arg(
     ['page' => get_template() === 'clouds-and-spaceships' ? CNS_MAP_PAGE_SETTINGS_MAPS : CNS_MAP_PAGE_MAPS],
     admin_url('admin.php')
@@ -82,9 +84,11 @@ window.cnsMapEditor = {
     featured:    <?php echo $meta['featured'] ? 'true' : 'false'; ?>,
     bgType:      <?php echo wp_json_encode($meta['bg_type']); ?>,
     bgColor:     <?php echo wp_json_encode($meta['bg_color']); ?>,
-    bgImageId:   <?php echo (int) $meta['bg_image_id']; ?>,
-    bgImageUrl:  <?php echo wp_json_encode($bg_image_url ?: ''); ?>,
-    overviewUrl: <?php echo wp_json_encode($overview_url); ?>,
+    bgImageId:    <?php echo (int) $meta['bg_image_id']; ?>,
+    bgImageUrl:   <?php echo wp_json_encode($bg_image_url ?: ''); ?>,
+    thumbnailId:  <?php echo $thumbnail_id; ?>,
+    thumbnailUrl: <?php echo wp_json_encode($thumbnail_url); ?>,
+    overviewUrl:  <?php echo wp_json_encode($overview_url); ?>,
     viewUrl:     <?php echo wp_json_encode($view_url); ?>,
     parentMaps:  <?php echo wp_json_encode($parent_maps); ?>,
 };
