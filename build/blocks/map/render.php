@@ -22,139 +22,36 @@ if (! in_array($map->post_status, ['publish', 'private'], true) && ! current_use
 	return;
 }
 
-global $wpdb;
+// ── Map data (shared API — single source of truth, also used by story-suite) ──
 
-// ── Map settings ──────────────────────────────────────────────────────────────
+$data = cns_map_suite_get_map_data($map_id, [
+	'hierarchy'         => true,
+	'parents'           => true,
+	'resolve_infoboxes' => true,
+]);
 
-$width       = (int) (get_post_meta($map_id, '_cns_map_width', true) ?: 1000);
-$ratio       = (float) (get_post_meta($map_id, '_cns_map_aspect_ratio', true) ?: 1.0);
-$height      = $ratio > 0 ? (int) round($width / $ratio) : $width;
-$bg_type     = get_post_meta($map_id, '_cns_map_bg_type', true) ?: 'color';
-$bg_color    = get_post_meta($map_id, '_cns_map_bg_color', true) ?: '#1a1a2e';
-$bg_image_id = (int) get_post_meta($map_id, '_cns_map_bg_image_id', true);
-$image_id    = (int) get_post_meta($map_id, '_cns_map_image_id', true);
-$image_x     = (float) get_post_meta($map_id, '_cns_map_image_x', true);
-$image_y     = (float) get_post_meta($map_id, '_cns_map_image_y', true);
-$image_w     = (float) (get_post_meta($map_id, '_cns_map_image_width', true) ?: 1.0);
-$is_master   = (bool) get_post_meta($map_id, '_cns_map_is_master', true);
+if (! $data) {
+	return;
+}
 
-// ── Infobox resolver ──────────────────────────────────────────────────────────
-
-// Local closure — avoids redeclaration if render.php is somehow included twice.
-// For linked-post mode: title and excerpt are used as-is; content is the full
-// rendered post HTML (apply_filters is safe here because the_content re-entry
-// is blocked by the static $rendering guard in post-type.php).
-$resolve_infobox = static function (array $item): array {
-	if (($item['infobox_source'] ?? '') === 'post' && ! empty($item['linked_post_id'])) {
-		$linked = get_post((int) $item['linked_post_id']);
-		if ($linked) {
-			$item['infobox_resolved'] = [
-				'title'     => $linked->post_title,
-				'excerpt'   => $linked->post_excerpt,
-				'content'   => function_exists('cns_map_suite_infobox_content')
-					? cns_map_suite_infobox_content($linked)
-					: apply_filters('the_content', $linked->post_content),
-				'image_url' => get_the_post_thumbnail_url($linked->ID, 'medium') ?: '',
-				'post_url'  => get_permalink($linked) ?: '',
-			];
-			return $item;
-		}
-	}
-	$ib = is_array($item['infobox_data'] ?? null) ? $item['infobox_data'] : [];
-	$item['infobox_resolved'] = [
-		'title'     => $ib['title']       ?? '',
-		'excerpt'   => '',
-		'content'   => $ib['description'] ?? '',
-		'image_url' => ! empty($ib['image_id']) ? (wp_get_attachment_image_url((int) $ib['image_id'], 'medium') ?: '') : '',
-		'post_url'  => '',
-	];
-	return $item;
-};
-
-// ── Objects ───────────────────────────────────────────────────────────────────
-
-$object_rows = $wpdb->get_results(
-	$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE map_id = %d ORDER BY id ASC", $map_id),
-	ARRAY_A
-);
-
-$objects = array_map(
-	fn($row) => $resolve_infobox(cns_map_suite_normalize_object_row($row)),
-	$object_rows ?: []
-);
-
-// ── Areas ─────────────────────────────────────────────────────────────────────
-
-$area_rows = $wpdb->get_results(
-	$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE map_id = %d ORDER BY id ASC", $map_id),
-	ARRAY_A
-);
-
-$areas = array_map(
-	fn($row) => $resolve_infobox(cns_map_suite_normalize_area_row($row)),
-	$area_rows ?: []
-);
-
-// ── Hierarchy regions (this map as parent) ────────────────────────────────────
-
-$hierarchy_rows = $wpdb->get_results(
-	$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE parent_map_id = %d ORDER BY id ASC", $map_id),
-	ARRAY_A
-);
-
-$hierarchy_regions = array_map(function ($row) {
-	$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
-	$row['canvas_styles'] = $row['canvas_styles']  ? json_decode($row['canvas_styles'], true) : (object) [];
-	foreach (['id', 'parent_map_id', 'child_map_id'] as $k) {
-		$row[$k] = (int) ($row[$k] ?? 0);
-	}
-
-	$child    = get_post((int) $row['child_map_id']);
-	$image_id = $child ? (int) get_post_meta($child->ID, '_cns_map_image_id', true) : 0;
-	$row['child_map_title']     = $child ? ($child->post_title ?: '') : '';
-	$row['child_map_excerpt']   = $child ? (get_the_excerpt($child) ?: '') : '';
-	$row['child_map_thumbnail'] = $image_id ? (wp_get_attachment_image_url($image_id, 'medium') ?: '') : '';
-	$row['child_map_url']       = $child ? (get_permalink($child) ?: '') : '';
-
-	return $row;
-}, $hierarchy_rows ?: []);
-
-// ── Parent maps (this map as child) ──────────────────────────────────────────
-
-$parent_rows = $wpdb->get_results(
-	$wpdb->prepare("SELECT parent_map_id FROM {$wpdb->prefix}cns_map_hierarchy WHERE child_map_id = %d", $map_id),
-	ARRAY_A
-);
-
-$parent_maps = array_values(array_filter(array_map(function ($row) {
-	$parent   = get_post((int) $row['parent_map_id']);
-	if (!$parent || $parent->post_type !== 'maps') return null;
-	$image_id = (int) get_post_meta($parent->ID, '_cns_map_image_id', true);
-	return [
-		'map_id'    => $parent->ID,
-		'title'     => $parent->post_title ?: '',
-		'thumbnail' => $image_id ? (wp_get_attachment_image_url($image_id, 'thumbnail') ?: '') : '',
-		'url'       => get_permalink($parent) ?: '',
-	];
-}, $parent_rows ?: [])));
-
-// ── Inline data ───────────────────────────────────────────────────────────────
+$width  = $data['width'];
+$height = $data['height'];
 
 $map_data = [
 	'mapId'            => $map_id,
 	'width'            => $width,
 	'height'           => $height,
-	'bgType'           => $bg_type,
-	'bgColor'          => $bg_color,
-	'bgImageUrl'       => $bg_image_id ? (wp_get_attachment_image_url($bg_image_id, 'full') ?: '') : '',
-	'imgUrl'           => $image_id    ? (wp_get_attachment_image_url($image_id, 'full')    ?: '') : '',
-	'imageX'           => $image_x,
-	'imageY'           => $image_y,
-	'imageW'           => $image_w,
-	'objects'          => $objects,
-	'areas'            => $areas,
-	'hierarchyRegions' => $hierarchy_regions,
-	'parentMaps'       => $parent_maps,
+	'bgType'           => $data['bg_type'],
+	'bgColor'          => $data['bg_color'],
+	'bgImageUrl'       => $data['bg_image_url'],
+	'imgUrl'           => $data['image_url'],
+	'imageX'           => $data['image_x'],
+	'imageY'           => $data['image_y'],
+	'imageW'           => $data['image_w'],
+	'objects'          => $data['objects'],
+	'areas'            => $data['areas'],
+	'hierarchyRegions' => $data['hierarchy_regions'],
+	'parentMaps'       => $data['parent_maps'],
 ];
 
 $wrapper_attrs = get_block_wrapper_attributes([
