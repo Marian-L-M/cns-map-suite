@@ -120,14 +120,31 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 		return $row;
 	};
 
+	// Warm the post/meta caches for every post the rows reference, so the
+	// per-row get_post()/get_post_meta() calls below don't each hit the DB.
+	$prime_rows = static function (array $rows, array $keys): void {
+		$ids = [];
+		foreach ($rows as $row) {
+			foreach ($keys as $key) {
+				if (! empty($row[$key])) {
+					$ids[] = (int) $row[$key];
+				}
+			}
+		}
+		if ($ids) {
+			_prime_post_caches(array_unique($ids), false, true);
+		}
+	};
+
 	if ($opts['objects']) {
 		$rows = $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		);
+		) ?: [];
+		$prime_rows($rows, $opts['resolve_infoboxes'] ? ['linked_post_id', 'icon_image_id'] : ['icon_image_id']);
 		$data['objects'] = array_map(
 			fn($row) => $attach_infobox(cns_map_suite_normalize_object_row($row)),
-			$rows ?: []
+			$rows
 		);
 	}
 
@@ -135,10 +152,13 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 		$rows = $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		);
+		) ?: [];
+		if ($opts['resolve_infoboxes']) {
+			$prime_rows($rows, ['linked_post_id']);
+		}
 		$data['areas'] = array_map(
 			fn($row) => $attach_infobox(cns_map_suite_normalize_area_row($row)),
-			$rows ?: []
+			$rows
 		);
 	}
 
@@ -146,7 +166,8 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 		$rows = $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE parent_map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		);
+		) ?: [];
+		$prime_rows($rows, ['child_map_id']);
 		$data['hierarchy_regions'] = array_map(function ($row) {
 			$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
 			$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];

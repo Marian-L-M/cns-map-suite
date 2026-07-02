@@ -109,8 +109,7 @@
 			case 'CIRCLE':
 				if (nodes.length >= 2) buildCirclePath(ctx, nodes, W, H);
 				break;
-			case 'RECTANGLE':
-			default:
+			default: // POLYGON
 				if (nodes.length >= 3) buildPolygonPath(ctx, nodes, W, H);
 				break;
 		}
@@ -206,19 +205,24 @@
 		ctx.restore();
 	}
 
-	async function drawObjectMarker(ctx, obj) {
+	// Resolves the marker image for an object (or null → fallback dot).
+	function loadObjectMarkerImage(obj) {
+		const fill   = obj.canvas_styles?.fillStyle   || '#ffffff';
+		const stroke = obj.canvas_styles?.strokeStyle || '#2271b1';
+		if (!obj.icon_url) return Promise.resolve(null);
+		return obj.icon_mime === 'image/svg+xml'
+			? loadSvgWithColors(obj.icon_url, fill, stroke)
+			: loadImage(obj.icon_url);
+	}
+
+	function drawObjectMarker(ctx, obj, img) {
 		const size   = obj.canvas_styles?.size        || 32;
 		const fill   = obj.canvas_styles?.fillStyle   || '#ffffff';
 		const stroke = obj.canvas_styles?.strokeStyle || '#2271b1';
 
-		if (obj.icon_url) {
-			const img = obj.icon_mime === 'image/svg+xml'
-				? await loadSvgWithColors(obj.icon_url, fill, stroke)
-				: await loadImage(obj.icon_url);
-			if (img) {
-				ctx.drawImage(img, obj.x - size / 2, obj.y - size / 2, size, size);
-				return;
-			}
+		if (img) {
+			ctx.drawImage(img, obj.x - size / 2, obj.y - size / 2, size, size);
+			return;
 		}
 		drawFallbackMarker(ctx, obj.x, obj.y, size, fill, stroke);
 	}
@@ -392,9 +396,14 @@
 		for (const region of (data.hierarchyRegions || [])) {
 			drawHierarchyRegion(ctx, region, W, H);
 		}
-		for (const obj of (data.objects || [])) {
-			await drawObjectMarker(ctx, obj);
-		}
+		// Load all marker images in parallel, then draw in list order so
+		// stacking is deterministic and first paint isn't serialized on
+		// one request per icon.
+		const objects    = data.objects || [];
+		const markerImgs = await Promise.all(objects.map(loadObjectMarkerImage));
+		objects.forEach(function (obj, i) {
+			drawObjectMarker(ctx, obj, markerImgs[i]);
+		});
 
 		// Pre-load all hierarchy region thumbnails for smooth hover.
 		for (const region of (data.hierarchyRegions || [])) {
@@ -408,11 +417,11 @@
 		const hasClickable =
 			(data.objects || []).some(function (o) {
 				const ib = o.infobox_resolved || {};
-				return ib.title || ib.description || ib.image_url;
+				return ib.title || ib.content || ib.image_url;
 			}) ||
 			(data.areas || []).some(function (a) {
 				const ib = a.infobox_resolved || {};
-				return ib.title || ib.description || ib.image_url;
+				return ib.title || ib.content || ib.image_url;
 			});
 
 		if (!hasClickable && !hasHierarchy) return;

@@ -94,6 +94,11 @@ function cns_map_suite_register_rest_routes(): void {
 				'default'           => 0,
 				'sanitize_callback' => 'absint',
 			],
+			'thumbnail_id' => [
+				'type'              => 'integer',
+				'default'           => 0,
+				'sanitize_callback' => 'absint',
+			],
 		],
 	]);
 
@@ -289,11 +294,12 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 	}
 
 	$saved_status = $request->get_param('status');
+	$created      = $request->get_param('map_id') === 0;
 
 	return new WP_REST_Response([
 		'map_id'   => $map_id,
 		'status'   => $saved_status,
-		'created'  => $request->get_param('map_id') === 0,
+		'created'  => $created,
 		'edit_url' => add_query_arg(
 			['page' => CNS_MAP_PAGE_EDITOR, 'map_id' => $map_id],
 			admin_url('admin.php')
@@ -301,7 +307,7 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 		'view_url' => in_array($saved_status, ['publish', 'private'], true)
 			? (get_permalink($map_id) ?: '')
 			: '',
-	], 200);
+	], $created ? 201 : 200);
 }
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
@@ -311,7 +317,9 @@ function cns_map_suite_rest_list_icons(): WP_REST_Response {
 		'post_type'      => 'attachment',
 		'post_mime_type' => 'image/svg+xml',
 		'post_status'    => 'inherit',
-		'posts_per_page' => -1,
+		// Hard cap so the endpoint stays bounded; add pagination if the
+		// library ever approaches this.
+		'posts_per_page' => 500,
 		'meta_query'     => [['key' => '_cns_map_icon', 'value' => '1']],
 		'orderby'        => 'title',
 		'order'          => 'ASC',
@@ -353,6 +361,24 @@ function cns_map_suite_rest_remove_icon(WP_REST_Request $request): WP_REST_Respo
 	}
 	delete_post_meta($id, '_cns_map_icon');
 	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+// ── Shared color sanitizer ────────────────────────────────────────────────────
+
+/**
+ * Validates a canvas color value (hex, rgb()/rgba(), hsl()/hsla()); anything
+ * else falls back to the given default. Values end up in canvas fill/stroke
+ * styles and injected SVG attributes, so only real colors are stored.
+ */
+function cns_map_suite_sanitize_color(string $value, string $default): string {
+	$value = trim($value);
+	if (sanitize_hex_color($value)) {
+		return $value;
+	}
+	if (preg_match('/^(rgb|rgba|hsl|hsla)\([\d\s.,%\/]+\)$/', $value)) {
+		return $value;
+	}
+	return $default;
 }
 
 // ── Objects — shared args ─────────────────────────────────────────────────────
@@ -417,12 +443,14 @@ function cns_map_suite_object_rest_args(): array {
 			'maximum' => 128,
 		],
 		'style_fill' => [
-			'type'    => 'string',
-			'default' => '#ffffff',
+			'type'              => 'string',
+			'default'           => '#ffffff',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff'),
 		],
 		'style_stroke' => [
-			'type'    => 'string',
-			'default' => '#2271b1',
+			'type'              => 'string',
+			'default'           => '#2271b1',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#2271b1'),
 		],
 	];
 }
@@ -637,8 +665,9 @@ function cns_map_suite_area_rest_args(): array {
 			'default' => '[]',
 		],
 		'style_fill' => [
-			'type'    => 'string',
-			'default' => '#2271b1',
+			'type'              => 'string',
+			'default'           => '#2271b1',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#2271b1'),
 		],
 		'style_fill_opacity' => [
 			'type'    => 'number',
@@ -647,8 +676,9 @@ function cns_map_suite_area_rest_args(): array {
 			'maximum' => 1.0,
 		],
 		'style_stroke' => [
-			'type'    => 'string',
-			'default' => '#2271b1',
+			'type'              => 'string',
+			'default'           => '#2271b1',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#2271b1'),
 		],
 		'style_stroke_width' => [
 			'type'    => 'integer',
@@ -837,8 +867,9 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'default' => '[]',
 		],
 		'style_fill' => [
-			'type'    => 'string',
-			'default' => '#e8a020',
+			'type'              => 'string',
+			'default'           => '#e8a020',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#e8a020'),
 		],
 		'style_fill_opacity' => [
 			'type'    => 'number',
@@ -847,8 +878,9 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'maximum' => 1.0,
 		],
 		'style_stroke' => [
-			'type'    => 'string',
-			'default' => '#e8a020',
+			'type'              => 'string',
+			'default'           => '#e8a020',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#e8a020'),
 		],
 		'style_stroke_width' => [
 			'type'    => 'integer',

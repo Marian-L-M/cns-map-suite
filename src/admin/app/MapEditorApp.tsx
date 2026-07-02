@@ -1,4 +1,4 @@
-import { useState } from '@wordpress/element';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import EditorHeader from './EditorHeader';
 import TabBar from './TabBar';
 import ContextPanel from './ContextPanel';
@@ -73,6 +73,23 @@ export default function MapEditorApp() {
 	const selectedArea   = areasList.find( ( a ) => a.id === selectedAreaId )   || null;
 	const selectedRegion = regionsList.find( ( r ) => r.id === selectedRegionId ) || null;
 
+	// Warn before leaving with unsaved map settings. Objects/areas/regions
+	// save through their own endpoints as you edit; only the settings form
+	// is at risk of silent loss.
+	const savedSettingsRef = useRef( JSON.stringify( buildInitialSettings() ) );
+
+	useEffect( () => {
+		function handleBeforeUnload( e: BeforeUnloadEvent ) {
+			if ( JSON.stringify( settings ) !== savedSettingsRef.current ) {
+				e.preventDefault();
+				e.returnValue = '';
+			}
+		}
+		window.addEventListener( 'beforeunload', handleBeforeUnload );
+		return () =>
+			window.removeEventListener( 'beforeunload', handleBeforeUnload );
+	}, [ settings ] );
+
 	// ── Tab switching ─────────────────────────────────────────────────────────
 
 	function handleTabChange( tab: Tab ) {
@@ -116,6 +133,7 @@ export default function MapEditorApp() {
 				message?: string;
 			};
 			if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
+			savedSettingsRef.current = JSON.stringify( settings );
 			if ( data.created && data.edit_url ) {
 				window.location.href = data.edit_url;
 			} else {
