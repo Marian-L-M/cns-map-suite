@@ -1,5 +1,5 @@
 import { drawMapCanvas } from './canvas';
-import type { MapLabel, DrawState, CanvasPoint } from '../types';
+import type { MapLabel, DrawState } from '../types';
 
 // ── Geometry ──────────────────────────────────────────────────────────────────
 
@@ -105,37 +105,57 @@ export async function drawLabelsOnCanvas(
 	drawState: DrawState,
 	labels: MapLabel[],
 	selectedLabelId: number | null,
-	repositioningId: number | null,
-	repositionCursor: CanvasPoint | null,
 ): Promise<void> {
 	await drawMapCanvas( canvas, drawState );
 	const ctx = canvas.getContext( '2d' )!;
 	for ( const label of labels ) {
-		if ( repositioningId === label.id && repositionCursor ) {
-			drawLabelShape( ctx, { ...label, ...repositionCursor }, true );
-		} else {
-			drawLabelShape( ctx, label, selectedLabelId === label.id );
-		}
+		drawLabelShape( ctx, label, selectedLabelId === label.id );
 	}
 }
 
-/** Hit test against the label box (and the anchor dot in indicator mode). */
-export function findLabelAtPoint(
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+
+/**
+ * True when the event originates from a form field, so label keyboard
+ * shortcuts don't hijack typing (Enter in the text input, Backspace while
+ * editing, arrow keys in number fields, …).
+ */
+export function isTypingTarget( e: Event ): boolean {
+	const t = e.target as HTMLElement | null;
+	return !! t && typeof t.closest === 'function' &&
+		!! t.closest( 'input, textarea, select, [contenteditable="true"]' );
+}
+
+/** Which part of a label was hit: the anchor dot or the text box. */
+export type LabelPart = 'anchor' | 'box';
+
+export interface LabelHit {
+	label: MapLabel;
+	part: LabelPart;
+}
+
+/**
+ * Hit test that distinguishes the anchor dot (indicator mode) from the text
+ * box, so both can be picked up and moved independently. The dot is checked
+ * first with a generous radius so it stays grabbable next to the box.
+ */
+export function findLabelPartAtPoint(
 	ctx: CanvasRenderingContext2D,
 	x: number,
 	y: number,
 	labels: MapLabel[],
-): MapLabel | null {
+): LabelHit | null {
 	for ( let i = labels.length - 1; i >= 0; i-- ) {
 		const label = labels[ i ];
-		const box   = measureLabelBox( ctx, label );
+		if ( label.placement === 'indicator' ) {
+			ctx.beginPath();
+			ctx.arc( label.x, label.y, 8, 0, Math.PI * 2 );
+			if ( ctx.isPointInPath( x, y ) ) return { label, part: 'anchor' };
+		}
+		const box = measureLabelBox( ctx, label );
 		ctx.beginPath();
 		ctx.rect( box.left, box.top, box.w, box.h );
-		if ( label.placement === 'indicator' ) {
-			ctx.moveTo( label.x + 6, label.y );
-			ctx.arc( label.x, label.y, 6, 0, Math.PI * 2 );
-		}
-		if ( ctx.isPointInPath( x, y ) ) return label;
+		if ( ctx.isPointInPath( x, y ) ) return { label, part: 'box' };
 	}
 	return null;
 }

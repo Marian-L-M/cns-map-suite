@@ -230,13 +230,17 @@ function cns_map_suite_register_rest_routes(): void {
 		],
 	]);
 
+	// Anchor point and/or label-box offset; all params optional so the dot
+	// and the box can be moved independently from the editor canvas.
 	register_rest_route('cns-map-suite/v1', '/labels/(?P<id>\d+)/position', [
 		'methods'             => 'PATCH',
 		'callback'            => 'cns_map_suite_rest_move_label',
 		'permission_callback' => 'cns_map_suite_permission_check',
 		'args'                => [
-			'x' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
-			'y' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
+			'x'        => ['type' => 'integer', 'minimum' => 0],
+			'y'        => ['type' => 'integer', 'minimum' => 0],
+			'offset_x' => ['type' => 'integer', 'minimum' => -2000, 'maximum' => 2000],
+			'offset_y' => ['type' => 'integer', 'minimum' => -2000, 'maximum' => 2000],
 		],
 	]);
 
@@ -927,6 +931,30 @@ function cns_map_suite_label_rest_args(): array {
 			'minimum' => -2000,
 			'maximum' => 2000,
 		],
+		'infobox_source' => [
+			'type'    => 'string',
+			'default' => 'manual',
+			'enum'    => ['manual', 'post'],
+		],
+		'linked_post_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'infobox_title' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'infobox_description' => [
+			'type'    => 'string',
+			'default' => '',
+		],
+		'infobox_image_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
 		'style_bg' => [
 			'type'              => 'string',
 			'default'           => '#ffffff',
@@ -961,6 +989,12 @@ function cns_map_suite_label_row_from_args(WP_REST_Request $request): array {
 		'y'             => (int) $request->get_param('y'),
 		'offset_x'      => (int) $request->get_param('offset_x'),
 		'offset_y'      => (int) $request->get_param('offset_y'),
+		'infobox_source' => $request->get_param('infobox_source'),
+		'infobox_data'   => wp_json_encode([
+			'title'       => (string) $request->get_param('infobox_title'),
+			'description' => wp_kses_post($request->get_param('infobox_description')),
+			'image_id'    => (int) $request->get_param('infobox_image_id'),
+		]),
 		'canvas_styles' => wp_json_encode([
 			'bgColor'     => (string) $request->get_param('style_bg'),
 			'borderColor' => (string) $request->get_param('style_border'),
@@ -972,7 +1006,9 @@ function cns_map_suite_label_row_from_args(WP_REST_Request $request): array {
 
 function cns_map_suite_normalize_label_row(array $row): array {
 	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
-	foreach (['id', 'map_id', 'x', 'y', 'offset_x', 'offset_y'] as $k) {
+	$row['infobox_data']  = ! empty($row['infobox_data']) ? json_decode($row['infobox_data'], true) : (object) [];
+	$row['infobox_source'] = $row['infobox_source'] ?? 'manual';
+	foreach (['id', 'map_id', 'linked_post_id', 'x', 'y', 'offset_x', 'offset_y'] as $k) {
 		$row[$k] = (int) ($row[$k] ?? 0);
 	}
 	return $row;
@@ -1004,13 +1040,19 @@ function cns_map_suite_rest_create_label(WP_REST_Request $request): WP_REST_Resp
 		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
-	$row           = cns_map_suite_label_row_from_args($request);
-	$row['map_id'] = $map_id;
+	$linked_post_id = $request->get_param('linked_post_id') ?: null;
+	if ($linked_post_id && !get_post($linked_post_id)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	$row                   = cns_map_suite_label_row_from_args($request);
+	$row['map_id']         = $map_id;
+	$row['linked_post_id'] = $linked_post_id;
 
 	$wpdb->insert(
 		$wpdb->prefix . 'cns_map_labels',
 		$row,
-		['%s', '%s', '%d', '%d', '%d', '%d', '%s', '%d']
+		['%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d']
 	);
 
 	if (!$wpdb->insert_id) {
@@ -1037,11 +1079,19 @@ function cns_map_suite_rest_update_label(WP_REST_Request $request): WP_REST_Resp
 		return new WP_Error('not_found', __('Label not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
+	$linked_post_id = $request->get_param('linked_post_id') ?: null;
+	if ($linked_post_id && !get_post($linked_post_id)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	$row                   = cns_map_suite_label_row_from_args($request);
+	$row['linked_post_id'] = $linked_post_id;
+
 	$result = $wpdb->update(
 		$wpdb->prefix . 'cns_map_labels',
-		cns_map_suite_label_row_from_args($request),
+		$row,
 		['id' => $id],
-		['%s', '%s', '%d', '%d', '%d', '%d', '%s'],
+		['%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d'],
 		['%d']
 	);
 
@@ -1085,11 +1135,22 @@ function cns_map_suite_rest_move_label(WP_REST_Request $request): WP_REST_Respon
 		return new WP_Error('not_found', __('Label not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
+	$updates = [];
+	foreach (['x', 'y', 'offset_x', 'offset_y'] as $field) {
+		if ($request->has_param($field)) {
+			$updates[$field] = (int) $request->get_param($field);
+		}
+	}
+
+	if (!$updates) {
+		return new WP_Error('missing_params', __('Provide x/y and/or offset_x/offset_y.', 'cns-map-suite'), ['status' => 400]);
+	}
+
 	$wpdb->update(
 		$wpdb->prefix . 'cns_map_labels',
-		['x' => (int) $request->get_param('x'), 'y' => (int) $request->get_param('y')],
+		$updates,
 		['id' => $id],
-		['%d', '%d'],
+		array_fill(0, count($updates), '%d'),
 		['%d']
 	);
 

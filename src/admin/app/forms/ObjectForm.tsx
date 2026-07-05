@@ -110,16 +110,28 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 			{ /* ── Infobox ── */ }
 			<section className="cns-modal-section">
 				<h3>Infobox</h3>
+				<PostSearch
+					linkedPostId={ formData.linked_post_id }
+					linkedPostLabel={ formData.linked_post_label }
+					onChange={ ( item ) => onChange( {
+						...formData,
+						linked_post_id:    item ? item.id : 0,
+						linked_post_label: item ? item.title : '',
+					} ) }
+				/>
+				<p className="description">
+					Optional — a connected post adds a &ldquo;Read more&rdquo; link to the infobox.
+				</p>
 				<div className="cns-radio-toggle">
 					<label>
 						<input type="radio" name={ `obj-infobox-src-${ n }` } value="manual" checked={ isManualIb }
 							onChange={ () => set( 'infobox_source', 'manual' ) } />
-						{ ' ' }Manual
+						{ ' ' }Write content manually
 					</label>
 					<label>
 						<input type="radio" name={ `obj-infobox-src-${ n }` } value="post" checked={ ! isManualIb }
 							onChange={ () => set( 'infobox_source', 'post' ) } />
-						{ ' ' }From post
+						{ ' ' }Use the connected post&rsquo;s content
 					</label>
 				</div>
 				{ isManualIb && (
@@ -150,15 +162,9 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 					</div>
 				) }
 				{ ! isManualIb && (
-					<PostSearch
-						linkedPostId={ formData.linked_post_id }
-						linkedPostLabel={ formData.linked_post_label }
-						onChange={ ( item ) => onChange( {
-							...formData,
-							linked_post_id:    item ? item.id : 0,
-							linked_post_label: item ? item.title : '',
-						} ) }
-					/>
+					<p className="description">
+						Title, description and image are pulled from the connected post.
+					</p>
 				) }
 			</section>
 

@@ -175,12 +175,15 @@ export interface LabelCanvasStyles {
 export interface MapLabel {
 	id: number;
 	map_id: number;
+	linked_post_id: number | null;
 	text: string;
 	x: number; // canvas pixel coordinate (anchor point)
 	y: number;
 	placement: LabelPlacement;
 	offset_x: number; // label box offset from anchor (indicator mode)
 	offset_y: number;
+	infobox_source: InfoboxSource;
+	infobox_data: InfoboxData | null;
 	canvas_styles: LabelCanvasStyles | null;
 	created_at: string;
 	updated_at: string;
@@ -318,6 +321,8 @@ export interface AreaFormData {
 	infobox_source: InfoboxSource;
 	infobox_title: string;
 	infobox_description: string;
+	infobox_image_id: number;
+	infobox_image_url: string;
 	linked_post_id: number;
 	linked_post_label: string;
 	style_fill: string;
@@ -333,6 +338,13 @@ export interface LabelFormData {
 	y: number;
 	offset_x: number;
 	offset_y: number;
+	infobox_source: InfoboxSource;
+	infobox_title: string;
+	infobox_description: string;
+	infobox_image_id: number;
+	infobox_image_url: string;
+	linked_post_id: number;
+	linked_post_label: string;
 	style_bg: string;
 	style_border: string;
 	style_text_color: string;
@@ -360,7 +372,8 @@ export interface ObjectSavePayload {
 
 export type AreaSavePayload = AreaFormData & { nodes: string };
 
-export type LabelSavePayload = LabelFormData;
+// Editor-only fields (image preview URL, post-search label) stay out of the payload.
+export type LabelSavePayload = Omit<LabelFormData, 'infobox_image_url' | 'linked_post_label'>;
 
 // ── Canvas callback signatures (used to avoid circular imports) ───────────────
 

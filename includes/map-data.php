@@ -14,27 +14,30 @@ defined('ABSPATH') || exit;
  */
 
 /**
- * Resolves the infobox for an object/area row into a display-ready array.
+ * Resolves the infobox for an object/area/label row into a display-ready array.
  *
- * Linked-post mode uses the post's title/excerpt, a block-level content
- * preview, featured image and permalink; manual mode uses the stored
+ * The connected post (linked_post_id) is independent of the content source:
+ * whenever one is set, post_url carries its permalink so the frontend can show
+ * a "Read more" link. infobox_source only picks where title/description/image
+ * come from — 'post' pulls them from the connected post (title/excerpt,
+ * block-level content preview, featured image), 'manual' uses the stored
  * infobox_data. `infobox_data` may be a raw JSON string or an already-decoded
  * array (normalized row).
  *
  * @return array{title:string,excerpt:string,content:string,image_url:string,post_url:string}
  */
 function cns_map_suite_resolve_infobox(array $item): array {
-	if (($item['infobox_source'] ?? '') === 'post' && ! empty($item['linked_post_id'])) {
-		$linked = get_post((int) $item['linked_post_id']);
-		if ($linked) {
-			return [
-				'title'     => $linked->post_title,
-				'excerpt'   => $linked->post_excerpt,
-				'content'   => cns_map_suite_infobox_content($linked),
-				'image_url' => get_the_post_thumbnail_url($linked->ID, 'medium') ?: '',
-				'post_url'  => get_permalink($linked) ?: '',
-			];
-		}
+	$linked   = ! empty($item['linked_post_id']) ? get_post((int) $item['linked_post_id']) : null;
+	$post_url = $linked ? (get_permalink($linked) ?: '') : '';
+
+	if (($item['infobox_source'] ?? '') === 'post' && $linked) {
+		return [
+			'title'     => $linked->post_title,
+			'excerpt'   => $linked->post_excerpt,
+			'content'   => cns_map_suite_infobox_content($linked),
+			'image_url' => get_the_post_thumbnail_url($linked->ID, 'medium') ?: '',
+			'post_url'  => $post_url,
+		];
 	}
 
 	$ib = $item['infobox_data'] ?? null;
@@ -50,7 +53,7 @@ function cns_map_suite_resolve_infobox(array $item): array {
 		'excerpt'   => '',
 		'content'   => $ib['description'] ?? '',
 		'image_url' => ! empty($ib['image_id']) ? (wp_get_attachment_image_url((int) $ib['image_id'], 'medium') ?: '') : '',
-		'post_url'  => '',
+		'post_url'  => $post_url,
 	];
 }
 
@@ -62,7 +65,7 @@ function cns_map_suite_resolve_infobox(array $item): array {
  *  - areas              bool   include area rows (default true)
  *  - hierarchy          bool   include child hierarchy regions (default false)
  *  - parents            bool   include parent map references (default false)
- *  - resolve_infoboxes  bool   attach 'infobox_resolved' to objects/areas (default false)
+ *  - resolve_infoboxes  bool   attach 'infobox_resolved' to objects/areas/labels (default false)
  *  - image_size         string attachment size for map/bg image URLs (default 'full')
  *
  * Object/area rows use the same normalized shape as the REST API
@@ -169,7 +172,13 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
 		) ?: [];
-		$data['labels'] = array_map('cns_map_suite_normalize_label_row', $rows);
+		if ($opts['resolve_infoboxes']) {
+			$prime_rows($rows, ['linked_post_id']);
+		}
+		$data['labels'] = array_map(
+			fn($row) => $attach_infobox(cns_map_suite_normalize_label_row($row)),
+			$rows
+		);
 	}
 
 	if ($opts['hierarchy']) {

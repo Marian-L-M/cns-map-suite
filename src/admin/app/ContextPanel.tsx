@@ -29,6 +29,8 @@ interface Props {
 	onLabelDelete: () => Promise<void>;
 	onLabelClose: () => void;
 	onLabelReposition: () => void;
+	onLabelDuplicate: () => void;
+	onLabelLocalUpdate: ( id: number, patch: Partial<MapLabel> ) => void;
 	onAreaSave: ( formData: AreaFormData ) => Promise<MapArea | undefined>;
 	onAreaDelete: () => Promise<void>;
 	onAreaClose: () => void;
@@ -45,6 +47,7 @@ export default function ContextPanel( {
 	selectedObject, selectedArea, selectedLabel, selectedRegion,
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
 	onLabelSave,  onLabelDelete,  onLabelClose,  onLabelReposition,
+	onLabelDuplicate, onLabelLocalUpdate,
 	onAreaSave,   onAreaDelete,   onAreaClose,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
 	onRegionSave, onRegionDelete, onRegionClose, onRegionNodesUpdate,
@@ -74,9 +77,17 @@ export default function ContextPanel( {
 		}
 	}, [ selectedArea?.id ] );
 
+	// Geometry deps: canvas drags update x/y/offsets on the list — the form
+	// must pick those up. Form-driven live edits round-trip to the same
+	// values, so the reset is a no-op for them.
 	useEffect( () => {
 		if ( selectedLabel ) {
 			setLabelFormData( defaultLabelFormData( selectedLabel, null, null ) );
+		}
+	}, [ selectedLabel?.id, selectedLabel?.x, selectedLabel?.y, selectedLabel?.offset_x, selectedLabel?.offset_y ] );
+
+	useEffect( () => {
+		if ( selectedLabel ) {
 			setStatus( { text: '', type: '' } );
 		}
 	}, [ selectedLabel?.id ] );
@@ -177,9 +188,14 @@ export default function ContextPanel( {
 						</button>
 					) }
 					{ isLabel && (
-						<button type="button" className="button button-small" onClick={ onLabelReposition }>
-							Reposition
-						</button>
+						<>
+							<button type="button" className="button button-small" onClick={ onLabelReposition }>
+								Reposition
+							</button>
+							<button type="button" className="button button-small" onClick={ onLabelDuplicate }>
+								Duplicate
+							</button>
+						</>
 					) }
 					<button
 						type="button"
@@ -200,7 +216,35 @@ export default function ContextPanel( {
 					{ isLabel && labelFormData && (
 						<LabelForm
 							formData={ labelFormData }
-							onChange={ setLabelFormData }
+							onChange={ ( fd ) => {
+								setLabelFormData( fd );
+								// Live preview: mirror every form change onto
+								// the in-memory label so the canvas updates
+								// immediately (Save persists it).
+								if ( selectedLabel ) {
+									onLabelLocalUpdate( selectedLabel.id, {
+										text:           fd.text,
+										placement:      fd.placement,
+										x:              fd.x,
+										y:              fd.y,
+										offset_x:       fd.offset_x,
+										offset_y:       fd.offset_y,
+										infobox_source: fd.infobox_source,
+										linked_post_id: fd.linked_post_id,
+										infobox_data: {
+											title:       fd.infobox_title,
+											description: fd.infobox_description,
+											image_id:    fd.infobox_image_id,
+										},
+										canvas_styles: {
+											bgColor:     fd.style_bg,
+											borderColor: fd.style_border,
+											textColor:   fd.style_text_color,
+											fontSize:    fd.style_font_size,
+										},
+									} );
+								}
+							} }
 						/>
 					) }
 					{ ! isObject && ! isLabel && ! isRegion && areaFormData && (

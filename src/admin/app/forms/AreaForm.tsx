@@ -1,5 +1,6 @@
 import { useRef } from '@wordpress/element';
-import PostSearch from '../shared/PostSearch';
+import MediaPicker from '../shared/MediaPicker';
+import PostSearch  from '../shared/PostSearch';
 import type { AreaFormData, AreaType, ShapeType, MapArea, InfoboxSource } from '../../../types';
 
 const TYPES: { value: AreaType; label: string }[] = [
@@ -71,16 +72,28 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 
 			<section className="cns-modal-section">
 				<h3>Infobox</h3>
+				<PostSearch
+					linkedPostId={ formData.linked_post_id }
+					linkedPostLabel={ formData.linked_post_label }
+					onChange={ ( item ) => onChange( {
+						...formData,
+						linked_post_id:    item ? item.id : 0,
+						linked_post_label: item ? item.title : '',
+					} ) }
+				/>
+				<p className="description">
+					Optional — a connected post adds a &ldquo;Read more&rdquo; link to the infobox.
+				</p>
 				<div className="cns-radio-toggle">
 					<label>
 						<input type="radio" name={ `area-ib-src-${ n }` } value="manual" checked={ ! isPost }
 							onChange={ () => set( 'infobox_source', 'manual' ) } />
-						{ ' ' }Manual
+						{ ' ' }Write content manually
 					</label>
 					<label>
 						<input type="radio" name={ `area-ib-src-${ n }` } value="post" checked={ isPost }
 							onChange={ () => set( 'infobox_source', 'post' ) } />
-						{ ' ' }From post
+						{ ' ' }Use the connected post&rsquo;s content
 					</label>
 				</div>
 				{ ! isPost && (
@@ -95,18 +108,25 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							<textarea rows={ 3 } className="large-text" value={ formData.infobox_description }
 								onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
 						</div>
+						<div className="cns-form-row cns-form-row--full">
+							<label>Infobox Image</label>
+							<MediaPicker
+								imageId={ formData.infobox_image_id }
+								imageUrl={ formData.infobox_image_url }
+								title="Select Infobox Image"
+								onChange={ ( att ) => onChange( {
+									...formData,
+									infobox_image_id:  att ? att.id : 0,
+									infobox_image_url: att ? att.url : '',
+								} ) }
+							/>
+						</div>
 					</div>
 				) }
 				{ isPost && (
-					<PostSearch
-						linkedPostId={ formData.linked_post_id }
-						linkedPostLabel={ formData.linked_post_label }
-						onChange={ ( item ) => onChange( {
-							...formData,
-							linked_post_id:    item ? item.id : 0,
-							linked_post_label: item ? item.title : '',
-						} ) }
-					/>
+					<p className="description">
+						Title, description and image are pulled from the connected post.
+					</p>
 				) }
 			</section>
 
@@ -156,6 +176,8 @@ export function defaultAreaFormData( area?: MapArea ): AreaFormData {
 		infobox_source:      ( area?.infobox_source as InfoboxSource | undefined ) || 'manual',
 		infobox_title:       area?.infobox_data?.title       || '',
 		infobox_description: area?.infobox_data?.description || '',
+		infobox_image_id:    area?.infobox_data?.image_id    || 0,
+		infobox_image_url:   '',
 		linked_post_id:      area?.linked_post_id      || 0,
 		linked_post_label:   area?.linked_post_id ? `Post ID: ${ area.linked_post_id }` : '',
 		style_fill:          styles.fill               || '#2271b1',

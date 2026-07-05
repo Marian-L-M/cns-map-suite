@@ -269,6 +269,24 @@
 		ctx.restore();
 	}
 
+	// Hit test for labels: the text box, plus the indicator dot (with a
+	// grab-friendly radius). Reverse order so the top-most drawn label wins.
+	function findLabelAtPoint(ctx, x, y, labels) {
+		for (let i = labels.length - 1; i >= 0; i--) {
+			const label = labels[i];
+			if (label.placement === 'indicator') {
+				ctx.beginPath();
+				ctx.arc(label.x, label.y, 8, 0, Math.PI * 2);
+				if (ctx.isPointInPath(x, y)) return label;
+			}
+			const box = measureLabelBox(ctx, label);
+			ctx.beginPath();
+			ctx.rect(box.left, box.top, box.w, box.h);
+			if (ctx.isPointInPath(x, y)) return label;
+		}
+		return null;
+	}
+
 	function drawFallbackMarker(ctx, x, y, size, fill, stroke) {
 		ctx.save();
 		ctx.beginPath();
@@ -393,7 +411,7 @@
 		if (title)   html += '<h2 class="cns-map-drawer__title">' + escHtml(title) + '</h2>';
 		// content is server-rendered WordPress block HTML, sanitized via wp_kses_post() before storage
 		if (content) html += '<div class="cns-map-drawer__content">' + content + '</div>';
-		if (postUrl) html += '<a class="cns-map-drawer__link" href="' + escHtml(encodeURI(postUrl)) + '">View full post &rarr;</a>';
+		if (postUrl) html += '<a class="cns-map-drawer__link" href="' + escHtml(encodeURI(postUrl)) + '">Read more &rarr;</a>';
 
 		body.innerHTML = html;
 		drawer.classList.add('is-open');
@@ -493,16 +511,17 @@
 		const hierarchyRegions = data.hierarchyRegions || [];
 		const hasHierarchy     = hierarchyRegions.length > 0;
 
-		// Infobox click check.
+		// Infobox click check. Labels without infobox content stay inert, so
+		// purely decorative text never opens an empty drawer.
+		const hasIbContent = function (item) {
+			const ib = item.infobox_resolved || {};
+			return ib.title || ib.content || ib.image_url || ib.post_url;
+		};
+		const clickableLabels = (data.labels || []).filter(hasIbContent);
 		const hasClickable =
-			(data.objects || []).some(function (o) {
-				const ib = o.infobox_resolved || {};
-				return ib.title || ib.content || ib.image_url;
-			}) ||
-			(data.areas || []).some(function (a) {
-				const ib = a.infobox_resolved || {};
-				return ib.title || ib.content || ib.image_url;
-			});
+			(data.objects || []).some(hasIbContent) ||
+			(data.areas || []).some(hasIbContent) ||
+			clickableLabels.length > 0;
 
 		if (!hasClickable && !hasHierarchy) return;
 
@@ -550,6 +569,10 @@
 			}
 
 			if (!hasClickable) return;
+
+			// Labels are drawn on top of objects, so they win the hit test.
+			const hitLabel = findLabelAtPoint(ctx, x, y, clickableLabels);
+			if (hitLabel) { showInfobox(wrapper, hitLabel); return; }
 
 			const hitObj = findObjectAtPoint(ctx, x, y, data.objects || []);
 			if (hitObj) { showInfobox(wrapper, hitObj); return; }

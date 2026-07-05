@@ -1,5 +1,7 @@
 import { useRef } from '@wordpress/element';
-import type { LabelFormData, LabelSavePayload, LabelPlacement, MapLabel } from '../../../types';
+import MediaPicker from '../shared/MediaPicker';
+import PostSearch  from '../shared/PostSearch';
+import type { LabelFormData, LabelSavePayload, LabelPlacement, MapLabel, InfoboxSource } from '../../../types';
 
 interface Props {
 	formData: LabelFormData;
@@ -15,6 +17,7 @@ export default function LabelForm( { formData, onChange }: Props ) {
 	}
 
 	const isIndicator = formData.placement === 'indicator';
+	const isManualIb  = formData.infobox_source !== 'post';
 
 	return (
 		<>
@@ -78,6 +81,71 @@ export default function LabelForm( { formData, onChange }: Props ) {
 				) }
 			</section>
 
+			{ /* ── Infobox ── */ }
+			<section className="cns-modal-section">
+				<h3>Infobox</h3>
+				<PostSearch
+					linkedPostId={ formData.linked_post_id }
+					linkedPostLabel={ formData.linked_post_label }
+					onChange={ ( item ) => onChange( {
+						...formData,
+						linked_post_id:    item ? item.id : 0,
+						linked_post_label: item ? item.title : '',
+					} ) }
+				/>
+				<p className="description">
+					Optional — a connected post adds a &ldquo;Read more&rdquo; link to the infobox.
+				</p>
+				<div className="cns-radio-toggle">
+					<label>
+						<input type="radio" name={ `label-infobox-src-${ n }` } value="manual" checked={ isManualIb }
+							onChange={ () => set( 'infobox_source', 'manual' as InfoboxSource ) } />
+						{ ' ' }Write content manually
+					</label>
+					<label>
+						<input type="radio" name={ `label-infobox-src-${ n }` } value="post" checked={ ! isManualIb }
+							onChange={ () => set( 'infobox_source', 'post' as InfoboxSource ) } />
+						{ ' ' }Use the connected post&rsquo;s content
+					</label>
+				</div>
+				{ isManualIb && (
+					<div className="cns-form-grid">
+						<div className="cns-form-row cns-form-row--full">
+							<label>Infobox Title</label>
+							<input type="text" className="large-text" value={ formData.infobox_title }
+								onChange={ ( e ) => set( 'infobox_title', e.target.value ) } />
+						</div>
+						<div className="cns-form-row cns-form-row--full">
+							<label>Description</label>
+							<textarea rows={ 4 } className="large-text" value={ formData.infobox_description }
+								onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
+						</div>
+						<div className="cns-form-row cns-form-row--full">
+							<label>Infobox Image</label>
+							<MediaPicker
+								imageId={ formData.infobox_image_id }
+								imageUrl={ formData.infobox_image_url }
+								title="Select Infobox Image"
+								onChange={ ( att ) => onChange( {
+									...formData,
+									infobox_image_id:  att ? att.id : 0,
+									infobox_image_url: att ? att.url : '',
+								} ) }
+							/>
+						</div>
+					</div>
+				) }
+				{ ! isManualIb && (
+					<p className="description">
+						Title, description and image are pulled from the connected post.
+					</p>
+				) }
+				<p className="description">
+					Labels with infobox content open the infobox drawer when clicked on the map;
+					labels without stay purely decorative.
+				</p>
+			</section>
+
 			{ /* ── Design ── */ }
 			<section className="cns-modal-section">
 				<h3>Design</h3>
@@ -117,19 +185,27 @@ export function defaultLabelFormData(
 	y: number | null,
 ): LabelFormData {
 	return {
-		text:             label?.text      || '',
-		placement:        label?.placement || 'centered',
-		x:                label ? label.x : ( x ?? 0 ),
-		y:                label ? label.y : ( y ?? 0 ),
-		offset_x:         label?.offset_x ?? 40,
-		offset_y:         label?.offset_y ?? -40,
-		style_bg:         label?.canvas_styles?.bgColor     || '#ffffff',
-		style_border:     label?.canvas_styles?.borderColor || '#1e1e1e',
-		style_text_color: label?.canvas_styles?.textColor   || '#1e1e1e',
-		style_font_size:  label?.canvas_styles?.fontSize    || 14,
+		text:                label?.text      || '',
+		placement:           label?.placement || 'centered',
+		x:                   label ? label.x : ( x ?? 0 ),
+		y:                   label ? label.y : ( y ?? 0 ),
+		offset_x:            label?.offset_x ?? 40,
+		offset_y:            label?.offset_y ?? -40,
+		infobox_source:      label?.infobox_source || 'manual',
+		infobox_title:       label?.infobox_data?.title       || '',
+		infobox_description: label?.infobox_data?.description || '',
+		infobox_image_id:    label?.infobox_data?.image_id    || 0,
+		infobox_image_url:   '',
+		linked_post_id:      label?.linked_post_id || 0,
+		linked_post_label:   label?.linked_post_id ? `Post ID: ${ label.linked_post_id }` : '',
+		style_bg:            label?.canvas_styles?.bgColor     || '#ffffff',
+		style_border:        label?.canvas_styles?.borderColor || '#1e1e1e',
+		style_text_color:    label?.canvas_styles?.textColor   || '#1e1e1e',
+		style_font_size:     label?.canvas_styles?.fontSize    || 14,
 	};
 }
 
 export function collectLabelPayload( formData: LabelFormData ): LabelSavePayload {
-	return { ...formData };
+	const { infobox_image_url, linked_post_label, ...payload } = formData;
+	return payload;
 }

@@ -71,17 +71,21 @@ function cns_map_suite_create_tables(): void {
 	dbDelta("CREATE TABLE {$wpdb->prefix}cns_map_labels (
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		map_id BIGINT UNSIGNED NOT NULL,
+		linked_post_id BIGINT UNSIGNED NULL DEFAULT NULL,
 		text VARCHAR(255) NOT NULL DEFAULT '',
 		x INT NOT NULL DEFAULT 0,
 		y INT NOT NULL DEFAULT 0,
 		placement VARCHAR(10) NOT NULL DEFAULT 'centered',
 		offset_x INT NOT NULL DEFAULT 40,
 		offset_y INT NOT NULL DEFAULT -40,
+		infobox_source VARCHAR(10) NOT NULL DEFAULT 'manual',
+		infobox_data LONGTEXT NULL DEFAULT NULL,
 		canvas_styles LONGTEXT NULL DEFAULT NULL,
 		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY (id),
-		KEY idx_map_id (map_id)
+		KEY idx_map_id (map_id),
+		KEY idx_linked_post (linked_post_id)
 	) $charset_collate;");
 
 	// Parent → child map relationships for MasterMap mode.

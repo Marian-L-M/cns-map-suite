@@ -3,10 +3,11 @@ import type { MapLabel } from '../../../types';
 interface Props {
 	labels: MapLabel[];
 	onEdit: ( label: MapLabel ) => void;
+	onDuplicate: ( id: number ) => void;
 	onDelete: ( id: number ) => void;
 }
 
-export default function LabelsList( { labels, onEdit, onDelete }: Props ) {
+export default function LabelsList( { labels, onEdit, onDuplicate, onDelete }: Props ) {
 	if ( ! labels.length ) {
 		return <p className="cns-objects-empty">No labels yet. Click on the canvas to place one.</p>;
 	}
@@ -44,6 +45,8 @@ export default function LabelsList( { labels, onEdit, onDelete }: Props ) {
 						<td>{ label.x }, { label.y }</td>
 						<td className="cns-maps-actions">
 							<button className="button button-small" onClick={ () => onEdit( label ) }>Edit</button>
+							{ ' ' }
+							<button className="button button-small" onClick={ () => onDuplicate( label.id ) }>Duplicate</button>
 							{ ' ' }
 							<button className="button button-small" onClick={ () => onDelete( label.id ) }>Delete</button>
 						</td>

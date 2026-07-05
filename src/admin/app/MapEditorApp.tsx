@@ -10,6 +10,7 @@ import HierarchyPanel from './panels/HierarchyPanel';
 import PreviewPanel from './panels/PreviewPanel';
 import { apiFetch } from '../utils';
 import { normalizeNodesForShapeType } from '../areas';
+import { defaultLabelFormData, collectLabelPayload } from './forms/LabelForm';
 import type {
 	MapSettings,
 	MapObject,
@@ -231,18 +232,35 @@ export default function MapEditorApp() {
 		return data;
 	}
 
-	async function handleLabelPositionUpdate(
+	async function handleLabelGeometryUpdate(
 		id: number,
-		x: number,
-		y: number
+		geometry: Partial< { x: number; y: number; offset_x: number; offset_y: number } >
 	): Promise< void > {
-		const res  = await apiFetch( 'PATCH', `/labels/${ id }/position`, { x, y } );
+		const res  = await apiFetch( 'PATCH', `/labels/${ id }/position`, geometry );
 		const data = ( await res.json() ) as MapLabel;
 		if ( res.ok ) {
 			setLabelsList( ( prev ) =>
 				prev.map( ( l ) => ( l.id === id ? data : l ) )
 			);
 		}
+	}
+
+	// Live preview: form edits update the in-memory label immediately so the
+	// canvas reflects colors/text/placement before saving.
+	function handleLabelLocalUpdate( id: number, patch: Partial< MapLabel > ) {
+		setLabelsList( ( prev ) =>
+			prev.map( ( l ) => ( l.id === id ? { ...l, ...patch } : l ) )
+		);
+	}
+
+	async function handleLabelDuplicate( id: number ) {
+		const label = labelsList.find( ( l ) => l.id === id );
+		if ( ! label ) return;
+		const payload = collectLabelPayload( defaultLabelFormData( label, null, null ) );
+		payload.x += 24;
+		payload.y += 24;
+		const created = await handleLabelAdd( payload );
+		setSelectedLabelId( created.id );
 	}
 
 	async function handleLabelDeleteById( id: number ) {
@@ -471,7 +489,9 @@ export default function MapEditorApp() {
 								onSelect={ setSelectedLabelId }
 								onDeselect={ () => setSelectedLabelId( null ) }
 								onAdd={ handleLabelAdd }
-								onPositionUpdate={ handleLabelPositionUpdate }
+								onGeometryUpdate={ handleLabelGeometryUpdate }
+								onLocalUpdate={ handleLabelLocalUpdate }
+								onDuplicate={ handleLabelDuplicate }
 								onRepositionComplete={ () =>
 									setRepositioningLabelId( null )
 								}
@@ -524,6 +544,8 @@ export default function MapEditorApp() {
 					onLabelDelete={ () => handleLabelDeleteById( selectedLabelId! ) }
 					onLabelClose={ () => setSelectedLabelId( null ) }
 					onLabelReposition={ () => setRepositioningLabelId( selectedLabelId ) }
+					onLabelDuplicate={ () => handleLabelDuplicate( selectedLabelId! ) }
+					onLabelLocalUpdate={ handleLabelLocalUpdate }
 					onAreaSave={ handleAreaSave }
 					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId! ) }
 					onAreaClose={ () => setSelectedAreaId( null ) }
