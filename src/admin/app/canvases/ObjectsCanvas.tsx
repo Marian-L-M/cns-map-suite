@@ -1,7 +1,16 @@
 import { useRef, useEffect } from '@wordpress/element';
 import { drawObjectsOnCanvas, findObjectAtPoint } from '../../objects';
-import { getCanvasCoords } from '../../canvas';
-import type { DrawState, MapObject, CanvasPoint } from '../../../types';
+import { usePickupDrag } from './usePickupDrag';
+import type { DrawState, MapObject } from '../../../types';
+
+/**
+ * Pick-up/drop interaction comes from usePickupDrag; here a drag payload is
+ * simply the object id, and the preview draws the marker at the cursor.
+ * Clicking empty canvas with nothing selected places a new object there.
+ */
+interface ObjectDrag {
+	id: number;
+}
 
 interface Props {
 	drawState: DrawState;
@@ -12,98 +21,68 @@ interface Props {
 	onDeselect: () => void;
 	onPositionUpdate: ( id: number, x: number, y: number ) => Promise<void>;
 	onRepositionComplete: () => void;
+	onPlace: ( x: number, y: number ) => void;
 }
 
 interface CanvasState {
 	objects: MapObject[];
 	selectedObjectId: number | null;
-	repositioningObjectId: number | null;
 }
 
 export default function ObjectsCanvas( {
 	drawState, objects, selectedObjectId,
 	repositioningObjectId,
-	onSelect, onDeselect, onPositionUpdate, onRepositionComplete,
+	onSelect, onDeselect, onPositionUpdate, onRepositionComplete, onPlace,
 }: Props ) {
-	const canvasRef  = useRef<HTMLCanvasElement>( null );
-	const stateRef   = useRef<CanvasState>( { objects: [], selectedObjectId: null, repositioningObjectId: null } );
-	stateRef.current = { objects, selectedObjectId, repositioningObjectId };
+	const stateRef   = useRef<CanvasState>( { objects: [], selectedObjectId: null } );
+	stateRef.current = { objects, selectedObjectId };
 
-	const repoLocalRef = useRef<{ cursor: CanvasPoint | null }>( { cursor: null } );
-
-	// ── Draw ────────────────────────────────────────────────────────────────────
-
-	function redraw( repoId: number | null, repoCursor: CanvasPoint | null ) {
+	function redraw() {
 		const canvas = canvasRef.current;
 		if ( ! canvas ) return;
-		const { objects: objs } = stateRef.current;
-		drawObjectsOnCanvas( canvas, drawState, objs, stateRef.current.selectedObjectId, repoId, repoCursor );
+		const { objects: objs, selectedObjectId: selId } = stateRef.current;
+		const drag = dragRef.current;
+		drawObjectsOnCanvas( canvas, drawState, objs, selId, drag?.payload.id ?? null, drag?.cursor ?? null );
 	}
 
+	const { canvasRef, dragRef, startDrag } = usePickupDrag<ObjectDrag>( {
+		hitTest: ( ctx, x, y ) => {
+			const hit = findObjectAtPoint( ctx, x, y, stateRef.current.objects );
+			return hit ? { id: hit.id } : null;
+		},
+		onPickup: ( drag ) => onSelect?.( drag.id ),
+		onDrop: ( drag, cursor ) => {
+			if ( cursor ) {
+				void onPositionUpdate?.( drag.id, Math.round( cursor.x ), Math.round( cursor.y ) );
+			}
+		},
+		dragFromSelection: () =>
+			stateRef.current.selectedObjectId ? { id: stateRef.current.selectedObjectId } : null,
+		onEmptyClick: ( coords ) => {
+			if ( stateRef.current.selectedObjectId ) {
+				onDeselect?.();
+			} else {
+				onPlace?.( Math.round( coords.x ), Math.round( coords.y ) );
+			}
+		},
+		onEscapeIdle: () => {
+			if ( stateRef.current.selectedObjectId ) onDeselect?.();
+		},
+		onDragEnd: () => onRepositionComplete?.(),
+		redraw,
+	} );
+
 	useEffect( () => {
-		redraw( repositioningObjectId, repoLocalRef.current.cursor );
+		redraw();
 	} ); // run after every render
 
-	// ── Events ──────────────────────────────────────────────────────────────────
-
+	// The context panel's "Reposition" button starts a drag.
 	useEffect( () => {
-		const canvas = canvasRef.current;
-		if ( ! canvas ) return;
+		if ( repositioningObjectId ) startDrag( { id: repositioningObjectId } );
+	}, [ repositioningObjectId ] );
 
-		function onMouseMove( e: MouseEvent ) {
-			const { repositioningObjectId: repoId } = stateRef.current;
-			if ( ! repoId ) return;
-			repoLocalRef.current.cursor = getCanvasCoords( canvas!, e );
-			redraw( repoId, repoLocalRef.current.cursor );
-		}
-
-		async function onClick( e: MouseEvent ) {
-			const coords = getCanvasCoords( canvas!, e );
-			const ctx    = canvas!.getContext( '2d' )!;
-			const { objects: objs, selectedObjectId: selId, repositioningObjectId: repoId } = stateRef.current;
-
-			if ( repoId ) {
-				repoLocalRef.current.cursor = null;
-				onRepositionComplete?.();
-				await onPositionUpdate?.( repoId, coords.x, coords.y );
-				return;
-			}
-
-			const hit = findObjectAtPoint( ctx, coords.x, coords.y, objs );
-			if ( hit ) {
-				onSelect?.( hit.id );
-			} else if ( selId ) {
-				await onPositionUpdate?.( selId, coords.x, coords.y );
-			} else {
-				onDeselect?.();
-			}
-		}
-
-		function onKeyDown( e: KeyboardEvent ) {
-			const { repositioningObjectId: repoId, selectedObjectId: selId } = stateRef.current;
-			if ( e.key === 'Escape' ) {
-				if ( repoId ) {
-					repoLocalRef.current.cursor = null;
-					onRepositionComplete?.();
-				} else if ( selId ) {
-					onDeselect?.();
-				}
-			}
-		}
-
-		canvas.addEventListener( 'mousemove', onMouseMove );
-		canvas.addEventListener( 'click', onClick );
-		document.addEventListener( 'keydown', onKeyDown );
-		return () => {
-			canvas.removeEventListener( 'mousemove', onMouseMove );
-			canvas.removeEventListener( 'click', onClick );
-			document.removeEventListener( 'keydown', onKeyDown );
-		};
-	}, [] ); // bind once; stateRef keeps values current
-
-	const isRepositioning = !! repositioningObjectId;
 	return (
-		<div className={ `cns-objects-canvas-wrap${ isRepositioning ? ' cns-canvas--repositioning' : '' }` }>
+		<div className="cns-objects-canvas-wrap">
 			<canvas ref={ canvasRef } />
 		</div>
 	);

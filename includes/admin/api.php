@@ -200,6 +200,24 @@ function cns_map_suite_register_rest_routes(): void {
 		],
 	]);
 
+	// Geometry-only writes: the editor persists canvas node edits immediately
+	// (like object/label position PATCHes); the full POST save carries the
+	// rest of the form.
+	register_rest_route('cns-map-suite/v1', '/areas/(?P<id>\d+)/nodes', [
+		'methods'             => 'PATCH',
+		'callback'            => 'cns_map_suite_rest_update_area_nodes',
+		'permission_callback' => 'cns_map_suite_permission_check',
+		'args'                => [
+			'nodes' => [
+				'type' => 'string',
+			],
+			'shape_type' => [
+				'type' => 'string',
+				'enum' => ['POLYGON', 'BEZIER', 'CIRCLE'],
+			],
+		],
+	]);
+
 	// ── Map labels ────────────────────────────────────────────────────────────────
 
 	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/labels', [
@@ -425,10 +443,78 @@ function cns_map_suite_sanitize_color(string $value, string $default): string {
 	return $default;
 }
 
+// ── Shared infobox / row helpers ──────────────────────────────────────────────
+// Objects, areas, and labels share the same infobox model: an optional
+// connected post (linked_post_id, independent of the content source) plus
+// manual infobox_data. These helpers are the single source of truth for the
+// REST args, the request → row fields, and JSON-column normalization.
+
+function cns_map_suite_infobox_rest_args(): array {
+	return [
+		'infobox_source' => [
+			'type'    => 'string',
+			'default' => 'manual',
+			'enum'    => ['manual', 'post'],
+		],
+		'linked_post_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+		'infobox_title' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'infobox_description' => [
+			'type'    => 'string',
+			'default' => '',
+		],
+		'infobox_image_id' => [
+			'type'              => 'integer',
+			'default'           => 0,
+			'sanitize_callback' => 'absint',
+		],
+	];
+}
+
+/**
+ * Extracts the infobox DB fields from a request, validating the connected
+ * post. Returns ['linked_post_id' => ?int, 'infobox_source' => string,
+ * 'infobox_data' => string(JSON)] or a 400 WP_Error for a missing post.
+ */
+function cns_map_suite_infobox_fields_from_request(WP_REST_Request $request): array|WP_Error {
+	$linked_post_id = $request->get_param('linked_post_id') ?: null;
+	if ($linked_post_id && !get_post($linked_post_id)) {
+		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	return [
+		'linked_post_id' => $linked_post_id,
+		'infobox_source' => $request->get_param('infobox_source'),
+		'infobox_data'   => wp_json_encode([
+			'title'       => (string) $request->get_param('infobox_title'),
+			'description' => wp_kses_post($request->get_param('infobox_description')),
+			'image_id'    => (int) $request->get_param('infobox_image_id'),
+		]),
+	];
+}
+
+/** Decodes JSON columns (empty → (object)[]) and int-casts ID/coordinate columns. */
+function cns_map_suite_normalize_row(array $row, array $json_cols, array $int_cols): array {
+	foreach ($json_cols as $col) {
+		$row[$col] = !empty($row[$col]) ? json_decode($row[$col], true) : (object) [];
+	}
+	foreach ($int_cols as $col) {
+		$row[$col] = (int) ($row[$col] ?? 0);
+	}
+	return $row;
+}
+
 // ── Objects — shared args ─────────────────────────────────────────────────────
 
 function cns_map_suite_object_rest_args(): array {
-	return [
+	return array_merge(cns_map_suite_infobox_rest_args(), [
 		'icon_image_id' => [
 			'type'              => 'integer',
 			'default'           => 0,
@@ -456,30 +542,6 @@ function cns_map_suite_object_rest_args(): array {
 			'type'    => 'integer',
 			'default' => 0,
 		],
-		'infobox_source' => [
-			'type'    => 'string',
-			'default' => 'manual',
-			'enum'    => ['manual', 'post'],
-		],
-		'linked_post_id' => [
-			'type'              => 'integer',
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
-		],
-		'infobox_title' => [
-			'type'              => 'string',
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		],
-		'infobox_description' => [
-			'type'    => 'string',
-			'default' => '',
-		],
-		'infobox_image_id' => [
-			'type'              => 'integer',
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
-		],
 		'style_size' => [
 			'type'    => 'integer',
 			'default' => 32,
@@ -496,34 +558,27 @@ function cns_map_suite_object_rest_args(): array {
 			'default'           => '#2271b1',
 			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#2271b1'),
 		],
-	];
+	]);
 }
 
 // ── Objects — helpers ─────────────────────────────────────────────────────────
 
-function cns_map_suite_object_from_args(WP_REST_Request $request): array {
-	return [
-		'canvas_styles' => wp_json_encode([
-			'size'        => (int) $request->get_param('style_size'),
-			'fillStyle'   => (string) $request->get_param('style_fill'),
-			'strokeStyle' => (string) $request->get_param('style_stroke'),
-		]),
-		'infobox_data' => wp_json_encode([
-			'title'       => (string) $request->get_param('infobox_title'),
-			'description' => wp_kses_post($request->get_param('infobox_description')),
-			'image_id'    => (int) $request->get_param('infobox_image_id'),
-		]),
-	];
+function cns_map_suite_object_styles_from_args(WP_REST_Request $request): string {
+	return wp_json_encode([
+		'size'        => (int) $request->get_param('style_size'),
+		'fillStyle'   => (string) $request->get_param('style_fill'),
+		'strokeStyle' => (string) $request->get_param('style_stroke'),
+	]);
 }
 
 function cns_map_suite_normalize_object_row(array $row): array {
-	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
-	$row['infobox_data']  = $row['infobox_data']  ? json_decode($row['infobox_data'], true)  : (object) [];
-	$row['icon_url']      = $row['icon_image_id'] ? (wp_get_attachment_url((int) $row['icon_image_id']) ?: '') : '';
-	$row['icon_mime']     = $row['icon_image_id'] ? (get_post_mime_type((int) $row['icon_image_id']) ?: '') : '';
-	foreach (['id', 'map_id', 'linked_post_id', 'icon_image_id', 'x', 'y', 'object_time'] as $k) {
-		$row[$k] = (int) ($row[$k] ?? 0);
-	}
+	$row = cns_map_suite_normalize_row(
+		$row,
+		['canvas_styles', 'infobox_data'],
+		['id', 'map_id', 'linked_post_id', 'icon_image_id', 'x', 'y', 'object_time']
+	);
+	$row['icon_url']  = $row['icon_image_id'] ? (wp_get_attachment_url((int) $row['icon_image_id']) ?: '') : '';
+	$row['icon_mime'] = $row['icon_image_id'] ? (get_post_mime_type((int) $row['icon_image_id']) ?: '') : '';
 	return $row;
 }
 
@@ -553,18 +608,16 @@ function cns_map_suite_rest_create_object(WP_REST_Request $request): WP_REST_Res
 		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
-	$derived = cns_map_suite_object_from_args($request);
-
-	$linked_post_id = $request->get_param('linked_post_id') ?: null;
-	if ($linked_post_id && !get_post($linked_post_id)) {
-		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	$ib = cns_map_suite_infobox_fields_from_request($request);
+	if (is_wp_error($ib)) {
+		return $ib;
 	}
 
 	$wpdb->insert(
 		$wpdb->prefix . 'cns_map_objects',
 		[
 			'map_id'         => $map_id,
-			'linked_post_id' => $linked_post_id,
+			'linked_post_id' => $ib['linked_post_id'],
 			'type'           => $request->get_param('type'),
 			'svg_slug'       => '',
 			'icon_image_id'  => $request->get_param('icon_image_id') ?: null,
@@ -572,9 +625,9 @@ function cns_map_suite_rest_create_object(WP_REST_Request $request): WP_REST_Res
 			'x'              => $request->get_param('x'),
 			'y'              => $request->get_param('y'),
 			'object_time'    => $request->get_param('object_time'),
-			'infobox_source' => $request->get_param('infobox_source'),
-			'infobox_data'   => $derived['infobox_data'],
-			'canvas_styles'  => $derived['canvas_styles'],
+			'infobox_source' => $ib['infobox_source'],
+			'infobox_data'   => $ib['infobox_data'],
+			'canvas_styles'  => cns_map_suite_object_styles_from_args($request),
 		],
 		['%d', '%d', '%s', '%s', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%s']
 	);
@@ -603,26 +656,24 @@ function cns_map_suite_rest_update_object(WP_REST_Request $request): WP_REST_Res
 		return new WP_Error('not_found', __('Object not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
-	$derived = cns_map_suite_object_from_args($request);
-
-	$linked_post_id = $request->get_param('linked_post_id') ?: null;
-	if ($linked_post_id && !get_post($linked_post_id)) {
-		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	$ib = cns_map_suite_infobox_fields_from_request($request);
+	if (is_wp_error($ib)) {
+		return $ib;
 	}
 
 	$result = $wpdb->update(
 		$wpdb->prefix . 'cns_map_objects',
 		[
-			'linked_post_id' => $linked_post_id,
+			'linked_post_id' => $ib['linked_post_id'],
 			'type'           => $request->get_param('type'),
 			'icon_image_id'  => $request->get_param('icon_image_id') ?: null,
 			'title'          => $request->get_param('title'),
 			'x'              => $request->get_param('x'),
 			'y'              => $request->get_param('y'),
 			'object_time'    => $request->get_param('object_time'),
-			'infobox_source' => $request->get_param('infobox_source'),
-			'infobox_data'   => $derived['infobox_data'],
-			'canvas_styles'  => $derived['canvas_styles'],
+			'infobox_source' => $ib['infobox_source'],
+			'infobox_data'   => $ib['infobox_data'],
+			'canvas_styles'  => cns_map_suite_object_styles_from_args($request),
 		],
 		['id' => $id],
 		['%d', '%s', '%d', '%s', '%d', '%d', '%d', '%s', '%s', '%s'],
@@ -660,7 +711,7 @@ function cns_map_suite_rest_delete_object(WP_REST_Request $request): WP_REST_Res
 // ── Areas — shared args ───────────────────────────────────────────────────────
 
 function cns_map_suite_area_rest_args(): array {
-	return [
+	return array_merge(cns_map_suite_infobox_rest_args(), [
 		'title' => [
 			'type'              => 'string',
 			'default'           => '',
@@ -679,30 +730,6 @@ function cns_map_suite_area_rest_args(): array {
 		'object_time' => [
 			'type'    => 'integer',
 			'default' => 0,
-		],
-		'linked_post_id' => [
-			'type'              => 'integer',
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
-		],
-		'infobox_source' => [
-			'type'    => 'string',
-			'default' => 'manual',
-			'enum'    => ['manual', 'post'],
-		],
-		'infobox_title' => [
-			'type'              => 'string',
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		],
-		'infobox_description' => [
-			'type'    => 'string',
-			'default' => '',
-		],
-		'infobox_image_id' => [
-			'type'              => 'integer',
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
 		],
 		'nodes' => [
 			'type'    => 'string',
@@ -730,7 +757,7 @@ function cns_map_suite_area_rest_args(): array {
 			'minimum' => 1,
 			'maximum' => 10,
 		],
-	];
+	]);
 }
 
 // ── Areas — helpers ───────────────────────────────────────────────────────────
@@ -745,12 +772,16 @@ function cns_map_suite_area_styles_from_args(WP_REST_Request $request): string {
 }
 
 function cns_map_suite_normalize_area_row(array $row): array {
-	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
-	$row['infobox_data']  = $row['infobox_data']  ? json_decode($row['infobox_data'],  true) : (object) [];
-	$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'],          true) : [];
-	foreach (['id', 'map_id', 'linked_post_id', 'background_image_id', 'object_time'] as $k) {
-		$row[$k] = (int) ($row[$k] ?? 0);
-	}
+	$row = cns_map_suite_normalize_row(
+		$row,
+		['canvas_styles', 'infobox_data'],
+		['id', 'map_id', 'linked_post_id', 'background_image_id', 'object_time']
+	);
+	// Nodes are a list, so empty must decode to [] (not the (object)[] the
+	// generic helper uses for style/infobox bags).
+	$row['nodes'] = is_string($row['nodes'] ?? null) && $row['nodes'] !== ''
+		? (json_decode($row['nodes'], true) ?: [])
+		: [];
 	return $row;
 }
 
@@ -784,29 +815,23 @@ function cns_map_suite_rest_create_area(WP_REST_Request $request): WP_REST_Respo
 	$nodes_decoded = json_decode($nodes_raw, true);
 	if (!is_array($nodes_decoded)) $nodes_decoded = [];
 
-	$infobox_data = wp_json_encode([
-		'title'       => (string) $request->get_param('infobox_title'),
-		'description' => wp_kses_post($request->get_param('infobox_description')),
-		'image_id'    => (int) $request->get_param('infobox_image_id'),
-	]);
-
-	$area_linked_post_id = $request->get_param('linked_post_id') ?: null;
-	if ($area_linked_post_id && !get_post($area_linked_post_id)) {
-		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	$ib = cns_map_suite_infobox_fields_from_request($request);
+	if (is_wp_error($ib)) {
+		return $ib;
 	}
 
 	$wpdb->insert(
 		$wpdb->prefix . 'cns_map_areas',
 		[
 			'map_id'         => $map_id,
-			'linked_post_id' => $area_linked_post_id,
+			'linked_post_id' => $ib['linked_post_id'],
 			'type'           => $request->get_param('type'),
 			'shape_type'     => $request->get_param('shape_type'),
 			'title'          => $request->get_param('title'),
 			'object_time'    => $request->get_param('object_time'),
 			'nodes'          => wp_json_encode($nodes_decoded),
-			'infobox_source' => $request->get_param('infobox_source'),
-			'infobox_data'   => $infobox_data,
+			'infobox_source' => $ib['infobox_source'],
+			'infobox_data'   => $ib['infobox_data'],
 			'canvas_styles'  => cns_map_suite_area_styles_from_args($request),
 		],
 		['%d', '%d', '%s', '%s', '%s', '%d', '%s', '%s', '%s', '%s']
@@ -840,28 +865,22 @@ function cns_map_suite_rest_update_area(WP_REST_Request $request): WP_REST_Respo
 	$nodes_decoded = json_decode($nodes_raw, true);
 	if (!is_array($nodes_decoded)) $nodes_decoded = [];
 
-	$infobox_data = wp_json_encode([
-		'title'       => (string) $request->get_param('infobox_title'),
-		'description' => wp_kses_post($request->get_param('infobox_description')),
-		'image_id'    => (int) $request->get_param('infobox_image_id'),
-	]);
-
-	$area_linked_post_id_upd = $request->get_param('linked_post_id') ?: null;
-	if ($area_linked_post_id_upd && !get_post($area_linked_post_id_upd)) {
-		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	$ib = cns_map_suite_infobox_fields_from_request($request);
+	if (is_wp_error($ib)) {
+		return $ib;
 	}
 
 	$result = $wpdb->update(
 		$wpdb->prefix . 'cns_map_areas',
 		[
-			'linked_post_id' => $area_linked_post_id_upd,
+			'linked_post_id' => $ib['linked_post_id'],
 			'type'           => $request->get_param('type'),
 			'shape_type'     => $request->get_param('shape_type'),
 			'title'          => $request->get_param('title'),
 			'object_time'    => $request->get_param('object_time'),
 			'nodes'          => wp_json_encode($nodes_decoded),
-			'infobox_source' => $request->get_param('infobox_source'),
-			'infobox_data'   => $infobox_data,
+			'infobox_source' => $ib['infobox_source'],
+			'infobox_data'   => $ib['infobox_data'],
 			'canvas_styles'  => cns_map_suite_area_styles_from_args($request),
 		],
 		['id' => $id],
@@ -871,6 +890,58 @@ function cns_map_suite_rest_update_area(WP_REST_Request $request): WP_REST_Respo
 
 	if ($result === false) {
 		return new WP_Error('db_error', __('Failed to update area.', 'cns-map-suite'), ['status' => 500]);
+	}
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_area_row($row), 200);
+}
+
+function cns_map_suite_rest_update_area_nodes(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_areas WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Area not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$updates = [];
+	$formats = [];
+
+	if ($request->has_param('nodes')) {
+		$nodes = json_decode((string) $request->get_param('nodes'), true);
+		if (!is_array($nodes)) {
+			return new WP_Error('invalid_nodes', __('Nodes must be a JSON array.', 'cns-map-suite'), ['status' => 400]);
+		}
+		$updates['nodes'] = wp_json_encode($nodes);
+		$formats[]        = '%s';
+	}
+	if ($request->has_param('shape_type')) {
+		$updates['shape_type'] = $request->get_param('shape_type');
+		$formats[]             = '%s';
+	}
+
+	if (!$updates) {
+		return new WP_Error('missing_params', __('Provide nodes and/or shape_type.', 'cns-map-suite'), ['status' => 400]);
+	}
+
+	$result = $wpdb->update(
+		$wpdb->prefix . 'cns_map_areas',
+		$updates,
+		['id' => $id],
+		$formats,
+		['%d']
+	);
+
+	if ($result === false) {
+		return new WP_Error('db_error', __('Failed to update area nodes.', 'cns-map-suite'), ['status' => 500]);
 	}
 
 	$row = $wpdb->get_row(
@@ -900,11 +971,15 @@ function cns_map_suite_rest_delete_area(WP_REST_Request $request): WP_REST_Respo
 // ── Labels — shared args ──────────────────────────────────────────────────────
 
 function cns_map_suite_label_rest_args(): array {
-	return [
+	return array_merge(cns_map_suite_infobox_rest_args(), [
 		'text' => [
 			'type'              => 'string',
 			'default'           => '',
 			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'object_time' => [
+			'type'    => 'integer',
+			'default' => 0,
 		],
 		'placement' => [
 			'type'    => 'string',
@@ -931,30 +1006,6 @@ function cns_map_suite_label_rest_args(): array {
 			'minimum' => -2000,
 			'maximum' => 2000,
 		],
-		'infobox_source' => [
-			'type'    => 'string',
-			'default' => 'manual',
-			'enum'    => ['manual', 'post'],
-		],
-		'linked_post_id' => [
-			'type'              => 'integer',
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
-		],
-		'infobox_title' => [
-			'type'              => 'string',
-			'default'           => '',
-			'sanitize_callback' => 'sanitize_text_field',
-		],
-		'infobox_description' => [
-			'type'    => 'string',
-			'default' => '',
-		],
-		'infobox_image_id' => [
-			'type'              => 'integer',
-			'default'           => 0,
-			'sanitize_callback' => 'absint',
-		],
 		'style_bg' => [
 			'type'              => 'string',
 			'default'           => '#ffffff',
@@ -976,11 +1027,14 @@ function cns_map_suite_label_rest_args(): array {
 			'minimum' => 8,
 			'maximum' => 64,
 		],
-	];
+	]);
 }
 
 // ── Labels — helpers ──────────────────────────────────────────────────────────
 
+// Infobox fields (linked_post_id / infobox_source / infobox_data) are merged
+// in by the handlers via cns_map_suite_infobox_fields_from_request(); the
+// insert/update format arrays follow this order plus those three.
 function cns_map_suite_label_row_from_args(WP_REST_Request $request): array {
 	return [
 		'text'          => $request->get_param('text'),
@@ -989,12 +1043,7 @@ function cns_map_suite_label_row_from_args(WP_REST_Request $request): array {
 		'y'             => (int) $request->get_param('y'),
 		'offset_x'      => (int) $request->get_param('offset_x'),
 		'offset_y'      => (int) $request->get_param('offset_y'),
-		'infobox_source' => $request->get_param('infobox_source'),
-		'infobox_data'   => wp_json_encode([
-			'title'       => (string) $request->get_param('infobox_title'),
-			'description' => wp_kses_post($request->get_param('infobox_description')),
-			'image_id'    => (int) $request->get_param('infobox_image_id'),
-		]),
+		'object_time'   => (int) $request->get_param('object_time'),
 		'canvas_styles' => wp_json_encode([
 			'bgColor'     => (string) $request->get_param('style_bg'),
 			'borderColor' => (string) $request->get_param('style_border'),
@@ -1005,12 +1054,12 @@ function cns_map_suite_label_row_from_args(WP_REST_Request $request): array {
 }
 
 function cns_map_suite_normalize_label_row(array $row): array {
-	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
-	$row['infobox_data']  = ! empty($row['infobox_data']) ? json_decode($row['infobox_data'], true) : (object) [];
+	$row = cns_map_suite_normalize_row(
+		$row,
+		['canvas_styles', 'infobox_data'],
+		['id', 'map_id', 'linked_post_id', 'x', 'y', 'offset_x', 'offset_y', 'object_time']
+	);
 	$row['infobox_source'] = $row['infobox_source'] ?? 'manual';
-	foreach (['id', 'map_id', 'linked_post_id', 'x', 'y', 'offset_x', 'offset_y'] as $k) {
-		$row[$k] = (int) ($row[$k] ?? 0);
-	}
 	return $row;
 }
 
@@ -1040,19 +1089,20 @@ function cns_map_suite_rest_create_label(WP_REST_Request $request): WP_REST_Resp
 		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
-	$linked_post_id = $request->get_param('linked_post_id') ?: null;
-	if ($linked_post_id && !get_post($linked_post_id)) {
-		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	$ib = cns_map_suite_infobox_fields_from_request($request);
+	if (is_wp_error($ib)) {
+		return $ib;
 	}
 
-	$row                   = cns_map_suite_label_row_from_args($request);
-	$row['map_id']         = $map_id;
-	$row['linked_post_id'] = $linked_post_id;
+	$row           = array_merge(cns_map_suite_label_row_from_args($request), $ib);
+	$row['map_id'] = $map_id;
 
 	$wpdb->insert(
 		$wpdb->prefix . 'cns_map_labels',
 		$row,
-		['%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d', '%d']
+		// text, placement, x, y, offset_x, offset_y, object_time,
+		// canvas_styles, linked_post_id, infobox_source, infobox_data, map_id
+		['%s', '%s', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%s', '%s', '%d']
 	);
 
 	if (!$wpdb->insert_id) {
@@ -1079,19 +1129,18 @@ function cns_map_suite_rest_update_label(WP_REST_Request $request): WP_REST_Resp
 		return new WP_Error('not_found', __('Label not found.', 'cns-map-suite'), ['status' => 404]);
 	}
 
-	$linked_post_id = $request->get_param('linked_post_id') ?: null;
-	if ($linked_post_id && !get_post($linked_post_id)) {
-		return new WP_Error('invalid_post', __('Linked post not found.', 'cns-map-suite'), ['status' => 400]);
+	$ib = cns_map_suite_infobox_fields_from_request($request);
+	if (is_wp_error($ib)) {
+		return $ib;
 	}
-
-	$row                   = cns_map_suite_label_row_from_args($request);
-	$row['linked_post_id'] = $linked_post_id;
 
 	$result = $wpdb->update(
 		$wpdb->prefix . 'cns_map_labels',
-		$row,
+		array_merge(cns_map_suite_label_row_from_args($request), $ib),
 		['id' => $id],
-		['%s', '%s', '%d', '%d', '%d', '%d', '%s', '%s', '%s', '%d'],
+		// text, placement, x, y, offset_x, offset_y, object_time,
+		// canvas_styles, linked_post_id, infobox_source, infobox_data
+		['%s', '%s', '%d', '%d', '%d', '%d', '%d', '%s', '%d', '%s', '%s'],
 		['%d']
 	);
 

@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from '@wordpress/element';
+import { useEffect, useRef } from '@wordpress/element';
 import LabelsCanvas from '../canvases/LabelsCanvas';
 import type { LabelGeometry } from '../canvases/LabelsCanvas';
 import LabelsList   from '../lists/LabelsList';
-import { apiFetch } from '../../utils';
 import { settingsToDrawState } from '../../canvas';
 import { defaultLabelFormData, collectLabelPayload } from '../forms/LabelForm';
-import { isTypingTarget } from '../../labels';
+import { useCanvasKeyboard, createDebouncedNudge } from '../useCanvasKeyboard';
+import { useMapResource } from '../useMapResource';
 import type { MapSettings, MapLabel, LabelSavePayload } from '../../../types';
 
 // Internal clipboard for ⌘/Ctrl+C/V. Module scope so it survives tab
@@ -37,116 +37,65 @@ export default function LabelsPanel( {
 	onRepositionComplete,
 	onDelete,
 }: Props ) {
-	const [ initialized, setInitialized ] = useState( false );
+	useMapResource<MapLabel>( mapId, 'labels', onLabelsLoaded );
 
-	// Keyboard handlers bind once; refs keep values/handlers current.
+	// The nudge factory is created once; these refs feed it live values.
 	const stateRef   = useRef( { labels, selectedLabelId } );
 	stateRef.current = { labels, selectedLabelId };
-	const propsRef   = useRef( { onSelect, onAdd, onGeometryUpdate, onLocalUpdate, onDuplicate, onDelete } );
-	propsRef.current = { onSelect, onAdd, onGeometryUpdate, onLocalUpdate, onDuplicate, onDelete };
-
-	useEffect( () => {
-		if ( initialized || ! mapId ) return;
-		apiFetch( 'GET', `/maps/${ mapId }/labels` )
-			.then( ( r ) => r.json() as Promise<MapLabel[]> )
-			.then( ( data ) => { if ( Array.isArray( data ) ) onLabelsLoaded( data ); } )
-			.catch( () => {} )
-			.finally( () => setInitialized( true ) );
-	}, [ mapId ] );
+	const propsRef   = useRef( { onGeometryUpdate, onLocalUpdate } );
+	propsRef.current = { onGeometryUpdate, onLocalUpdate };
 
 	// ── Keyboard shortcuts (active while the Labels tab is mounted) ────────────
 
-	useEffect( () => {
-		// Arrow-key nudges update the canvas immediately and persist once the
-		// keys go quiet, so holding an arrow doesn't fire a PATCH per pixel.
-		let nudgeTimer: number | null = null;
-		let pendingNudge: { id: number; x: number; y: number } | null = null;
+	const selectedLabel = labels.find( ( l ) => l.id === selectedLabelId ) || null;
 
-		function flushNudge() {
-			if ( nudgeTimer ) {
-				window.clearTimeout( nudgeTimer );
-				nudgeTimer = null;
-			}
-			const p = pendingNudge;
-			pendingNudge = null;
-			if ( p ) void propsRef.current.onGeometryUpdate( p.id, { x: p.x, y: p.y } );
-		}
+	const nudger = useRef( createDebouncedNudge(
+		() => {
+			const s = stateRef.current;
+			return s.labels.find( ( l ) => l.id === s.selectedLabelId ) || null;
+		},
+		( id, x, y ) => propsRef.current.onLocalUpdate( id, { x, y } ),
+		( id, x, y ) => void propsRef.current.onGeometryUpdate( id, { x, y } ),
+	) );
+	useEffect( () => () => nudger.current.flush(), [] ); // persist pending nudge on tab leave
 
-		function nudge( label: MapLabel, dx: number, dy: number ) {
-			if ( pendingNudge && pendingNudge.id !== label.id ) flushNudge();
-			const base = pendingNudge ?? { id: label.id, x: label.x, y: label.y };
-			const x = Math.max( 0, base.x + dx );
-			const y = Math.max( 0, base.y + dy );
-			pendingNudge = { id: label.id, x, y };
-			propsRef.current.onLocalUpdate( label.id, { x, y } );
-			if ( nudgeTimer ) window.clearTimeout( nudgeTimer );
-			nudgeTimer = window.setTimeout( flushNudge, 500 );
-		}
-
-		async function paste() {
-			if ( ! labelClipboard ) return;
-			// Cascade repeated pastes instead of stacking copies exactly on
-			// top of each other.
-			const payload = {
-				...labelClipboard,
-				x: labelClipboard.x + 24,
-				y: labelClipboard.y + 24,
-			};
-			labelClipboard = payload;
-			const created = await propsRef.current.onAdd( payload );
-			propsRef.current.onSelect( created.id );
-		}
-
-		function onKeyDown( e: KeyboardEvent ) {
-			if ( isTypingTarget( e ) ) return;
-			const { labels: lbls, selectedLabelId: selId } = stateRef.current;
-			const label = lbls.find( ( l ) => l.id === selId ) || null;
-			const mod   = e.metaKey || e.ctrlKey;
-			const key   = e.key.toLowerCase();
-
-			if ( mod && key === 'c' ) {
-				// Leave real text-selection copies alone.
-				if ( label && ! window.getSelection()?.toString() ) {
-					labelClipboard = collectLabelPayload( defaultLabelFormData( label, null, null ) );
-				}
-				return;
-			}
-			if ( mod && key === 'v' ) {
-				void paste();
-				return;
-			}
-			if ( mod && key === 'd' ) {
-				if ( label ) {
-					e.preventDefault(); // browser "bookmark page" shortcut
-					void propsRef.current.onDuplicate( label.id );
-				}
-				return;
-			}
-			if ( ( e.key === 'Delete' || e.key === 'Backspace' ) && label ) {
-				e.preventDefault();
-				if ( confirm( 'Delete this label?' ) ) {
-					void propsRef.current.onDelete( label.id );
-				}
-				return;
-			}
-
-			const arrows: Record<string, [ number, number ]> = {
-				ArrowUp: [ 0, -1 ], ArrowDown: [ 0, 1 ],
-				ArrowLeft: [ -1, 0 ], ArrowRight: [ 1, 0 ],
-			};
-			if ( arrows[ e.key ] && label ) {
-				e.preventDefault(); // page scroll
-				const step = e.shiftKey ? 10 : 1;
-				nudge( label, arrows[ e.key ][ 0 ] * step, arrows[ e.key ][ 1 ] * step );
-			}
-		}
-
-		document.addEventListener( 'keydown', onKeyDown );
-		return () => {
-			document.removeEventListener( 'keydown', onKeyDown );
-			flushNudge(); // persist a pending nudge when leaving the tab
+	async function pasteLabel() {
+		if ( ! labelClipboard ) return;
+		// Cascade repeated pastes instead of stacking copies exactly on top
+		// of each other.
+		const payload = {
+			...labelClipboard,
+			x: labelClipboard.x + 24,
+			y: labelClipboard.y + 24,
 		};
-	}, [] );
+		labelClipboard = payload;
+		const created = await onAdd( payload );
+		onSelect( created.id );
+	}
+
+	useCanvasKeyboard( {
+		copy: () => {
+			if ( ! selectedLabel ) return false;
+			labelClipboard = collectLabelPayload( defaultLabelFormData( selectedLabel, null, null ) );
+			return true;
+		},
+		paste: () => {
+			if ( ! labelClipboard ) return false;
+			void pasteLabel();
+			return true;
+		},
+		duplicate: () => {
+			if ( ! selectedLabel ) return false;
+			void onDuplicate( selectedLabel.id );
+			return true;
+		},
+		remove: () => {
+			if ( ! selectedLabel ) return false;
+			if ( confirm( 'Delete this label?' ) ) void onDelete( selectedLabel.id );
+			return true;
+		},
+		nudge: ( dx, dy ) => nudger.current.nudge( dx, dy ),
+	} );
 
 	async function handleAdd() {
 		const cx = Math.round( settings.width / 2 );

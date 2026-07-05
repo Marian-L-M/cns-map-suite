@@ -20,7 +20,10 @@ export default function PreviewCanvas( { drawState, objects, areas, labels }: Pr
 		if ( ! canvas ) return;
 		drawFullCanvas( canvas, objects, areas, drawState, drawAreaShape, drawObjectMarker ).then( () => {
 			const ctx = canvas.getContext( '2d' )!;
-			for ( const label of labels ) drawLabelShape( ctx, label, false );
+			// Match the frontend: labels without text are skipped.
+			for ( const label of labels ) {
+				if ( label.text ) drawLabelShape( ctx, label );
+			}
 		} );
 	} );
 

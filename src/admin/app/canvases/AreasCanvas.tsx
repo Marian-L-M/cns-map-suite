@@ -1,21 +1,27 @@
 import { useRef, useEffect, useState } from '@wordpress/element';
-import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, applyRectangleConstraint } from '../../areas';
+import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, moveAreaNode } from '../../areas';
 import { getCanvasCoords } from '../../canvas';
+import { isTypingTarget } from '../../utils';
 import type { DrawState, MapArea, Node, CanvasPoint } from '../../../types';
 
 interface Props {
 	drawState: DrawState;
 	areas: MapArea[];
 	selectedAreaId: number | null;
+	focusedNodeIdx: number | null;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
 	onNodesChange: ( areaId: number, nodes: Node[] ) => void;
+	onNodeFocusChange: ( idx: number | null ) => void;
 }
 
 interface AreasCanvasState {
 	areas: MapArea[];
 	selectedAreaId: number | null;
+	focusedNodeIdx: number | null;
 	onNodesChange: ( areaId: number, nodes: Node[] ) => void;
+	onDeselect: () => void;
+	onNodeFocusChange: ( idx: number | null ) => void;
 	repoNodeIdx: number | null;
 	repoCursor: CanvasPoint | null;
 }
@@ -27,29 +33,12 @@ function commitNodePosition(
 	x: number,
 	y: number,
 ): Node[] {
-	const W    = canvas.width;
-	const H    = canvas.height;
-	const st   = area.shape_type || 'POLYGON';
-	const newX = x / W;
-	const newY = y / H;
-	let updated = area.nodes.map( ( n ) => ( { ...n } ) );
-
-	if ( st === 'RECTANGLE' ) {
-		updated = applyRectangleConstraint( updated, idx, newX, newY ) || updated;
-	} else if ( st === 'CIRCLE' && idx === 0 ) {
-		const dx = newX - updated[ 0 ].x;
-		const dy = newY - updated[ 0 ].y;
-		updated[ 0 ] = { x: newX, y: newY };
-		if ( updated[ 1 ] ) updated[ 1 ] = { x: updated[ 1 ].x + dx, y: updated[ 1 ].y + dy };
-	} else {
-		updated[ idx ] = { x: newX, y: newY };
-	}
-	return updated;
+	return moveAreaNode( area, idx, x / canvas.width, y / canvas.height );
 }
 
 export default function AreasCanvas( {
-	drawState, areas, selectedAreaId,
-	onSelect, onDeselect, onNodesChange,
+	drawState, areas, selectedAreaId, focusedNodeIdx,
+	onSelect, onDeselect, onNodesChange, onNodeFocusChange,
 }: Props ) {
 	const canvasRef = useRef<HTMLCanvasElement>( null );
 
@@ -59,18 +48,25 @@ export default function AreasCanvas( {
 	const stateRef = useRef<AreasCanvasState>( {
 		areas: [],
 		selectedAreaId: null,
+		focusedNodeIdx: null,
 		onNodesChange,
+		onDeselect,
+		onNodeFocusChange,
 		repoNodeIdx: null,
 		repoCursor: null,
 	} );
-	stateRef.current = { areas, selectedAreaId, onNodesChange, repoNodeIdx, repoCursor };
+	stateRef.current = {
+		areas, selectedAreaId, focusedNodeIdx,
+		onNodesChange, onDeselect, onNodeFocusChange,
+		repoNodeIdx, repoCursor,
+	};
 
 	// ── Draw ────────────────────────────────────────────────────────────────────
 
 	useEffect( () => {
 		const canvas = canvasRef.current;
 		if ( ! canvas ) return;
-		drawAreasOnCanvas( canvas, drawState, areas, selectedAreaId, repoNodeIdx, repoCursor );
+		drawAreasOnCanvas( canvas, drawState, areas, selectedAreaId, repoNodeIdx, repoCursor, focusedNodeIdx );
 	} );
 
 	// ── JSX event handlers — always read current props/state, no stale closures ──
@@ -103,6 +99,8 @@ export default function AreasCanvas( {
 			if ( nIdx !== -1 ) {
 				setRepoNodeIdx( nIdx );
 				setRepoCursor( { x, y } );
+				// Keep keyboard focus in sync so Tab continues from here.
+				onNodeFocusChange?.( nIdx );
 				return;
 			}
 		}
@@ -125,21 +123,35 @@ export default function AreasCanvas( {
 
 	useEffect( () => {
 		function onKeyDown( e: KeyboardEvent ) {
-			const areasActive = document.querySelector( '[data-panel="areas"].cns-tab-panel--active' );
-			if ( ! areasActive ) return;
 			const { areas: areaList, selectedAreaId: selId, onNodesChange: onChange,
-				repoNodeIdx: nodeIdx, repoCursor: cursor } = stateRef.current;
+				onDeselect: deselect, repoNodeIdx: nodeIdx, repoCursor: cursor } = stateRef.current;
 
-			if ( e.key === 'Enter' && nodeIdx !== null && cursor ) {
+			if ( e.key === 'Escape' ) {
+				if ( nodeIdx !== null ) {
+					setRepoNodeIdx( null );
+					setRepoCursor( null );
+				} else if ( stateRef.current.focusedNodeIdx !== null ) {
+					stateRef.current.onNodeFocusChange?.( null );
+				} else if ( selId ) {
+					deselect?.();
+				}
+				return;
+			}
+
+			if ( e.key !== 'Enter' ) return;
+			// Enter already has a job in form fields and on focused
+			// buttons/links — don't commit the node from there.
+			if ( isTypingTarget( e ) ) return;
+			if ( ( e.target as HTMLElement | null )?.closest?.( 'button, a' ) ) return;
+			if ( nodeIdx !== null && cursor ) {
+				e.preventDefault();
 				const area = areaList.find( ( a ) => a.id === selId );
 				if ( area && selId !== null ) {
 					onChange?.( selId, commitNodePosition( canvasRef.current!, area, nodeIdx, cursor.x, cursor.y ) );
 				}
 			}
-			if ( e.key === 'Escape' || e.key === 'Enter' ) {
-				setRepoNodeIdx( null );
-				setRepoCursor( null );
-			}
+			setRepoNodeIdx( null );
+			setRepoCursor( null );
 		}
 
 		document.addEventListener( 'keydown', onKeyDown );

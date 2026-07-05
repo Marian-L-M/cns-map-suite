@@ -1,3 +1,14 @@
+// Geometry shared with the admin editor — one source of truth for shape
+// paths, label boxes, and hit areas (see src/shared/map-geometry.ts).
+import {
+	buildAreaPathFromNodes,
+	buildPolygonPath,
+	drawLabelShape,
+	findAreaAtPoint,
+	findLabelPartAtPoint,
+	findObjectAtPoint,
+} from '../../shared/map-geometry';
+
 (function () {
 	'use strict';
 
@@ -68,50 +79,6 @@
 				const drawH = drawW * (mapImg.naturalHeight / mapImg.naturalWidth);
 				ctx.drawImage(mapImg, width * (data.imageX || 0), height * (data.imageY || 0), drawW, drawH);
 			}
-		}
-	}
-
-	function buildPolygonPath(ctx, nodes, W, H) {
-		ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
-		for (let i = 1; i < nodes.length; i++) {
-			ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
-		}
-		ctx.closePath();
-	}
-
-	function buildBezierPath(ctx, nodes, W, H) {
-		const n      = nodes.length;
-		const startX = (nodes[n - 1].x + nodes[0].x) / 2 * W;
-		const startY = (nodes[n - 1].y + nodes[0].y) / 2 * H;
-		ctx.moveTo(startX, startY);
-		for (let i = 0; i < n; i++) {
-			const cp   = nodes[i];
-			const next = nodes[(i + 1) % n];
-			ctx.quadraticCurveTo(cp.x * W, cp.y * H, (cp.x + next.x) / 2 * W, (cp.y + next.y) / 2 * H);
-		}
-		ctx.closePath();
-	}
-
-	function buildCirclePath(ctx, nodes, W, H) {
-		const cx = nodes[0].x * W;
-		const cy = nodes[0].y * H;
-		const rx = Math.max(Math.abs(nodes[1].x - nodes[0].x) * W, 1);
-		const ry = Math.max(Math.abs(nodes[1].y - nodes[0].y) * H, 1);
-		ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-	}
-
-	function buildAreaPathFromNodes(ctx, nodes, shapeType, W, H) {
-		ctx.beginPath();
-		switch (shapeType) {
-			case 'BEZIER':
-				if (nodes.length >= 3) buildBezierPath(ctx, nodes, W, H);
-				break;
-			case 'CIRCLE':
-				if (nodes.length >= 2) buildCirclePath(ctx, nodes, W, H);
-				break;
-			default: // POLYGON
-				if (nodes.length >= 3) buildPolygonPath(ctx, nodes, W, H);
-				break;
 		}
 	}
 
@@ -194,97 +161,12 @@
 	}
 
 	// ── Labels ────────────────────────────────────────────────────────────────
-	// 'centered'  — label box centered on (x, y).
-	// 'indicator' — dot at (x, y) with a leader line to the label box at
-	//               (x + offsetX, y + offsetY); the line is drawn first so the
-	//               box covers the segment that would cross it.
-
-	function measureLabelBox(ctx, label) {
-		const s        = label.canvas_styles || {};
-		const fontSize = s.fontSize || 14;
-		const padX     = 8;
-		const padY     = 5;
-		ctx.font = 'bold ' + fontSize + 'px sans-serif';
-		const textW = ctx.measureText(label.text || '').width;
-		const w = textW + padX * 2;
-		const h = fontSize + padY * 2;
-
-		let cx, cy;
-		if (label.placement === 'indicator') {
-			cx = label.x + (label.offset_x ?? 40);
-			cy = label.y + (label.offset_y ?? -40);
-		} else {
-			cx = label.x;
-			cy = label.y;
-		}
-		return { left: cx - w / 2, top: cy - h / 2, w, h, cx, cy, fontSize };
-	}
-
-	function traceRoundedRect(ctx, x, y, w, h, r) {
-		if (typeof ctx.roundRect === 'function') {
-			ctx.roundRect(x, y, w, h, r);
-		} else {
-			ctx.rect(x, y, w, h);
-		}
-	}
+	// Box math, drawing, and hit-testing come from the shared geometry module;
+	// the frontend simply skips labels without text.
 
 	function drawLabel(ctx, label) {
 		if (!label.text) return;
-		const s         = label.canvas_styles || {};
-		const bg        = s.bgColor     || '#ffffff';
-		const border    = s.borderColor || '#1e1e1e';
-		const textColor = s.textColor   || '#1e1e1e';
-		const box       = measureLabelBox(ctx, label);
-
-		ctx.save();
-
-		if (label.placement === 'indicator') {
-			ctx.beginPath();
-			ctx.moveTo(label.x, label.y);
-			ctx.lineTo(box.cx, box.cy);
-			ctx.strokeStyle = border;
-			ctx.lineWidth   = 1.5;
-			ctx.stroke();
-
-			ctx.beginPath();
-			ctx.arc(label.x, label.y, 4, 0, Math.PI * 2);
-			ctx.fillStyle = border;
-			ctx.fill();
-		}
-
-		ctx.beginPath();
-		traceRoundedRect(ctx, box.left, box.top, box.w, box.h, 4);
-		ctx.fillStyle = bg;
-		ctx.fill();
-		ctx.strokeStyle = border;
-		ctx.lineWidth   = 1.5;
-		ctx.stroke();
-
-		ctx.font         = 'bold ' + box.fontSize + 'px sans-serif';
-		ctx.textAlign    = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillStyle    = textColor;
-		ctx.fillText(label.text, box.cx, box.cy);
-
-		ctx.restore();
-	}
-
-	// Hit test for labels: the text box, plus the indicator dot (with a
-	// grab-friendly radius). Reverse order so the top-most drawn label wins.
-	function findLabelAtPoint(ctx, x, y, labels) {
-		for (let i = labels.length - 1; i >= 0; i--) {
-			const label = labels[i];
-			if (label.placement === 'indicator') {
-				ctx.beginPath();
-				ctx.arc(label.x, label.y, 8, 0, Math.PI * 2);
-				if (ctx.isPointInPath(x, y)) return label;
-			}
-			const box = measureLabelBox(ctx, label);
-			ctx.beginPath();
-			ctx.rect(box.left, box.top, box.w, box.h);
-			if (ctx.isPointInPath(x, y)) return label;
-		}
-		return null;
+		drawLabelShape(ctx, label);
 	}
 
 	function drawFallbackMarker(ctx, x, y, size, fill, stroke) {
@@ -319,33 +201,6 @@
 			return;
 		}
 		drawFallbackMarker(ctx, obj.x, obj.y, size, fill, stroke);
-	}
-
-	// ── Hit detection ─────────────────────────────────────────────────────────
-
-	function findObjectAtPoint(ctx, x, y, objects) {
-		for (let i = objects.length - 1; i >= 0; i--) {
-			const obj  = objects[i];
-			const size = obj.canvas_styles?.size || 32;
-			const half = size / 2;
-			ctx.beginPath();
-			ctx.rect(obj.x - half, obj.y - half, size, size);
-			if (ctx.isPointInPath(x, y)) return obj;
-		}
-		return null;
-	}
-
-	function findAreaAtPoint(ctx, x, y, areas, W, H) {
-		for (let i = areas.length - 1; i >= 0; i--) {
-			const area      = areas[i];
-			const nodes     = area.nodes || [];
-			const shapeType = area.shape_type || 'POLYGON';
-			const minNodes  = shapeType === 'CIRCLE' ? 2 : 3;
-			if (nodes.length < minNodes) continue;
-			buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
-			if (ctx.isPointInPath(x, y)) return area;
-		}
-		return null;
 	}
 
 	// ── Infobox drawer ────────────────────────────────────────────────────────
@@ -511,16 +366,19 @@
 		const hierarchyRegions = data.hierarchyRegions || [];
 		const hasHierarchy     = hierarchyRegions.length > 0;
 
-		// Infobox click check. Labels without infobox content stay inert, so
-		// purely decorative text never opens an empty drawer.
+		// Infobox click check, per item: objects/areas/labels without infobox
+		// content stay inert, so nothing ever opens an empty drawer (and
+		// clicks pass through decorative items to whatever lies beneath).
 		const hasIbContent = function (item) {
 			const ib = item.infobox_resolved || {};
 			return ib.title || ib.content || ib.image_url || ib.post_url;
 		};
-		const clickableLabels = (data.labels || []).filter(hasIbContent);
+		const clickableObjects = (data.objects || []).filter(hasIbContent);
+		const clickableAreas   = (data.areas   || []).filter(hasIbContent);
+		const clickableLabels  = (data.labels  || []).filter(hasIbContent);
 		const hasClickable =
-			(data.objects || []).some(hasIbContent) ||
-			(data.areas || []).some(hasIbContent) ||
+			clickableObjects.length > 0 ||
+			clickableAreas.length > 0 ||
 			clickableLabels.length > 0;
 
 		if (!hasClickable && !hasHierarchy) return;
@@ -571,13 +429,13 @@
 			if (!hasClickable) return;
 
 			// Labels are drawn on top of objects, so they win the hit test.
-			const hitLabel = findLabelAtPoint(ctx, x, y, clickableLabels);
-			if (hitLabel) { showInfobox(wrapper, hitLabel); return; }
+			const hitLabel = findLabelPartAtPoint(ctx, x, y, clickableLabels);
+			if (hitLabel) { showInfobox(wrapper, hitLabel.label); return; }
 
-			const hitObj = findObjectAtPoint(ctx, x, y, data.objects || []);
+			const hitObj = findObjectAtPoint(ctx, x, y, clickableObjects);
 			if (hitObj) { showInfobox(wrapper, hitObj); return; }
 
-			const hitArea = findAreaAtPoint(ctx, x, y, data.areas || [], W, H);
+			const hitArea = findAreaAtPoint(ctx, x, y, clickableAreas, W, H);
 			if (hitArea) { showInfobox(wrapper, hitArea); return; }
 
 			hideInfobox();

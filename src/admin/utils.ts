@@ -14,6 +14,19 @@ export function apiFetch(
 	return fetch( window.cnsMapSuite.restUrl + path, opts );
 }
 
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+
+/**
+ * True when the event originates from a form field, so canvas keyboard
+ * shortcuts don't hijack typing (Enter in a text input, Backspace while
+ * editing, arrow keys in number fields, …).
+ */
+export function isTypingTarget( e: Event ): boolean {
+	const t = e.target as HTMLElement | null;
+	return !! t && typeof t.closest === 'function' &&
+		!! t.closest( 'input, textarea, select, [contenteditable="true"]' );
+}
+
 // ── Image cache ───────────────────────────────────────────────────────────────
 
 const imageCache: Record<string, HTMLImageElement> = {};

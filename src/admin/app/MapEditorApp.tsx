@@ -11,6 +11,8 @@ import PreviewPanel from './panels/PreviewPanel';
 import { apiFetch } from '../utils';
 import { normalizeNodesForShapeType } from '../areas';
 import { defaultLabelFormData, collectLabelPayload } from './forms/LabelForm';
+import { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
+import { defaultAreaFormData } from './forms/AreaForm';
 import type {
 	MapSettings,
 	MapObject,
@@ -81,14 +83,17 @@ export default function MapEditorApp() {
 	const selectedLabel  = labelsList.find( ( l ) => l.id === selectedLabelId ) || null;
 	const selectedRegion = regionsList.find( ( r ) => r.id === selectedRegionId ) || null;
 
-	// Warn before leaving with unsaved map settings. Objects/areas/regions
-	// save through their own endpoints as you edit; only the settings form
-	// is at risk of silent loss.
+	// Warn before leaving with unsaved map settings, or while a debounced
+	// area-geometry save is still pending. Everything else persists through
+	// its own endpoint as you edit.
 	const savedSettingsRef = useRef( JSON.stringify( buildInitialSettings() ) );
 
 	useEffect( () => {
 		function handleBeforeUnload( e: BeforeUnloadEvent ) {
-			if ( JSON.stringify( settings ) !== savedSettingsRef.current ) {
+			if (
+				JSON.stringify( settings ) !== savedSettingsRef.current ||
+				areaGeomSave.current.timer !== null
+			) {
 				e.preventDefault();
 				e.returnValue = '';
 			}
@@ -203,6 +208,24 @@ export default function MapEditorApp() {
 		}
 	}
 
+	// Live/local updates: keyboard nudges patch the in-memory object so the
+	// canvas moves immediately; the position PATCH persists shortly after.
+	function handleObjectLocalUpdate( id: number, patch: Partial< MapObject > ) {
+		setObjectsList( ( prev ) =>
+			prev.map( ( o ) => ( o.id === id ? { ...o, ...patch } : o ) )
+		);
+	}
+
+	async function handleObjectDuplicate( id: number ) {
+		const obj = objectsList.find( ( o ) => o.id === id );
+		if ( ! obj ) return;
+		const payload = collectObjectPayload( defaultObjectFormData( obj, null, null ) );
+		payload.x += 24;
+		payload.y += 24;
+		const created = await handleObjectAdd( payload );
+		setSelectedObjectId( created.id );
+	}
+
 	// ── Label operations ──────────────────────────────────────────────────────
 
 	async function handleLabelAdd( payload: LabelSavePayload ): Promise< MapLabel > {
@@ -272,6 +295,44 @@ export default function MapEditorApp() {
 
 	// ── Area operations ───────────────────────────────────────────────────────
 
+	// Canvas node edits, node-list edits, and shape-type switches update local
+	// state for instant feedback and are persisted shortly after via the
+	// geometry PATCH — matching how object/label moves save immediately. The
+	// debounce absorbs per-keystroke node-list edits; reading the area from a
+	// ref at flush time sends the latest geometry.
+	const areasRef   = useRef( areasList );
+	areasRef.current = areasList;
+	const areaGeomSave = useRef<{ timer: number | null; areaId: number | null }>( {
+		timer: null,
+		areaId: null,
+	} );
+
+	async function commitAreaGeometry( areaId: number ) {
+		const area = areasRef.current.find( ( a ) => a.id === areaId );
+		if ( ! area ) return;
+		await apiFetch( 'PATCH', `/areas/${ areaId }/nodes`, {
+			nodes:      JSON.stringify( area.nodes || [] ),
+			shape_type: area.shape_type || 'POLYGON',
+		} );
+	}
+
+	function scheduleAreaGeometrySave( areaId: number ) {
+		const pending = areaGeomSave.current;
+		if ( pending.timer ) {
+			window.clearTimeout( pending.timer );
+			// Switching areas mid-debounce: flush the previous one first.
+			if ( pending.areaId !== null && pending.areaId !== areaId ) {
+				void commitAreaGeometry( pending.areaId );
+			}
+		}
+		pending.areaId = areaId;
+		pending.timer  = window.setTimeout( () => {
+			pending.timer  = null;
+			pending.areaId = null;
+			void commitAreaGeometry( areaId );
+		}, 600 );
+	}
+
 	async function handleAreaSave(
 		formData: AreaFormData
 	): Promise< MapArea | undefined > {
@@ -300,6 +361,7 @@ export default function MapEditorApp() {
 		setAreasList( ( prev ) =>
 			prev.map( ( a ) => ( a.id === areaId ? { ...a, nodes } : a ) )
 		);
+		scheduleAreaGeometrySave( areaId );
 	}
 
 	function handleAreaShapeTypeChange( areaId: number, shapeType: ShapeType ) {
@@ -316,6 +378,7 @@ export default function MapEditorApp() {
 				};
 			} )
 		);
+		scheduleAreaGeometrySave( areaId );
 	}
 
 	// ── Object add / delete ───────────────────────────────────────────────────
@@ -342,6 +405,29 @@ export default function MapEditorApp() {
 		if ( ! res.ok ) throw new Error( 'Delete failed.' );
 		setObjectsList( ( prev ) => prev.filter( ( o ) => o.id !== id ) );
 		if ( selectedObjectId === id ) setSelectedObjectId( null );
+	}
+
+	async function handleAreaDuplicate( id: number ) {
+		const area = areasList.find( ( a ) => a.id === id );
+		if ( ! area ) return;
+		const W  = settings.width || 1000;
+		const H  = W / ( settings.aspectRatio || 1 );
+		// Nodes are normalized 0–1; offset the copy by 24 px worth.
+		const nodes = ( area.nodes || [] ).map( ( n ) => ( {
+			...n,
+			x: n.x + 24 / W,
+			y: n.y + 24 / H,
+		} ) );
+		const payload = { ...defaultAreaFormData( area ), nodes: JSON.stringify( nodes ) };
+		const res  = await apiFetch( 'POST', `/maps/${ mapId }/areas`, payload );
+		const data = ( await res.json() ) as MapArea;
+		if ( ! res.ok ) {
+			throw new Error(
+				( data as unknown as { message?: string } ).message || 'Failed.'
+			);
+		}
+		setAreasList( ( prev ) => [ ...prev, data ] );
+		setSelectedAreaId( data.id );
 	}
 
 	async function handleAreaDeleteById( id: number ) {
@@ -456,6 +542,8 @@ export default function MapEditorApp() {
 								onDeselect={ () => setSelectedObjectId( null ) }
 								onAdd={ handleObjectAdd }
 								onPositionUpdate={ handleObjectPositionUpdate }
+								onLocalUpdate={ handleObjectLocalUpdate }
+								onDuplicate={ handleObjectDuplicate }
 								onRepositionStart={ ( id ) =>
 									setRepositioningObjId( id )
 								}
@@ -475,6 +563,7 @@ export default function MapEditorApp() {
 								onSelect={ setSelectedAreaId }
 								onDeselect={ () => setSelectedAreaId( null ) }
 								onNodesUpdate={ handleAreaNodesUpdate }
+								onDuplicate={ handleAreaDuplicate }
 								onDelete={ handleAreaDeleteById }
 							/>
 						) }
@@ -540,6 +629,7 @@ export default function MapEditorApp() {
 					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId! ) }
 					onObjectClose={ () => setSelectedObjectId( null ) }
 					onObjectReposition={ () => setRepositioningObjId( selectedObjectId ) }
+					onObjectDuplicate={ () => handleObjectDuplicate( selectedObjectId! ) }
 					onLabelSave={ handleLabelSave }
 					onLabelDelete={ () => handleLabelDeleteById( selectedLabelId! ) }
 					onLabelClose={ () => setSelectedLabelId( null ) }
@@ -549,6 +639,7 @@ export default function MapEditorApp() {
 					onAreaSave={ handleAreaSave }
 					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId! ) }
 					onAreaClose={ () => setSelectedAreaId( null ) }
+					onAreaDuplicate={ () => handleAreaDuplicate( selectedAreaId! ) }
 					onAreaNodesUpdate={ handleAreaNodesUpdate }
 					onAreaShapeTypeChange={ handleAreaShapeTypeChange }
 					onRegionSave={ handleRegionSave }

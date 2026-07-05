@@ -1,9 +1,8 @@
-import { useState, useEffect } from '@wordpress/element';
 import HierarchyCanvas      from '../canvases/HierarchyCanvas';
 import HierarchyRegionList  from '../lists/HierarchyRegionList';
-import { apiFetch }         from '../../utils';
 import { settingsToDrawState } from '../../canvas';
 import { getDefaultNodes }  from '../../areas';
+import { useMapResource }   from '../useMapResource';
 import type { MapSettings, HierarchyRegion, Node, ParentMapRef } from '../../../types';
 
 interface Props {
@@ -23,16 +22,7 @@ export default function HierarchyPanel( {
 	mapId, settings, regions, selectedRegionId, parentMaps,
 	onRegionsLoaded, onSelect, onDeselect, onNodesUpdate, onDelete,
 }: Props ) {
-	const [ initialized, setInitialized ] = useState( false );
-
-	useEffect( () => {
-		if ( initialized || ! mapId ) return;
-		apiFetch( 'GET', `/maps/${ mapId }/hierarchy` )
-			.then( ( r ) => r.json() as Promise<HierarchyRegion[]> )
-			.then( ( data ) => { if ( Array.isArray( data ) ) onRegionsLoaded( data ); } )
-			.catch( () => {} )
-			.finally( () => setInitialized( true ) );
-	}, [ mapId ] );
+	useMapResource<HierarchyRegion>( mapId, 'hierarchy', onRegionsLoaded );
 
 	async function handleAddRegion() {
 		if ( ! mapId ) return;

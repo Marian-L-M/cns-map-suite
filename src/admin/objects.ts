@@ -2,6 +2,10 @@ import { loadImage, loadSvgWithColors } from './utils';
 import { drawMapCanvas } from './canvas';
 import type { MapObject, DrawState, CanvasPoint } from '../types';
 
+// Marker hit-testing lives in src/shared/map-geometry.ts so the editor and
+// the frontend map block agree on the clickable region.
+export { findObjectAtPoint } from '../shared/map-geometry';
+
 // ── Canvas rendering ──────────────────────────────────────────────────────────
 
 function drawFallbackMarker(
@@ -76,19 +80,3 @@ export async function drawObjectsOnCanvas(
 	}
 }
 
-export function findObjectAtPoint(
-	ctx: CanvasRenderingContext2D,
-	x: number,
-	y: number,
-	objects: MapObject[],
-): MapObject | null {
-	for ( let i = objects.length - 1; i >= 0; i-- ) {
-		const obj  = objects[ i ];
-		const size = obj.canvas_styles?.size ?? 32;
-		const half = size / 2;
-		ctx.beginPath();
-		ctx.rect( obj.x - half, obj.y - half, size, size );
-		if ( ctx.isPointInPath( x, y ) ) return obj;
-	}
-	return null;
-}

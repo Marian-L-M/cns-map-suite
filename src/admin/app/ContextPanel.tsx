@@ -25,6 +25,7 @@ interface Props {
 	onObjectDelete: () => Promise<void>;
 	onObjectClose: () => void;
 	onObjectReposition: () => void;
+	onObjectDuplicate: () => void;
 	onLabelSave: ( payload: LabelSavePayload ) => Promise<MapLabel | undefined>;
 	onLabelDelete: () => Promise<void>;
 	onLabelClose: () => void;
@@ -34,6 +35,7 @@ interface Props {
 	onAreaSave: ( formData: AreaFormData ) => Promise<MapArea | undefined>;
 	onAreaDelete: () => Promise<void>;
 	onAreaClose: () => void;
+	onAreaDuplicate: () => void;
 	onAreaNodesUpdate: ( areaId: number, nodes: Node[] ) => void;
 	onAreaShapeTypeChange: ( areaId: number, shapeType: ShapeType ) => void;
 	onRegionSave: ( formData: HierarchyFormData ) => Promise<HierarchyRegion | undefined>;
@@ -46,9 +48,10 @@ export default function ContextPanel( {
 	activeTab,
 	selectedObject, selectedArea, selectedLabel, selectedRegion,
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
+	onObjectDuplicate,
 	onLabelSave,  onLabelDelete,  onLabelClose,  onLabelReposition,
 	onLabelDuplicate, onLabelLocalUpdate,
-	onAreaSave,   onAreaDelete,   onAreaClose,
+	onAreaSave,   onAreaDelete,   onAreaClose,   onAreaDuplicate,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
 	onRegionSave, onRegionDelete, onRegionClose, onRegionNodesUpdate,
 }: Props ) {
@@ -183,8 +186,18 @@ export default function ContextPanel( {
 				<div className="cns-editor-context__header">
 					<span className="cns-editor-context__title">{ title }</span>
 					{ isObject && (
-						<button type="button" className="button button-small" onClick={ onObjectReposition }>
-							Reposition
+						<>
+							<button type="button" className="button button-small" onClick={ onObjectReposition }>
+								Reposition
+							</button>
+							<button type="button" className="button button-small" onClick={ onObjectDuplicate }>
+								Duplicate
+							</button>
+						</>
+					) }
+					{ ! isObject && ! isLabel && ! isRegion && (
+						<button type="button" className="button button-small" onClick={ onAreaDuplicate }>
+							Duplicate
 						</button>
 					) }
 					{ isLabel && (

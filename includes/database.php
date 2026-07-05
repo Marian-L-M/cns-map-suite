@@ -78,6 +78,7 @@ function cns_map_suite_create_tables(): void {
 		placement VARCHAR(10) NOT NULL DEFAULT 'centered',
 		offset_x INT NOT NULL DEFAULT 40,
 		offset_y INT NOT NULL DEFAULT -40,
+		object_time INT NOT NULL DEFAULT 0,
 		infobox_source VARCHAR(10) NOT NULL DEFAULT 'manual',
 		infobox_data LONGTEXT NULL DEFAULT NULL,
 		canvas_styles LONGTEXT NULL DEFAULT NULL,

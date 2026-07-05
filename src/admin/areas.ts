@@ -1,61 +1,12 @@
 import { drawMapCanvas } from './canvas';
+import { buildAreaPathFromNodes } from '../shared/map-geometry';
 import type { MapArea, Node, ShapeType, DrawState, CanvasPoint } from '../types';
 
+// Path building and area hit-testing live in src/shared/map-geometry.ts so
+// the editor and the frontend map block trace identical shapes.
+export { findAreaAtPoint } from '../shared/map-geometry';
+
 const NODE_HALF = 5;
-
-// ── Path builders ─────────────────────────────────────────────────────────────
-
-function buildPolygonPath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ): void {
-	ctx.moveTo( nodes[ 0 ].x * W, nodes[ 0 ].y * H );
-	for ( let i = 1; i < nodes.length; i++ ) {
-		ctx.lineTo( nodes[ i ].x * W, nodes[ i ].y * H );
-	}
-	ctx.closePath();
-}
-
-function buildBezierPath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ): void {
-	const n      = nodes.length;
-	const startX = ( nodes[ n - 1 ].x + nodes[ 0 ].x ) / 2 * W;
-	const startY = ( nodes[ n - 1 ].y + nodes[ 0 ].y ) / 2 * H;
-	ctx.moveTo( startX, startY );
-	for ( let i = 0; i < n; i++ ) {
-		const cp   = nodes[ i ];
-		const next = nodes[ ( i + 1 ) % n ];
-		ctx.quadraticCurveTo( cp.x * W, cp.y * H, ( cp.x + next.x ) / 2 * W, ( cp.y + next.y ) / 2 * H );
-	}
-	ctx.closePath();
-}
-
-function buildCirclePath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ): void {
-	const cx = nodes[ 0 ].x * W;
-	const cy = nodes[ 0 ].y * H;
-	const rx = Math.max( Math.abs( nodes[ 1 ].x - nodes[ 0 ].x ) * W, 1 );
-	const ry = Math.max( Math.abs( nodes[ 1 ].y - nodes[ 0 ].y ) * H, 1 );
-	ctx.ellipse( cx, cy, rx, ry, 0, 0, Math.PI * 2 );
-}
-
-function buildAreaPathFromNodes(
-	ctx: CanvasRenderingContext2D,
-	nodes: Node[],
-	shapeType: ShapeType,
-	W: number,
-	H: number,
-): void {
-	ctx.beginPath();
-	if ( ! nodes.length ) return;
-	switch ( shapeType ) {
-		case 'BEZIER':
-			if ( nodes.length >= 3 ) buildBezierPath( ctx, nodes, W, H );
-			break;
-		case 'CIRCLE':
-			if ( nodes.length >= 2 ) buildCirclePath( ctx, nodes, W, H );
-			break;
-		case 'RECTANGLE':
-		default:
-			if ( nodes.length >= 3 ) buildPolygonPath( ctx, nodes, W, H );
-			break;
-	}
-}
 
 // ── Shape helpers ─────────────────────────────────────────────────────────────
 
@@ -86,6 +37,34 @@ export function getDefaultNodes( shapeType: ShapeType ): Node[] {
 		{ x: 0.25, y: 0.25 }, { x: 0.75, y: 0.25 },
 		{ x: 0.75, y: 0.75 }, { x: 0.25, y: 0.75 },
 	];
+}
+
+/**
+ * Moves one node of an area to new normalized (0–1) coordinates, honoring
+ * the shape's constraints: rectangles keep their corners axis-aligned, and
+ * moving a circle's center drags the radius node along. Returns a new array.
+ */
+export function moveAreaNode( area: MapArea, idx: number, newX: number, newY: number ): Node[] {
+	const st      = area.shape_type || 'POLYGON';
+	let   updated = ( area.nodes || [] ).map( ( n ) => ( { ...n } ) );
+
+	if ( st === 'RECTANGLE' ) {
+		updated = applyRectangleConstraint( updated, idx, newX, newY ) || updated;
+	} else if ( st === 'CIRCLE' && idx === 0 ) {
+		const dx = newX - updated[ 0 ].x;
+		const dy = newY - updated[ 0 ].y;
+		updated[ 0 ] = { x: newX, y: newY };
+		if ( updated[ 1 ] ) updated[ 1 ] = { x: updated[ 1 ].x + dx, y: updated[ 1 ].y + dy };
+	} else {
+		updated[ idx ] = { x: newX, y: newY };
+	}
+	return updated;
+}
+
+/** Whether a node can be removed from the shape (fixed-node shapes can't shrink). */
+export function canRemoveAreaNode( area: MapArea ): boolean {
+	const st = area.shape_type || 'POLYGON';
+	return ( st === 'POLYGON' || st === 'BEZIER' ) && ( area.nodes || [] ).length > 3;
 }
 
 export function normalizeNodesForShapeType( nodes: Node[], shapeType: ShapeType ): Node[] {
@@ -128,7 +107,9 @@ function getLiveNodes(
 
 // ── Canvas rendering ──────────────────────────────────────────────────────────
 
-// repoNodeIdx / repoCursor are only meaningful when isSelected === true.
+// repoNodeIdx / repoCursor / focusedNodeIdx are only meaningful when
+// isSelected === true. focusedNodeIdx marks the keyboard-focused node
+// (Tab cycling); a node being repositioned takes visual precedence.
 export function drawAreaShape(
 	ctx: CanvasRenderingContext2D,
 	area: MapArea,
@@ -137,6 +118,7 @@ export function drawAreaShape(
 	isSelected: boolean,
 	repoNodeIdx: number | null,
 	repoCursor: CanvasPoint | null,
+	focusedNodeIdx: number | null = null,
 ): void {
 	const rawNodes  = area.nodes || [];
 	if ( ! rawNodes.length ) return;
@@ -170,9 +152,14 @@ export function drawAreaShape(
 	if ( ! isSelected ) return;
 
 	liveNodes.forEach( ( node, idx ) => {
-		const isRepoNode = ( repoNodeIdx === idx );
+		const isRepoNode    = ( repoNodeIdx === idx );
+		const isFocusedNode = ! isRepoNode && repoNodeIdx === null && focusedNodeIdx === idx;
 		ctx.beginPath();
 		ctx.rect( node.x * W - NODE_HALF, node.y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2 );
+		if ( isFocusedNode ) {
+			ctx.fillStyle = '#2271b1';
+			ctx.fill();
+		}
 		ctx.strokeStyle = isRepoNode ? '#e75252' : '#2271b1';
 		ctx.lineWidth   = 2;
 		ctx.stroke();
@@ -186,6 +173,7 @@ export async function drawAreasOnCanvas(
 	selectedAreaId: number | null,
 	repoNodeIdx: number | null,
 	repoCursor: CanvasPoint | null,
+	focusedNodeIdx: number | null = null,
 ): Promise<void> {
 	await drawMapCanvas( canvas, drawState );
 	const ctx = canvas.getContext( '2d' )!;
@@ -197,11 +185,12 @@ export async function drawAreasOnCanvas(
 			ctx, area, W, H, isSel,
 			isSel ? repoNodeIdx : null,
 			isSel ? repoCursor  : null,
+			isSel ? focusedNodeIdx : null,
 		);
 	}
 }
 
-// ── Hit detection ─────────────────────────────────────────────────────────────
+// ── Hit detection (editor-only: node handles) ─────────────────────────────────
 
 export function findNodeAtPoint(
 	ctx: CanvasRenderingContext2D,
@@ -217,24 +206,4 @@ export function findNodeAtPoint(
 		if ( ctx.isPointInPath( x, y ) ) return i;
 	}
 	return -1;
-}
-
-export function findAreaAtPoint(
-	ctx: CanvasRenderingContext2D,
-	x: number,
-	y: number,
-	areas: MapArea[],
-	W: number,
-	H: number,
-): MapArea | null {
-	for ( let i = areas.length - 1; i >= 0; i-- ) {
-		const area      = areas[ i ];
-		const nodes     = area.nodes || [];
-		const shapeType = area.shape_type || 'POLYGON';
-		const minNodes  = shapeType === 'CIRCLE' ? 2 : 3;
-		if ( nodes.length < minNodes ) continue;
-		buildAreaPathFromNodes( ctx, nodes, shapeType, W, H );
-		if ( ctx.isPointInPath( x, y ) ) return area;
-	}
-	return null;
 }

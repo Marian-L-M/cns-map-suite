@@ -182,6 +182,7 @@ export interface MapLabel {
 	placement: LabelPlacement;
 	offset_x: number; // label box offset from anchor (indicator mode)
 	offset_y: number;
+	object_time: number;
 	infobox_source: InfoboxSource;
 	infobox_data: InfoboxData | null;
 	canvas_styles: LabelCanvasStyles | null;
@@ -291,7 +292,20 @@ export interface SaveStatus {
 
 // ── Form data ─────────────────────────────────────────────────────────────────
 
-export interface ObjectFormData {
+// The infobox form fields shared by object/area/label forms — rendered by
+// the shared <InfoboxSection>. infobox_image_url and linked_post_label are
+// editor-only (image preview, post-search label) and stay out of payloads.
+export interface InfoboxFormFields {
+	infobox_source: InfoboxSource;
+	infobox_title: string;
+	infobox_description: string;
+	infobox_image_id: number;
+	infobox_image_url: string;
+	linked_post_id: number;
+	linked_post_label: string;
+}
+
+export interface ObjectFormData extends InfoboxFormFields {
 	icon_source: IconSource;
 	icon_image_id_svg: number | null;
 	icon_image_id_custom: number;
@@ -301,50 +315,30 @@ export interface ObjectFormData {
 	object_time: number;
 	x: number;
 	y: number;
-	infobox_source: InfoboxSource;
-	infobox_title: string;
-	infobox_description: string;
-	infobox_image_id: number;
-	infobox_image_url: string;
-	linked_post_id: number;
-	linked_post_label: string;
 	style_size: number;
 	style_fill: string;
 	style_stroke: string;
 }
 
-export interface AreaFormData {
+export interface AreaFormData extends InfoboxFormFields {
 	title: string;
 	type: AreaType;
 	shape_type: ShapeType;
 	object_time: number;
-	infobox_source: InfoboxSource;
-	infobox_title: string;
-	infobox_description: string;
-	infobox_image_id: number;
-	infobox_image_url: string;
-	linked_post_id: number;
-	linked_post_label: string;
 	style_fill: string;
 	style_fill_opacity: number;
 	style_stroke: string;
 	style_stroke_width: number;
 }
 
-export interface LabelFormData {
+export interface LabelFormData extends InfoboxFormFields {
 	text: string;
 	placement: LabelPlacement;
 	x: number;
 	y: number;
 	offset_x: number;
 	offset_y: number;
-	infobox_source: InfoboxSource;
-	infobox_title: string;
-	infobox_description: string;
-	infobox_image_id: number;
-	infobox_image_url: string;
-	linked_post_id: number;
-	linked_post_label: string;
+	object_time: number;
 	style_bg: string;
 	style_border: string;
 	style_text_color: string;

@@ -1,8 +1,8 @@
 import { useRef } from '@wordpress/element';
 import MediaPicker from '../shared/MediaPicker';
-import PostSearch  from '../shared/PostSearch';
 import IconPicker  from '../shared/IconPicker';
-import type { ObjectFormData, ObjectSavePayload, ObjectType, LibraryIcon, MapObject, InfoboxSource } from '../../../types';
+import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
+import type { ObjectFormData, ObjectSavePayload, ObjectType, LibraryIcon, MapObject } from '../../../types';
 
 const TYPES: { value: ObjectType; label: string }[] = [
 	{ value: 'LOCATION', label: 'Location' },
@@ -27,7 +27,6 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 	}
 
 	const isSvgSource = formData.icon_source !== 'image';
-	const isManualIb  = formData.infobox_source !== 'post';
 
 	return (
 		<>
@@ -108,65 +107,7 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 			</section>
 
 			{ /* ── Infobox ── */ }
-			<section className="cns-modal-section">
-				<h3>Infobox</h3>
-				<PostSearch
-					linkedPostId={ formData.linked_post_id }
-					linkedPostLabel={ formData.linked_post_label }
-					onChange={ ( item ) => onChange( {
-						...formData,
-						linked_post_id:    item ? item.id : 0,
-						linked_post_label: item ? item.title : '',
-					} ) }
-				/>
-				<p className="description">
-					Optional — a connected post adds a &ldquo;Read more&rdquo; link to the infobox.
-				</p>
-				<div className="cns-radio-toggle">
-					<label>
-						<input type="radio" name={ `obj-infobox-src-${ n }` } value="manual" checked={ isManualIb }
-							onChange={ () => set( 'infobox_source', 'manual' ) } />
-						{ ' ' }Write content manually
-					</label>
-					<label>
-						<input type="radio" name={ `obj-infobox-src-${ n }` } value="post" checked={ ! isManualIb }
-							onChange={ () => set( 'infobox_source', 'post' ) } />
-						{ ' ' }Use the connected post&rsquo;s content
-					</label>
-				</div>
-				{ isManualIb && (
-					<div className="cns-form-grid">
-						<div className="cns-form-row cns-form-row--full">
-							<label>Infobox Title</label>
-							<input type="text" className="large-text" value={ formData.infobox_title }
-								onChange={ ( e ) => set( 'infobox_title', e.target.value ) } />
-						</div>
-						<div className="cns-form-row cns-form-row--full">
-							<label>Description</label>
-							<textarea rows={ 4 } className="large-text" value={ formData.infobox_description }
-								onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
-						</div>
-						<div className="cns-form-row cns-form-row--full">
-							<label>Infobox Image</label>
-							<MediaPicker
-								imageId={ formData.infobox_image_id }
-								imageUrl={ formData.infobox_image_url }
-								title="Select Infobox Image"
-								onChange={ ( att ) => onChange( {
-									...formData,
-									infobox_image_id:  att ? att.id : 0,
-									infobox_image_url: att ? att.url : '',
-								} ) }
-							/>
-						</div>
-					</div>
-				) }
-				{ ! isManualIb && (
-					<p className="description">
-						Title, description and image are pulled from the connected post.
-					</p>
-				) }
-			</section>
+			<InfoboxSection formData={ formData } onChange={ onChange } />
 
 			{ /* ── Design ── */ }
 			<section className="cns-modal-section">
@@ -213,13 +154,7 @@ export function defaultObjectFormData(
 		object_time:          obj?.object_time ?? 0,
 		x:                    obj ? obj.x : ( x ?? 0 ),
 		y:                    obj ? obj.y : ( y ?? 0 ),
-		infobox_source:       ( obj?.infobox_source as InfoboxSource | undefined ) || 'manual',
-		infobox_title:        obj?.infobox_data?.title       || '',
-		infobox_description:  obj?.infobox_data?.description || '',
-		infobox_image_id:     obj?.infobox_data?.image_id    || 0,
-		infobox_image_url:    '',
-		linked_post_id:       obj?.linked_post_id || 0,
-		linked_post_label:    obj?.linked_post_id ? `Post ID: ${ obj.linked_post_id }` : '',
+		...infoboxFormDefaults( obj ),
 		style_size:           obj?.canvas_styles?.size        || 32,
 		style_fill:           obj?.canvas_styles?.fillStyle   || '#ffffff',
 		style_stroke:         obj?.canvas_styles?.strokeStyle || '#2271b1',
