@@ -19,6 +19,7 @@ global $wpdb;
 // Drop custom tables in reverse dependency order.
 $tables = [
 	$wpdb->prefix . 'cns_map_hierarchy',
+	$wpdb->prefix . 'cns_map_labels',
 	$wpdb->prefix . 'cns_map_areas',
 	$wpdb->prefix . 'cns_map_objects',
 ];

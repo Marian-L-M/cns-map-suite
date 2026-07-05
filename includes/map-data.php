@@ -72,6 +72,7 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 	$opts = array_merge([
 		'objects'           => true,
 		'areas'             => true,
+		'labels'            => true,
 		'hierarchy'         => false,
 		'parents'           => false,
 		'resolve_infoboxes' => false,
@@ -109,6 +110,7 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 		'is_master'    => (bool) get_post_meta($map_id, '_cns_map_is_master', true),
 		'objects'           => [],
 		'areas'             => [],
+		'labels'            => [],
 		'hierarchy_regions' => [],
 		'parent_maps'       => [],
 	];
@@ -160,6 +162,14 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 			fn($row) => $attach_infobox(cns_map_suite_normalize_area_row($row)),
 			$rows
 		);
+	}
+
+	if ($opts['labels']) {
+		$rows = $wpdb->get_results(
+			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE map_id = %d ORDER BY id ASC", $map_id),
+			ARRAY_A
+		) ?: [];
+		$data['labels'] = array_map('cns_map_suite_normalize_label_row', $rows);
 	}
 
 	if ($opts['hierarchy']) {

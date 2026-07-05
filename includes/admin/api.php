@@ -200,6 +200,46 @@ function cns_map_suite_register_rest_routes(): void {
 		],
 	]);
 
+	// ── Map labels ────────────────────────────────────────────────────────────────
+
+	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/labels', [
+		[
+			'methods'             => 'GET',
+			'callback'            => 'cns_map_suite_rest_list_labels',
+			'permission_callback' => 'cns_map_suite_permission_check',
+		],
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_create_label',
+			'permission_callback' => 'cns_map_suite_permission_check',
+			'args'                => cns_map_suite_label_rest_args(),
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/labels/(?P<id>\d+)', [
+		[
+			'methods'             => 'POST',
+			'callback'            => 'cns_map_suite_rest_update_label',
+			'permission_callback' => 'cns_map_suite_permission_check',
+			'args'                => cns_map_suite_label_rest_args(),
+		],
+		[
+			'methods'             => 'DELETE',
+			'callback'            => 'cns_map_suite_rest_delete_label',
+			'permission_callback' => 'cns_map_suite_permission_check',
+		],
+	]);
+
+	register_rest_route('cns-map-suite/v1', '/labels/(?P<id>\d+)/position', [
+		'methods'             => 'PATCH',
+		'callback'            => 'cns_map_suite_rest_move_label',
+		'permission_callback' => 'cns_map_suite_permission_check',
+		'args'                => [
+			'x' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
+			'y' => ['required' => true, 'type' => 'integer', 'minimum' => 0],
+		],
+	]);
+
 	// ── Map hierarchy ─────────────────────────────────────────────────────────────
 
 	register_rest_route('cns-map-suite/v1', '/maps/(?P<map_id>\d+)/hierarchy', [
@@ -851,6 +891,214 @@ function cns_map_suite_rest_delete_area(WP_REST_Request $request): WP_REST_Respo
 
 	$wpdb->delete($wpdb->prefix . 'cns_map_areas', ['id' => $id], ['%d']);
 	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+// ── Labels — shared args ──────────────────────────────────────────────────────
+
+function cns_map_suite_label_rest_args(): array {
+	return [
+		'text' => [
+			'type'              => 'string',
+			'default'           => '',
+			'sanitize_callback' => 'sanitize_text_field',
+		],
+		'placement' => [
+			'type'    => 'string',
+			'default' => 'centered',
+			'enum'    => ['centered', 'indicator'],
+		],
+		'x' => [
+			'type'    => 'integer',
+			'default' => 0,
+		],
+		'y' => [
+			'type'    => 'integer',
+			'default' => 0,
+		],
+		'offset_x' => [
+			'type'    => 'integer',
+			'default' => 40,
+			'minimum' => -2000,
+			'maximum' => 2000,
+		],
+		'offset_y' => [
+			'type'    => 'integer',
+			'default' => -40,
+			'minimum' => -2000,
+			'maximum' => 2000,
+		],
+		'style_bg' => [
+			'type'              => 'string',
+			'default'           => '#ffffff',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff'),
+		],
+		'style_border' => [
+			'type'              => 'string',
+			'default'           => '#1e1e1e',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#1e1e1e'),
+		],
+		'style_text_color' => [
+			'type'              => 'string',
+			'default'           => '#1e1e1e',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#1e1e1e'),
+		],
+		'style_font_size' => [
+			'type'    => 'integer',
+			'default' => 14,
+			'minimum' => 8,
+			'maximum' => 64,
+		],
+	];
+}
+
+// ── Labels — helpers ──────────────────────────────────────────────────────────
+
+function cns_map_suite_label_row_from_args(WP_REST_Request $request): array {
+	return [
+		'text'          => $request->get_param('text'),
+		'placement'     => $request->get_param('placement'),
+		'x'             => (int) $request->get_param('x'),
+		'y'             => (int) $request->get_param('y'),
+		'offset_x'      => (int) $request->get_param('offset_x'),
+		'offset_y'      => (int) $request->get_param('offset_y'),
+		'canvas_styles' => wp_json_encode([
+			'bgColor'     => (string) $request->get_param('style_bg'),
+			'borderColor' => (string) $request->get_param('style_border'),
+			'textColor'   => (string) $request->get_param('style_text_color'),
+			'fontSize'    => (int) $request->get_param('style_font_size'),
+		]),
+	];
+}
+
+function cns_map_suite_normalize_label_row(array $row): array {
+	$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
+	foreach (['id', 'map_id', 'x', 'y', 'offset_x', 'offset_y'] as $k) {
+		$row[$k] = (int) ($row[$k] ?? 0);
+	}
+	return $row;
+}
+
+// ── Labels — CRUD ─────────────────────────────────────────────────────────────
+
+function cns_map_suite_rest_list_labels(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$rows = $wpdb->get_results(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE map_id = %d ORDER BY id ASC", $map_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(array_map('cns_map_suite_normalize_label_row', $rows ?: []), 200);
+}
+
+function cns_map_suite_rest_create_label(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$map_id = (int) $request->get_param('map_id');
+
+	if (!get_post($map_id) || get_post_type($map_id) !== 'maps') {
+		return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$row           = cns_map_suite_label_row_from_args($request);
+	$row['map_id'] = $map_id;
+
+	$wpdb->insert(
+		$wpdb->prefix . 'cns_map_labels',
+		$row,
+		['%s', '%s', '%d', '%d', '%d', '%d', '%s', '%d']
+	);
+
+	if (!$wpdb->insert_id) {
+		return new WP_Error('db_error', __('Failed to save label.', 'cns-map-suite'), ['status' => 500]);
+	}
+
+	$saved = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE id = %d", $wpdb->insert_id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_label_row($saved), 201);
+}
+
+function cns_map_suite_rest_update_label(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_labels WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Label not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$result = $wpdb->update(
+		$wpdb->prefix . 'cns_map_labels',
+		cns_map_suite_label_row_from_args($request),
+		['id' => $id],
+		['%s', '%s', '%d', '%d', '%d', '%d', '%s'],
+		['%d']
+	);
+
+	if ($result === false) {
+		return new WP_Error('db_error', __('Failed to update label.', 'cns-map-suite'), ['status' => 500]);
+	}
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_label_row($row), 200);
+}
+
+function cns_map_suite_rest_delete_label(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_labels WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Label not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$wpdb->delete($wpdb->prefix . 'cns_map_labels', ['id' => $id], ['%d']);
+	return new WP_REST_Response(['deleted' => true], 200);
+}
+
+function cns_map_suite_rest_move_label(WP_REST_Request $request): WP_REST_Response|WP_Error {
+	global $wpdb;
+	$id = (int) $request->get_param('id');
+
+	$existing = $wpdb->get_row(
+		$wpdb->prepare("SELECT id FROM {$wpdb->prefix}cns_map_labels WHERE id = %d", $id)
+	);
+
+	if (!$existing) {
+		return new WP_Error('not_found', __('Label not found.', 'cns-map-suite'), ['status' => 404]);
+	}
+
+	$wpdb->update(
+		$wpdb->prefix . 'cns_map_labels',
+		['x' => (int) $request->get_param('x'), 'y' => (int) $request->get_param('y')],
+		['id' => $id],
+		['%d', '%d'],
+		['%d']
+	);
+
+	$row = $wpdb->get_row(
+		$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE id = %d", $id),
+		ARRAY_A
+	);
+
+	return new WP_REST_Response(cns_map_suite_normalize_label_row($row), 200);
 }
 
 // ── Hierarchy — shared args ───────────────────────────────────────────────────

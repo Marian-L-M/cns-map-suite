@@ -1,5 +1,6 @@
 import { useState, useEffect } from '@wordpress/element';
 import ObjectForm,         { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
+import LabelForm,          { defaultLabelFormData, collectLabelPayload } from './forms/LabelForm';
 import AreaForm,           { defaultAreaFormData }   from './forms/AreaForm';
 import HierarchyRegionForm, { defaultHierarchyFormData } from './forms/HierarchyRegionForm';
 import NodeList            from './forms/NodeList';
@@ -8,9 +9,9 @@ import SaveStatus          from './shared/SaveStatus';
 import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
 import { normalizeNodesForShapeType } from '../areas';
 import type {
-	Tab, MapObject, MapArea, HierarchyRegion, HierarchyFormData,
-	ObjectFormData, AreaFormData,
-	ObjectSavePayload, ShapeType, Node, LibraryIcon,
+	Tab, MapObject, MapArea, MapLabel, HierarchyRegion, HierarchyFormData,
+	ObjectFormData, AreaFormData, LabelFormData,
+	ObjectSavePayload, LabelSavePayload, ShapeType, Node, LibraryIcon,
 	SaveStatus as SaveStatusType,
 } from '../../types';
 
@@ -18,11 +19,16 @@ interface Props {
 	activeTab: Tab;
 	selectedObject: MapObject | null;
 	selectedArea: MapArea | null;
+	selectedLabel: MapLabel | null;
 	selectedRegion: HierarchyRegion | null;
 	onObjectSave: ( payload: ObjectSavePayload ) => Promise<MapObject | undefined>;
 	onObjectDelete: () => Promise<void>;
 	onObjectClose: () => void;
 	onObjectReposition: () => void;
+	onLabelSave: ( payload: LabelSavePayload ) => Promise<MapLabel | undefined>;
+	onLabelDelete: () => Promise<void>;
+	onLabelClose: () => void;
+	onLabelReposition: () => void;
 	onAreaSave: ( formData: AreaFormData ) => Promise<MapArea | undefined>;
 	onAreaDelete: () => Promise<void>;
 	onAreaClose: () => void;
@@ -36,14 +42,16 @@ interface Props {
 
 export default function ContextPanel( {
 	activeTab,
-	selectedObject, selectedArea, selectedRegion,
+	selectedObject, selectedArea, selectedLabel, selectedRegion,
 	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
+	onLabelSave,  onLabelDelete,  onLabelClose,  onLabelReposition,
 	onAreaSave,   onAreaDelete,   onAreaClose,
 	onAreaNodesUpdate, onAreaShapeTypeChange,
 	onRegionSave, onRegionDelete, onRegionClose, onRegionNodesUpdate,
 }: Props ) {
 	const [ objFormData,    setObjFormData    ] = useState<ObjectFormData | null>( null );
 	const [ areaFormData,   setAreaFormData   ] = useState<AreaFormData | null>( null );
+	const [ labelFormData,  setLabelFormData  ] = useState<LabelFormData | null>( null );
 	const [ regionFormData, setRegionFormData ] = useState<HierarchyFormData | null>( null );
 	const [ icons,          setIcons          ] = useState<LibraryIcon[]>( iconLibraryCache || [] );
 	const [ status,         setStatus         ] = useState<SaveStatusType>( { text: '', type: '' } );
@@ -67,13 +75,20 @@ export default function ContextPanel( {
 	}, [ selectedArea?.id ] );
 
 	useEffect( () => {
+		if ( selectedLabel ) {
+			setLabelFormData( defaultLabelFormData( selectedLabel, null, null ) );
+			setStatus( { text: '', type: '' } );
+		}
+	}, [ selectedLabel?.id ] );
+
+	useEffect( () => {
 		if ( selectedRegion ) {
 			setRegionFormData( defaultHierarchyFormData( selectedRegion ) );
 			setStatus( { text: '', type: '' } );
 		}
 	}, [ selectedRegion?.id ] );
 
-	const hasSelection = !! selectedObject || !! selectedArea || !! selectedRegion;
+	const hasSelection = !! selectedObject || !! selectedArea || !! selectedLabel || !! selectedRegion;
 
 	if ( ! hasSelection ) {
 		return (
@@ -81,6 +96,8 @@ export default function ContextPanel( {
 				<div className="cns-editor-context__empty">
 					<p>{ activeTab === 'areas'
 						? 'Select an area on the canvas to edit it here.'
+						: activeTab === 'labels'
+						? 'Select a label on the canvas to edit it here.'
 						: activeTab === 'hierarchy'
 						? 'Select a region on the canvas to edit it here.'
 						: 'Select an object on the canvas to edit it here.'
@@ -91,9 +108,12 @@ export default function ContextPanel( {
 	}
 
 	const isObject = !! selectedObject;
-	const isRegion = ! isObject && !! selectedRegion;
+	const isLabel  = ! isObject && !! selectedLabel;
+	const isRegion = ! isObject && ! isLabel && !! selectedRegion;
 	const title    = isObject
 		? ( selectedObject!.title || '(no title)' )
+		: isLabel
+		? ( selectedLabel!.text || '(empty label)' )
 		: isRegion
 		? ( selectedRegion!.child_map_title || 'New Region' )
 		: ( selectedArea!.title || '(no title)' );
@@ -105,6 +125,9 @@ export default function ContextPanel( {
 			if ( isObject && objFormData ) {
 				const data = await onObjectSave( collectObjectPayload( objFormData ) );
 				if ( data?.title ) setObjFormData( ( prev ) => prev ? { ...prev, title: data.title } : prev );
+			} else if ( isLabel && labelFormData ) {
+				const data = await onLabelSave( collectLabelPayload( labelFormData ) );
+				if ( data ) setLabelFormData( defaultLabelFormData( data, null, null ) );
 			} else if ( isRegion && regionFormData ) {
 				const data = await onRegionSave( regionFormData );
 				if ( data ) setRegionFormData( defaultHierarchyFormData( data ) );
@@ -124,6 +147,9 @@ export default function ContextPanel( {
 		if ( isObject ) {
 			if ( ! confirm( 'Delete this object?' ) ) return;
 			await onObjectDelete();
+		} else if ( isLabel ) {
+			if ( ! confirm( 'Delete this label?' ) ) return;
+			await onLabelDelete();
 		} else if ( isRegion ) {
 			if ( ! confirm( 'Delete this hierarchy region?' ) ) return;
 			await onRegionDelete();
@@ -135,6 +161,7 @@ export default function ContextPanel( {
 
 	function handleClose() {
 		if ( isObject ) onObjectClose();
+		else if ( isLabel ) onLabelClose();
 		else if ( isRegion ) onRegionClose();
 		else onAreaClose();
 	}
@@ -146,6 +173,11 @@ export default function ContextPanel( {
 					<span className="cns-editor-context__title">{ title }</span>
 					{ isObject && (
 						<button type="button" className="button button-small" onClick={ onObjectReposition }>
+							Reposition
+						</button>
+					) }
+					{ isLabel && (
+						<button type="button" className="button button-small" onClick={ onLabelReposition }>
 							Reposition
 						</button>
 					) }
@@ -165,7 +197,13 @@ export default function ContextPanel( {
 							icons={ icons }
 						/>
 					) }
-					{ ! isObject && ! isRegion && areaFormData && (
+					{ isLabel && labelFormData && (
+						<LabelForm
+							formData={ labelFormData }
+							onChange={ setLabelFormData }
+						/>
+					) }
+					{ ! isObject && ! isLabel && ! isRegion && areaFormData && (
 						<>
 							<AreaForm
 								formData={ areaFormData }

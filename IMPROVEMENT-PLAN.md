@@ -4,6 +4,8 @@
 
 **Done & verified:** #1 (`hasClickable` content field), #2 (dead RECTANGLE case), #3 (actions.php capability + post-type checks), #4 (`thumbnail_id` arg + 201 on create), #5 (color sanitization on all style args via `cns_map_suite_sanitize_color`), #7 (public data API), #10 (parallel marker-image loading via `Promise.all`), #11 (N+1 priming via `_prime_post_caches` in map-data.php), #13 (icons capped at 500). Plus: `beforeunload` unsaved-settings guard in MapEditorApp.
 
+**Feature added 2026-07-03:** Labels tab — text labels on maps (`cns_map_labels` table, DB v1.2.0; REST `/maps/{id}/labels` + `/labels/{id}` (+`/position`); editor tab with canvas placement/reposition/list + context-panel form (text, centered/indicator placement, offsets, bg/border/text color pickers, font size); rendered on the frontend map and the Preview tab; `placement: centered` boxes the text on (x,y), `indicator` draws a dot at (x,y) with a leader line to the offset label box).
+
 **Deliberately deferred:** #6 api.php split (pure restructuring — do as its own reviewed change); #12 DPR/resize-aware canvas (touches every draw + hit-test path in both plugins and needs visual browser verification); #9 tooling/CI; all P3 features.
 
 ---

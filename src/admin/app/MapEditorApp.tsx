@@ -5,6 +5,7 @@ import ContextPanel from './ContextPanel';
 import SettingsPanel from './panels/SettingsPanel';
 import ObjectsPanel from './panels/ObjectsPanel';
 import AreasPanel from './panels/AreasPanel';
+import LabelsPanel from './panels/LabelsPanel';
 import HierarchyPanel from './panels/HierarchyPanel';
 import PreviewPanel from './panels/PreviewPanel';
 import { apiFetch } from '../utils';
@@ -13,10 +14,12 @@ import type {
 	MapSettings,
 	MapObject,
 	MapArea,
+	MapLabel,
 	HierarchyRegion,
 	HierarchyFormData,
 	Node,
 	ObjectSavePayload,
+	LabelSavePayload,
 	AreaFormData,
 	PostStatus,
 	ShapeType,
@@ -64,6 +67,9 @@ export default function MapEditorApp() {
 	const [ areasList, setAreasList ] = useState< MapArea[] >( [] );
 	const [ selectedObjectId,   setSelectedObjectId   ] = useState< number | null >( null );
 	const [ selectedAreaId,     setSelectedAreaId     ] = useState< number | null >( null );
+	const [ labelsList,         setLabelsList         ] = useState< MapLabel[] >( [] );
+	const [ selectedLabelId,    setSelectedLabelId    ] = useState< number | null >( null );
+	const [ repositioningLabelId, setRepositioningLabelId ] = useState< number | null >( null );
 	const [ selectedRegionId,   setSelectedRegionId   ] = useState< number | null >( null );
 	const [ regionsList,        setRegionsList        ] = useState< HierarchyRegion[] >( [] );
 	const [ repositioningObjId, setRepositioningObjId ] = useState< number | null >( null );
@@ -71,6 +77,7 @@ export default function MapEditorApp() {
 
 	const selectedObject = objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
 	const selectedArea   = areasList.find( ( a ) => a.id === selectedAreaId )   || null;
+	const selectedLabel  = labelsList.find( ( l ) => l.id === selectedLabelId ) || null;
 	const selectedRegion = regionsList.find( ( r ) => r.id === selectedRegionId ) || null;
 
 	// Warn before leaving with unsaved map settings. Objects/areas/regions
@@ -96,6 +103,10 @@ export default function MapEditorApp() {
 		if ( tab !== 'objects' ) {
 			setSelectedObjectId( null );
 			setRepositioningObjId( null );
+		}
+		if ( tab !== 'labels' ) {
+			setSelectedLabelId( null );
+			setRepositioningLabelId( null );
 		}
 		if ( tab !== 'areas' )     setSelectedAreaId( null );
 		if ( tab !== 'hierarchy' ) setSelectedRegionId( null );
@@ -189,6 +200,56 @@ export default function MapEditorApp() {
 				prev.map( ( o ) => ( o.id === id ? data : o ) )
 			);
 		}
+	}
+
+	// ── Label operations ──────────────────────────────────────────────────────
+
+	async function handleLabelAdd( payload: LabelSavePayload ): Promise< MapLabel > {
+		const res  = await apiFetch( 'POST', `/maps/${ mapId }/labels`, payload );
+		const data = ( await res.json() ) as MapLabel;
+		if ( ! res.ok )
+			throw new Error(
+				( data as unknown as { message?: string } ).message || 'Failed.'
+			);
+		setLabelsList( ( prev ) => [ ...prev, data ] );
+		return data;
+	}
+
+	async function handleLabelSave(
+		payload: LabelSavePayload
+	): Promise< MapLabel | undefined > {
+		if ( ! selectedLabelId ) return;
+		const res  = await apiFetch( 'POST', `/labels/${ selectedLabelId }`, payload );
+		const data = ( await res.json() ) as MapLabel;
+		if ( ! res.ok )
+			throw new Error(
+				( data as unknown as { message?: string } ).message || 'Save failed.'
+			);
+		setLabelsList( ( prev ) =>
+			prev.map( ( l ) => ( l.id === selectedLabelId ? data : l ) )
+		);
+		return data;
+	}
+
+	async function handleLabelPositionUpdate(
+		id: number,
+		x: number,
+		y: number
+	): Promise< void > {
+		const res  = await apiFetch( 'PATCH', `/labels/${ id }/position`, { x, y } );
+		const data = ( await res.json() ) as MapLabel;
+		if ( res.ok ) {
+			setLabelsList( ( prev ) =>
+				prev.map( ( l ) => ( l.id === id ? data : l ) )
+			);
+		}
+	}
+
+	async function handleLabelDeleteById( id: number ) {
+		const res = await apiFetch( 'DELETE', `/labels/${ id }` );
+		if ( ! res.ok ) throw new Error( 'Delete failed.' );
+		setLabelsList( ( prev ) => prev.filter( ( l ) => l.id !== id ) );
+		if ( selectedLabelId === id ) setSelectedLabelId( null );
 	}
 
 	// ── Area operations ───────────────────────────────────────────────────────
@@ -399,6 +460,24 @@ export default function MapEditorApp() {
 								onDelete={ handleAreaDeleteById }
 							/>
 						) }
+						{ activeTab === 'labels' && ! settings.isMaster && (
+							<LabelsPanel
+								mapId={ mapId }
+								settings={ settings }
+								labels={ labelsList }
+								selectedLabelId={ selectedLabelId }
+								repositioningLabelId={ repositioningLabelId }
+								onLabelsLoaded={ setLabelsList }
+								onSelect={ setSelectedLabelId }
+								onDeselect={ () => setSelectedLabelId( null ) }
+								onAdd={ handleLabelAdd }
+								onPositionUpdate={ handleLabelPositionUpdate }
+								onRepositionComplete={ () =>
+									setRepositioningLabelId( null )
+								}
+								onDelete={ handleLabelDeleteById }
+							/>
+						) }
 						{ activeTab === 'hierarchy' && (
 							<HierarchyPanel
 								mapId={ mapId }
@@ -418,6 +497,7 @@ export default function MapEditorApp() {
 								settings={ settings }
 								objects={ objectsList }
 								areas={ areasList }
+								labels={ labelsList }
 								viewUrl={ ! isNew && viewUrl ? viewUrl : '' }
 							/>
 						) }
@@ -434,11 +514,16 @@ export default function MapEditorApp() {
 					activeTab={ activeTab }
 					selectedObject={ selectedObject }
 					selectedArea={ selectedArea }
+					selectedLabel={ selectedLabel }
 					selectedRegion={ selectedRegion }
 					onObjectSave={ handleObjectSave }
 					onObjectDelete={ () => handleObjectDeleteById( selectedObjectId! ) }
 					onObjectClose={ () => setSelectedObjectId( null ) }
 					onObjectReposition={ () => setRepositioningObjId( selectedObjectId ) }
+					onLabelSave={ handleLabelSave }
+					onLabelDelete={ () => handleLabelDeleteById( selectedLabelId! ) }
+					onLabelClose={ () => setSelectedLabelId( null ) }
+					onLabelReposition={ () => setRepositioningLabelId( selectedLabelId ) }
 					onAreaSave={ handleAreaSave }
 					onAreaDelete={ () => handleAreaDeleteById( selectedAreaId! ) }
 					onAreaClose={ () => setSelectedAreaId( null ) }

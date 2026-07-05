@@ -12,6 +12,7 @@ const TABS: TabDef[] = [
 	{ id: 'settings',  label: 'Settings',  masterHide: false, masterShow: false },
 	{ id: 'objects',   label: 'Objects',   masterHide: true,  masterShow: false },
 	{ id: 'areas',     label: 'Areas',     masterHide: true,  masterShow: false },
+	{ id: 'labels',    label: 'Labels',    masterHide: true,  masterShow: false },
 	{ id: 'hierarchy', label: 'Hierarchy', masterHide: false, masterShow: true  },
 	{ id: 'preview',   label: 'Preview',   masterHide: true,  masterShow: false },
 	{ id: 'stories',   label: 'Stories',   masterHide: true,  masterShow: false, extensionKey: 'hasStorySuite' },

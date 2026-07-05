@@ -82,7 +82,8 @@ export type InfoboxSource = 'manual' | 'post';
 export type IconSource    = 'svg' | 'image';
 export type BgType        = 'color' | 'image';
 export type SaveStatusKind = '' | 'ok' | 'error';
-export type Tab           = 'settings' | 'objects' | 'areas' | 'hierarchy' | 'preview' | 'stories';
+export type Tab           = 'settings' | 'objects' | 'areas' | 'labels' | 'hierarchy' | 'preview' | 'stories';
+export type LabelPlacement = 'centered' | 'indicator';
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
 
@@ -158,6 +159,29 @@ export interface MapArea {
 	infobox_source: InfoboxSource;
 	infobox_data: InfoboxData | null;
 	canvas_styles: AreaCanvasStyles | null;
+	created_at: string;
+	updated_at: string;
+}
+
+// ── Domain: MapLabel ──────────────────────────────────────────────────────────
+
+export interface LabelCanvasStyles {
+	bgColor?: string;
+	borderColor?: string;
+	textColor?: string;
+	fontSize?: number;
+}
+
+export interface MapLabel {
+	id: number;
+	map_id: number;
+	text: string;
+	x: number; // canvas pixel coordinate (anchor point)
+	y: number;
+	placement: LabelPlacement;
+	offset_x: number; // label box offset from anchor (indicator mode)
+	offset_y: number;
+	canvas_styles: LabelCanvasStyles | null;
 	created_at: string;
 	updated_at: string;
 }
@@ -302,6 +326,19 @@ export interface AreaFormData {
 	style_stroke_width: number;
 }
 
+export interface LabelFormData {
+	text: string;
+	placement: LabelPlacement;
+	x: number;
+	y: number;
+	offset_x: number;
+	offset_y: number;
+	style_bg: string;
+	style_border: string;
+	style_text_color: string;
+	style_font_size: number;
+}
+
 // ── API payloads ──────────────────────────────────────────────────────────────
 
 export interface ObjectSavePayload {
@@ -322,6 +359,8 @@ export interface ObjectSavePayload {
 }
 
 export type AreaSavePayload = AreaFormData & { nodes: string };
+
+export type LabelSavePayload = LabelFormData;
 
 // ── Canvas callback signatures (used to avoid circular imports) ───────────────
 

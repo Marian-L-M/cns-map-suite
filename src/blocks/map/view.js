@@ -193,6 +193,82 @@
 		ctx.stroke();
 	}
 
+	// ── Labels ────────────────────────────────────────────────────────────────
+	// 'centered'  — label box centered on (x, y).
+	// 'indicator' — dot at (x, y) with a leader line to the label box at
+	//               (x + offsetX, y + offsetY); the line is drawn first so the
+	//               box covers the segment that would cross it.
+
+	function measureLabelBox(ctx, label) {
+		const s        = label.canvas_styles || {};
+		const fontSize = s.fontSize || 14;
+		const padX     = 8;
+		const padY     = 5;
+		ctx.font = 'bold ' + fontSize + 'px sans-serif';
+		const textW = ctx.measureText(label.text || '').width;
+		const w = textW + padX * 2;
+		const h = fontSize + padY * 2;
+
+		let cx, cy;
+		if (label.placement === 'indicator') {
+			cx = label.x + (label.offset_x ?? 40);
+			cy = label.y + (label.offset_y ?? -40);
+		} else {
+			cx = label.x;
+			cy = label.y;
+		}
+		return { left: cx - w / 2, top: cy - h / 2, w, h, cx, cy, fontSize };
+	}
+
+	function traceRoundedRect(ctx, x, y, w, h, r) {
+		if (typeof ctx.roundRect === 'function') {
+			ctx.roundRect(x, y, w, h, r);
+		} else {
+			ctx.rect(x, y, w, h);
+		}
+	}
+
+	function drawLabel(ctx, label) {
+		if (!label.text) return;
+		const s         = label.canvas_styles || {};
+		const bg        = s.bgColor     || '#ffffff';
+		const border    = s.borderColor || '#1e1e1e';
+		const textColor = s.textColor   || '#1e1e1e';
+		const box       = measureLabelBox(ctx, label);
+
+		ctx.save();
+
+		if (label.placement === 'indicator') {
+			ctx.beginPath();
+			ctx.moveTo(label.x, label.y);
+			ctx.lineTo(box.cx, box.cy);
+			ctx.strokeStyle = border;
+			ctx.lineWidth   = 1.5;
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.arc(label.x, label.y, 4, 0, Math.PI * 2);
+			ctx.fillStyle = border;
+			ctx.fill();
+		}
+
+		ctx.beginPath();
+		traceRoundedRect(ctx, box.left, box.top, box.w, box.h, 4);
+		ctx.fillStyle = bg;
+		ctx.fill();
+		ctx.strokeStyle = border;
+		ctx.lineWidth   = 1.5;
+		ctx.stroke();
+
+		ctx.font         = 'bold ' + box.fontSize + 'px sans-serif';
+		ctx.textAlign    = 'center';
+		ctx.textBaseline = 'middle';
+		ctx.fillStyle    = textColor;
+		ctx.fillText(label.text, box.cx, box.cy);
+
+		ctx.restore();
+	}
+
 	function drawFallbackMarker(ctx, x, y, size, fill, stroke) {
 		ctx.save();
 		ctx.beginPath();
@@ -404,6 +480,10 @@
 		objects.forEach(function (obj, i) {
 			drawObjectMarker(ctx, obj, markerImgs[i]);
 		});
+
+		for (const label of (data.labels || [])) {
+			drawLabel(ctx, label);
+		}
 
 		// Pre-load all hierarchy region thumbnails for smooth hover.
 		for (const region of (data.hierarchyRegions || [])) {

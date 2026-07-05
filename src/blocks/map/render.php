@@ -50,6 +50,7 @@ $map_data = [
 	'imageW'           => $data['image_w'],
 	'objects'          => $data['objects'],
 	'areas'            => $data['areas'],
+	'labels'           => $data['labels'],
 	'hierarchyRegions' => $data['hierarchy_regions'],
 	'parentMaps'       => $data['parent_maps'],
 ];

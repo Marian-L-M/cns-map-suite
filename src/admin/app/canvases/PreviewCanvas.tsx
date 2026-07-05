@@ -2,21 +2,26 @@ import { useRef, useEffect } from '@wordpress/element';
 import { drawFullCanvas } from '../../canvas';
 import { drawObjectMarker } from '../../objects';
 import { drawAreaShape } from '../../areas';
-import type { DrawState, MapObject, MapArea } from '../../../types';
+import { drawLabelShape } from '../../labels';
+import type { DrawState, MapObject, MapArea, MapLabel } from '../../../types';
 
 interface Props {
 	drawState: DrawState;
 	objects: MapObject[];
 	areas: MapArea[];
+	labels: MapLabel[];
 }
 
-export default function PreviewCanvas( { drawState, objects, areas }: Props ) {
+export default function PreviewCanvas( { drawState, objects, areas, labels }: Props ) {
 	const canvasRef = useRef<HTMLCanvasElement>( null );
 
 	useEffect( () => {
 		const canvas = canvasRef.current;
 		if ( ! canvas ) return;
-		drawFullCanvas( canvas, objects, areas, drawState, drawAreaShape, drawObjectMarker );
+		drawFullCanvas( canvas, objects, areas, drawState, drawAreaShape, drawObjectMarker ).then( () => {
+			const ctx = canvas.getContext( '2d' )!;
+			for ( const label of labels ) drawLabelShape( ctx, label, false );
+		} );
 	} );
 
 	return (

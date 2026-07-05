@@ -64,6 +64,26 @@ function cns_map_suite_create_tables(): void {
 		KEY idx_linked_post (linked_post_id)
 	) $charset_collate;");
 
+	// Text labels drawn directly on a map.
+	// placement: 'centered' = label box centered on (x, y);
+	//            'indicator' = dot at (x, y) with a leader line to the label
+	//            box, which sits at (x + offset_x, y + offset_y).
+	dbDelta("CREATE TABLE {$wpdb->prefix}cns_map_labels (
+		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+		map_id BIGINT UNSIGNED NOT NULL,
+		text VARCHAR(255) NOT NULL DEFAULT '',
+		x INT NOT NULL DEFAULT 0,
+		y INT NOT NULL DEFAULT 0,
+		placement VARCHAR(10) NOT NULL DEFAULT 'centered',
+		offset_x INT NOT NULL DEFAULT 40,
+		offset_y INT NOT NULL DEFAULT -40,
+		canvas_styles LONGTEXT NULL DEFAULT NULL,
+		created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+		updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+		PRIMARY KEY (id),
+		KEY idx_map_id (map_id)
+	) $charset_collate;");
+
 	// Parent → child map relationships for MasterMap mode.
 	// One row per child; multiple rows with the same parent_map_id form the child list.
 	dbDelta("CREATE TABLE {$wpdb->prefix}cns_map_hierarchy (
