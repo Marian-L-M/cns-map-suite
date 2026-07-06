@@ -3,6 +3,7 @@ import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, moveAreaNode } fro
 import { getCanvasCoords } from '../../canvas';
 import { isTypingTarget } from '../../utils';
 import type { DrawState, MapArea, Node, CanvasPoint } from '../../../types';
+import CanvasZoomWrap from './CanvasZoomWrap';
 
 interface Props {
 	drawState: DrawState;
@@ -161,11 +162,13 @@ export default function AreasCanvas( {
 	const isRepositioning = repoNodeIdx !== null;
 	return (
 		<div className={ `cns-objects-canvas-wrap${ isRepositioning ? ' cns-canvas--repositioning' : '' }` }>
-			<canvas
-				ref={ canvasRef }
-				onClick={ handleClick }
-				onMouseMove={ handleMouseMove }
-			/>
+			<CanvasZoomWrap>
+				<canvas
+					ref={ canvasRef }
+					onClick={ handleClick }
+					onMouseMove={ handleMouseMove }
+				/>
+			</CanvasZoomWrap>
 		</div>
 	);
 }

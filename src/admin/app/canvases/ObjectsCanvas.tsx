@@ -1,6 +1,7 @@
 import { useRef, useEffect } from '@wordpress/element';
 import { drawObjectsOnCanvas, findObjectAtPoint } from '../../objects';
 import { usePickupDrag } from './usePickupDrag';
+import CanvasZoomWrap from './CanvasZoomWrap';
 import type { DrawState, MapObject } from '../../../types';
 
 /**
@@ -83,7 +84,9 @@ export default function ObjectsCanvas( {
 
 	return (
 		<div className="cns-objects-canvas-wrap">
-			<canvas ref={ canvasRef } />
+			<CanvasZoomWrap>
+				<canvas ref={ canvasRef } />
+			</CanvasZoomWrap>
 		</div>
 	);
 }

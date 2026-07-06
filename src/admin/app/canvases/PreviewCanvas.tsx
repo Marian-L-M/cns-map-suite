@@ -1,5 +1,6 @@
 import { useRef, useEffect } from '@wordpress/element';
 import { drawFullCanvas } from '../../canvas';
+import CanvasZoomWrap from './CanvasZoomWrap';
 import { drawObjectMarker } from '../../objects';
 import { drawAreaShape } from '../../areas';
 import { drawLabelShape } from '../../labels';
@@ -29,7 +30,9 @@ export default function PreviewCanvas( { drawState, objects, areas, labels }: Pr
 
 	return (
 		<div className="cns-canvas-wrap">
-			<canvas ref={ canvasRef } />
+			<CanvasZoomWrap allowFullscreen>
+				<canvas ref={ canvasRef } />
+			</CanvasZoomWrap>
 		</div>
 	);
 }

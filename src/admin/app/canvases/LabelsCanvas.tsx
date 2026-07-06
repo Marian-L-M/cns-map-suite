@@ -1,6 +1,7 @@
 import { useRef, useEffect } from '@wordpress/element';
 import { drawLabelsOnCanvas, findLabelPartAtPoint } from '../../labels';
 import { usePickupDrag } from './usePickupDrag';
+import CanvasZoomWrap from './CanvasZoomWrap';
 import type { DrawState, MapLabel, CanvasPoint } from '../../../types';
 
 /**
@@ -131,7 +132,9 @@ export default function LabelsCanvas( {
 
 	return (
 		<div className="cns-objects-canvas-wrap">
-			<canvas ref={ canvasRef } />
+			<CanvasZoomWrap>
+				<canvas ref={ canvasRef } />
+			</CanvasZoomWrap>
 		</div>
 	);
 }

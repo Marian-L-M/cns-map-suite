@@ -318,6 +318,102 @@ import {
 		if (tip) tip.classList.remove('is-visible');
 	}
 
+	// ── Zoom controls ─────────────────────────────────────────────────────────
+	// Zoom scales the canvas's *display* width inside the (then scrollable)
+	// .cns-map-canvas-wrap. The canvas pixel coordinate system is untouched,
+	// so all hit tests keep working — click/hover handlers already normalize
+	// by getBoundingClientRect. Buttons sit on the block wrapper (top right),
+	// outside the scroll area, so they stay put while panning.
+
+	function setupZoomControls(wrapper, canvas) {
+		const scroller = canvas.parentElement; // .cns-map-canvas-wrap
+		if (!scroller) return;
+
+		const MIN = 1, MAX = 4, STEP = 0.1;
+		let zoom = 1;
+
+		const controls = document.createElement('div');
+		controls.className = 'cns-map-zoom';
+		const fsBtn   = document.createElement('button');
+		const zoomIn  = document.createElement('button');
+		const zoomOut = document.createElement('button');
+		const value   = document.createElement('span');
+		fsBtn.type   = 'button';
+		zoomIn.type  = 'button';
+		zoomOut.type = 'button';
+		fsBtn.className   = 'cns-map-zoom__btn cns-map-zoom__btn--fs';
+		zoomIn.className  = 'cns-map-zoom__btn';
+		zoomOut.className = 'cns-map-zoom__btn';
+		zoomIn.textContent  = '+';
+		zoomOut.textContent = '−';
+		zoomIn.setAttribute('aria-label', 'Zoom map in');
+		zoomOut.setAttribute('aria-label', 'Zoom map out');
+		value.className = 'cns-map-zoom__value';
+		controls.appendChild(fsBtn);
+		controls.appendChild(zoomIn);
+		controls.appendChild(value);
+		controls.appendChild(zoomOut);
+		wrapper.appendChild(controls);
+
+		// ── Lightbox-style fullscreen (zooming stays available inside) ────────
+		let fullscreen = false;
+
+		function renderFsBtn() {
+			fsBtn.textContent = fullscreen ? '✕' : '⛶';
+			fsBtn.setAttribute('aria-label', fullscreen ? 'Exit fullscreen' : 'View map fullscreen');
+		}
+
+		function setFullscreen(on) {
+			fullscreen = on;
+			wrapper.classList.toggle('is-fullscreen', on);
+			document.body.classList.toggle('cns-map-fullscreen-open', on);
+			renderFsBtn();
+		}
+
+		fsBtn.addEventListener('click', function () { setFullscreen(!fullscreen); });
+		document.addEventListener('keydown', function (e) {
+			if (e.key !== 'Escape' || !fullscreen) return;
+			// Let Esc close an open infobox drawer first; the next Esc exits.
+			const drawer = document.getElementById('cns-map-drawer');
+			if (drawer && drawer.classList.contains('is-open')) return;
+			setFullscreen(false);
+		});
+		renderFsBtn();
+
+		function render() {
+			value.textContent = Math.round(zoom * 100) + '%';
+			zoomIn.disabled  = zoom >= MAX;
+			zoomOut.disabled = zoom <= MIN;
+		}
+
+		function apply(next) {
+			// Round to one decimal so repeated 0.1 steps don't accumulate
+			// float drift (1.7000000000000002).
+			next = Math.min(MAX, Math.max(MIN, Math.round(next * 10) / 10));
+			if (next === zoom) return;
+			// Keep the viewport centered on the same map point.
+			const cx = (scroller.scrollLeft + scroller.clientWidth / 2) / zoom;
+			const cy = (scroller.scrollTop + scroller.clientHeight / 2) / zoom;
+			zoom = next;
+			if (zoom > 1) {
+				canvas.style.maxWidth = 'none';
+				canvas.style.width    = (zoom * 100) + '%';
+				scroller.classList.add('is-zoomed');
+			} else {
+				canvas.style.maxWidth = '';
+				canvas.style.width    = '';
+				scroller.classList.remove('is-zoomed');
+			}
+			render();
+			scroller.scrollLeft = cx * zoom - scroller.clientWidth / 2;
+			scroller.scrollTop  = cy * zoom - scroller.clientHeight / 2;
+		}
+
+		zoomIn.addEventListener('click', function () { apply(zoom + STEP); });
+		zoomOut.addEventListener('click', function () { apply(zoom - STEP); });
+		render();
+	}
+
 	// ── Map initialiser ───────────────────────────────────────────────────────
 
 	async function initMap(wrapper) {
@@ -332,6 +428,8 @@ import {
 
 		canvas.width  = data.width;
 		canvas.height = data.height;
+
+		setupZoomControls(wrapper, canvas);
 
 		await drawBackground(canvas, data);
 

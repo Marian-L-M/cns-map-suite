@@ -2,6 +2,7 @@ import { useRef, useEffect, useState } from '@wordpress/element';
 import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, applyRectangleConstraint } from '../../areas';
 import { drawMapCanvas, getCanvasCoords } from '../../canvas';
 import type { DrawState, HierarchyRegion, Node, CanvasPoint, HierarchyCanvasStyles } from '../../../types';
+import CanvasZoomWrap from './CanvasZoomWrap';
 
 interface Props {
 	drawState: DrawState;
@@ -247,11 +248,13 @@ export default function HierarchyCanvas( {
 	const isRepositioning = repoNodeIdx !== null;
 	return (
 		<div className={ `cns-objects-canvas-wrap${ isRepositioning ? ' cns-canvas--repositioning' : '' }` }>
-			<canvas
-				ref={ canvasRef }
-				onClick={ handleClick }
-				onMouseMove={ handleMouseMove }
-			/>
+			<CanvasZoomWrap>
+				<canvas
+					ref={ canvasRef }
+					onClick={ handleClick }
+					onMouseMove={ handleMouseMove }
+				/>
+			</CanvasZoomWrap>
 		</div>
 	);
 }
