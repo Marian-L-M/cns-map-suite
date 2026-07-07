@@ -34,6 +34,23 @@ if (! $data) {
 	return;
 }
 
+// MasterMap regions: apply the same visibility rules to each child map that
+// gate the map itself above — otherwise draft/private child maps would leak
+// their title/excerpt/thumbnail/URL to visitors and navigate to a 404.
+$visible_regions = array_values(array_filter(
+	$data['hierarchy_regions'],
+	static function (array $region): bool {
+		$status = $region['child_map_status'] ?? '';
+		if ($status === 'publish') {
+			return true;
+		}
+		if ($status === 'private') {
+			return current_user_can('read_private_posts');
+		}
+		return $status !== '' && current_user_can('manage_maps');
+	}
+));
+
 $width  = $data['width'];
 $height = $data['height'];
 
@@ -51,7 +68,7 @@ $map_data = [
 	'objects'          => $data['objects'],
 	'areas'            => $data['areas'],
 	'labels'           => $data['labels'],
-	'hierarchyRegions' => $data['hierarchy_regions'],
+	'hierarchyRegions' => $visible_regions,
 	'parentMaps'       => $data['parent_maps'],
 ];
 

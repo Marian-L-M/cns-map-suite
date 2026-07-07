@@ -83,8 +83,9 @@
 -   [x] Re-entrancy guard (`static $rendering`) prevents recursive `the_content` calls when resolving linked-post content
 -   [x] Block assets (viewScript + style) explicitly enqueued via `wp_enqueue_scripts` for single map pages so styles land in `<head>`
 -   [x] "View" link in maps overview table for published maps
--   [ ] MasterMap: hover over region shows child map thumbnail and excerpt tooltip
--   [ ] MasterMap: click on region navigates to child map URL
+-   [x] MasterMap: hover over region shows child map thumbnail and excerpt tooltip (works on the standalone page and the embedded block)
+-   [x] MasterMap: click on region navigates to child map URL (region hit-test takes priority over infobox items)
+-   [x] MasterMap: child-map visibility gating — regions whose child map is draft/pending are omitted for visitors (shown to `manage_maps` users; private children require `read_private_posts`), so unpublished maps never leak title/excerpt/thumbnail/URL or navigate to a 404
 
 ## Code Cleanup
 
