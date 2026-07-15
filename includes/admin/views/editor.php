@@ -72,6 +72,7 @@ window.cnsMapEditor = {
     isNew:       <?php echo $is_new ? 'true' : 'false'; ?>,
     status:      <?php echo wp_json_encode($map ? $map->post_status : 'draft'); ?>,
     title:       <?php echo wp_json_encode($map ? $map->post_title : ''); ?>,
+    description: <?php echo wp_json_encode($map ? $map->post_content : ''); ?>,
     width:       <?php echo (int) $meta['width']; ?>,
     aspectRatio: <?php echo (float) $meta['aspect_ratio']; ?>,
     time:        <?php echo (int) $meta['time']; ?>,

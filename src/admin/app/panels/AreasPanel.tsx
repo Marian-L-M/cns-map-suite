@@ -1,4 +1,5 @@
 import { useState, useEffect } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 import AreasCanvas  from '../canvases/AreasCanvas';
 import AreasList    from '../lists/AreasList';
 import { apiFetch } from '../../utils';
@@ -109,7 +110,7 @@ export default function AreasPanel( {
 				}
 				return true; // claim the key even when the shape can't shrink
 			}
-			if ( confirm( 'Delete this area?' ) ) void onDelete( selectedArea.id );
+			if ( confirm( __( 'Delete this area?', 'cns-map-suite' ) ) ) void onDelete( selectedArea.id );
 			return true;
 		},
 		// Arrow keys nudge the focused node, or move the whole area when no
@@ -148,7 +149,7 @@ export default function AreasPanel( {
 		const defaultNodes = getDefaultNodes( 'POLYGON' );
 		try {
 			const res  = await apiFetch( 'POST', `/maps/${ mapId }/areas`, {
-				title:               'New Area',
+				title:               __( 'New Area', 'cns-map-suite' ),
 				nodes:               JSON.stringify( defaultNodes ),
 				style_fill:          '#2271b1',
 				style_fill_opacity:  0.3,
@@ -156,7 +157,7 @@ export default function AreasPanel( {
 				style_stroke_width:  2,
 			} );
 			const data = await res.json() as MapArea;
-			if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed to create area.' );
+			if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || __( 'Failed to create area.', 'cns-map-suite' ) );
 			onAreasLoaded( [ ...areas, data ] );
 			onSelect( data.id );
 		} catch ( err ) { alert( ( err as Error ).message ); }
@@ -174,14 +175,13 @@ export default function AreasPanel( {
 			<div className="cns-objects-layout">
 				<div className="cns-objects-toolbar">
 					<button type="button" className="button button-primary" onClick={ handleAddArea }>
-						Add Area
+						{ __( 'Add Area', 'cns-map-suite' ) }
 					</button>
 					<p className="description">
-						Click a node to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels).
-						Click empty space on a selected area to add a node.
-						With an area selected: arrow keys move the whole area (Shift&nbsp;=&nbsp;10&nbsp;px),
-						Tab/Shift+Tab cycles its nodes — arrows then nudge that node and Delete removes it (Esc clears) —
-						Ctrl/⌘+C&nbsp;&amp;&nbsp;V copy &amp; paste, Ctrl/⌘+D duplicates, Delete removes the area.
+						{ __(
+							'Click a node to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty space on a selected area to add a node. With an area selected: arrow keys move the whole area (Shift = 10 px), Tab/Shift+Tab cycles its nodes — arrows then nudge that node and Delete removes it (Esc clears) — Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.',
+							'cns-map-suite'
+						) }
 					</p>
 				</div>
 

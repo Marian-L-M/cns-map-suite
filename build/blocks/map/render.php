@@ -72,6 +72,12 @@ $map_data = [
 	'parentMaps'       => $data['parent_maps'],
 ];
 
+// Map description (post_content, maintained via the editor's Description tab).
+// Rendered only here, beneath the block — contexts that use the map as a base
+// (story blocks, master-map regions) read map data through the shared API and
+// never see it.
+$description = trim($map->post_content);
+
 $wrapper_attrs = get_block_wrapper_attributes([
 	'class'       => 'cns-map',
 	'data-map-id' => (string) $map_id,
@@ -86,6 +92,9 @@ $wrapper_attrs = get_block_wrapper_attributes([
 			aria-label="<?php echo esc_attr($map->post_title); ?>"
 		></canvas>
 	</div>
+	<?php if ('' !== $description) : ?>
+		<div class="cns-map-description"><?php echo wp_kses_post(wpautop($description)); ?></div>
+	<?php endif; ?>
 	<script type="application/json" data-cns-map><?php echo wp_json_encode($map_data, JSON_HEX_TAG | JSON_HEX_AMP); ?></script>
 	<noscript>
 		<p><?php

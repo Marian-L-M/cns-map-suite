@@ -30,7 +30,7 @@ function cns_map_suite_register_post_type(): void {
 		'exclude_from_search' => true,
 		'has_archive'         => false,
 		'rewrite'             => ['slug' => 'maps'],
-		'supports'            => ['title', 'thumbnail', 'custom-fields', 'excerpt'],
+		'supports'            => ['title', 'editor', 'thumbnail', 'custom-fields', 'excerpt'],
 		'capability_type'     => 'post',
 	]);
 }

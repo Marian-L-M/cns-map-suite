@@ -23,12 +23,24 @@ export interface CnsMapEditorExtensions {
 	storySuiteOverviewUrl?: string;
 }
 
+// Classic (TinyMCE) editor API from wp_enqueue_editor(). Exposed as
+// wp.oldEditor when the block-editor's wp-editor package is also loaded,
+// wp.editor otherwise.
+export interface WpClassicEditor {
+	initialize(id: string, settings?: Record<string, unknown>): void;
+	remove(id: string): void;
+}
+
 declare global {
 	interface Window {
 		cnsMapEditor: CnsMapEditorGlobal;
 		cnsMapSuite: CnsMapSuiteGlobal;
 		cnsMapEditorExtensions: CnsMapEditorExtensions;
-		wp: { media: (options: WpMediaOptions) => WpMediaFrame };
+		wp: {
+			media: (options: WpMediaOptions) => WpMediaFrame;
+			editor?: WpClassicEditor;
+			oldEditor?: WpClassicEditor;
+		};
 	}
 }
 
@@ -44,6 +56,7 @@ export interface CnsMapEditorGlobal {
 	isNew: boolean;
 	status: PostStatus;
 	title: string;
+	description: string;
 	width: number;
 	aspectRatio: number;
 	time: number;
@@ -82,7 +95,7 @@ export type InfoboxSource = 'manual' | 'post';
 export type IconSource    = 'svg' | 'image';
 export type BgType        = 'color' | 'image';
 export type SaveStatusKind = '' | 'ok' | 'error';
-export type Tab           = 'settings' | 'objects' | 'areas' | 'labels' | 'hierarchy' | 'preview' | 'stories';
+export type Tab           = 'settings' | 'description' | 'objects' | 'areas' | 'labels' | 'hierarchy' | 'preview' | 'stories';
 export type LabelPlacement = 'centered' | 'indicator';
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
@@ -255,6 +268,7 @@ export interface PostSearchResult {
 export interface MapSettings {
 	status: PostStatus;
 	title: string;
+	description: string;
 	width: number;
 	aspectRatio: number;
 	time: number;

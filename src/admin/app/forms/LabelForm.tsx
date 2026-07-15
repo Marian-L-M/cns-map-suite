@@ -1,4 +1,5 @@
 import { useRef } from '@wordpress/element';
+import RangeField from '../shared/RangeField';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
 import type { LabelFormData, LabelSavePayload, LabelPlacement, MapLabel } from '../../../types';
 
@@ -97,11 +98,11 @@ export default function LabelForm( { formData, onChange }: Props ) {
 				<div className="cns-form-grid">
 					<div className="cns-form-row cns-form-row--full">
 						<label>Font Size (px)</label>
-						<div className="cns-range-wrap">
-							<input type="range" min="8" max="64" step="1" value={ formData.style_font_size }
-								onChange={ ( e ) => set( 'style_font_size', parseInt( e.target.value, 10 ) ) } />
-							<output className="cns-range-value">{ formData.style_font_size }</output>
-						</div>
+						<RangeField
+							min={ 8 } max={ 64 } step={ 1 }
+							value={ formData.style_font_size }
+							onChange={ ( v ) => set( 'style_font_size', v ) }
+						/>
 					</div>
 					<div className="cns-form-row">
 						<label>Background Color</label>

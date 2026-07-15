@@ -1,1 +1,6185 @@
-(()=>{"use strict";const e=window.wp.element,t=window.ReactJSXRuntime;function n({text:e,type:n}){if(!e)return null;const s="cns-save-status"+(n?` cns-save-status--${n}`:"");return(0,t.jsx)("span",{className:s,children:e})}const s={draft:"Draft",publish:"Published",private:"Private"};function a({pageTitle:e,overviewUrl:a,viewUrl:l,status:i,onStatusChange:o,saveStatus:c,onSave:r}){return(0,t.jsxs)("div",{className:"cns-map-editor__header",children:[(0,t.jsx)("a",{href:a,className:"cns-back-link",children:"← All Maps"}),(0,t.jsx)("h1",{children:e}),(0,t.jsxs)("div",{className:"cns-map-editor__header-actions",children:[(0,t.jsx)(n,{text:c.text,type:c.type}),l&&(0,t.jsx)("a",{href:l,className:"button",target:"_blank",rel:"noopener noreferrer",children:"View Map"}),(0,t.jsx)("select",{className:"cns-status-select",value:i,onChange:e=>o(e.target.value),"aria-label":"Post status",children:Object.keys(s).map(e=>(0,t.jsx)("option",{value:e,children:s[e]},e))}),(0,t.jsx)("button",{className:"button button-primary",onClick:r,children:"Save Map"})]})]})}const l=[{id:"settings",label:"Settings",masterHide:!1,masterShow:!1},{id:"objects",label:"Objects",masterHide:!0,masterShow:!1},{id:"areas",label:"Areas",masterHide:!0,masterShow:!1},{id:"labels",label:"Labels",masterHide:!0,masterShow:!1},{id:"hierarchy",label:"Hierarchy",masterHide:!1,masterShow:!0},{id:"preview",label:"Preview",masterHide:!0,masterShow:!1},{id:"stories",label:"Stories",masterHide:!0,masterShow:!1,extensionKey:"hasStorySuite"}];function i({activeTab:e,isMaster:n,onChange:s}){const a=window.cnsMapEditorExtensions||{},i=l.filter(e=>!(e.masterHide&&n||e.masterShow&&!n||e.extensionKey&&!a[e.extensionKey]));return(0,t.jsx)("nav",{className:"cns-map-editor__tabs",role:"tablist","aria-label":"Editor modes",children:i.map(n=>(0,t.jsx)("button",{className:"cns-tab"+(e===n.id?" cns-tab--active":""),role:"tab","aria-selected":e===n.id,onClick:()=>s(n.id),children:n.label},n.id))})}function o({imageId:n,imageUrl:s,title:a="Select Image",onChange:l}){const i=(0,e.useRef)(null);return(0,t.jsxs)("div",{className:"cns-image-picker",children:[(0,t.jsx)("div",{className:"cns-image-picker__preview",children:s?(0,t.jsx)("img",{src:s,alt:""}):(0,t.jsx)("span",{children:"No image selected"})}),(0,t.jsx)("button",{type:"button",className:"button",onClick:function(e){e.preventDefault(),i.current||(i.current=window.wp.media({title:a,button:{text:"Use this image"},multiple:!1,library:{type:"image"}}),i.current.on("select",()=>{const e=i.current.state().get("selection").first().toJSON();l?.({id:e.id,url:e.url})})),i.current.open()},children:"Select Image"}),n>0&&(0,t.jsx)("button",{type:"button",className:"button",onClick:function(e){e.preventDefault(),l?.(null)},children:"Remove"})]})}function c({icons:e,selectedIconId:n,onSelect:s}){return e&&e.length?(0,t.jsx)("div",{className:"cns-icon-picker-grid",children:e.map(e=>(0,t.jsx)("button",{type:"button",className:"cns-icon-item"+(e.id===n?" cns-icon-item--active":""),title:e.title,onClick:()=>s(e.id),children:(0,t.jsx)("img",{src:e.url,alt:e.title})},e.id))}):(0,t.jsxs)("p",{className:"description",children:["No icons yet."," ",(0,t.jsx)("a",{href:window.cnsMapSuite.iconsUrl,target:"_blank",rel:"noreferrer",children:"Add icons →"})]})}function r({linkedPostId:n,linkedPostLabel:s,onChange:a}){const[l,i]=(0,e.useState)(""),[o,c]=(0,e.useState)([]),[r,d]=(0,e.useState)(!1),u=(0,e.useRef)(null);return(0,e.useEffect)(()=>()=>{u.current&&clearTimeout(u.current)},[]),(0,t.jsxs)("div",{className:"cns-post-search-wrap",children:[(0,t.jsx)("label",{children:"Search for a post"}),(0,t.jsx)("input",{type:"text",className:"large-text",placeholder:"Type to search…",autoComplete:"off",value:l,onChange:function(e){const t=e.target.value;i(t),u.current&&clearTimeout(u.current),t.length<2?d(!1):u.current=setTimeout(async()=>{try{const e=window.cnsMapSuite.wpRestUrl+"/search?search="+encodeURIComponent(t)+"&type=post&subtype=any&per_page=10",n=await fetch(e,{headers:{"X-WP-Nonce":window.cnsMapSuite.nonce}}),s=await n.json();Array.isArray(s)&&(c(s),d(!0))}catch{}},350)}}),r&&o.length>0&&(0,t.jsx)("div",{className:"cns-post-results",children:o.map(e=>(0,t.jsxs)("button",{type:"button",className:"cns-post-result",onClick:()=>function(e){a?.({id:e.id,title:e.title}),i(""),c([]),d(!1)}(e),children:[e.title," ",(0,t.jsx)("span",{className:"cns-post-result__type",children:e.subtype})]},e.id))}),n>0&&(0,t.jsxs)("p",{className:"description",children:[s||`Post ID: ${n}`," ",(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:()=>a?.({id:0,title:""}),children:"Clear"})]})]})}function d({formData:n,onChange:s}){const a=(0,e.useRef)(Math.random().toString(36).slice(2)).current,l="post"!==n.infobox_source;function i(e,t){s({...n,[e]:t})}return(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Infobox"}),(0,t.jsx)(r,{linkedPostId:n.linked_post_id,linkedPostLabel:n.linked_post_label,onChange:e=>s({...n,linked_post_id:e?e.id:0,linked_post_label:e?e.title:""})}),(0,t.jsx)("p",{className:"description",children:"Optional — a connected post adds a “Read more” link to the infobox."}),(0,t.jsxs)("div",{className:"cns-radio-toggle",children:[(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:`ib-src-${a}`,value:"manual",checked:l,onChange:()=>i("infobox_source","manual")})," ","Write content manually"]}),(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:`ib-src-${a}`,value:"post",checked:!l,onChange:()=>i("infobox_source","post")})," ","Use the connected post’s content"]})]}),l&&(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Infobox Title"}),(0,t.jsx)("input",{type:"text",className:"large-text",value:n.infobox_title,onChange:e=>i("infobox_title",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Description"}),(0,t.jsx)("textarea",{rows:4,className:"large-text",value:n.infobox_description,onChange:e=>i("infobox_description",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Infobox Image"}),(0,t.jsx)(o,{imageId:n.infobox_image_id,imageUrl:n.infobox_image_url,title:"Select Infobox Image",onChange:e=>s({...n,infobox_image_id:e?e.id:0,infobox_image_url:e?e.url:""})})]})]}),!l&&(0,t.jsx)("p",{className:"description",children:"Title, description and image are pulled from the connected post."})]})}function u(e){return{infobox_source:e?.infobox_source||"manual",infobox_title:e?.infobox_data?.title||"",infobox_description:e?.infobox_data?.description||"",infobox_image_id:e?.infobox_data?.image_id||0,infobox_image_url:"",linked_post_id:e?.linked_post_id||0,linked_post_label:e?.linked_post_id?`Post ID: ${e.linked_post_id}`:""}}const m=[{value:"LOCATION",label:"Location"},{value:"HISTORY",label:"History"},{value:"NATURAL",label:"Natural"},{value:"EVENT",label:"Event"},{value:"OTHER",label:"Other"}];function h({formData:n,onChange:s,icons:a}){const l=(0,e.useRef)(Math.random().toString(36).slice(2)).current;function i(e,t){s({...n,[e]:t})}const r="image"!==n.icon_source;return(0,t.jsxs)(t.Fragment,{children:[(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Icon"}),(0,t.jsxs)("div",{className:"cns-radio-toggle",children:[(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:`obj-icon-src-${l}`,value:"svg",checked:r,onChange:()=>i("icon_source","svg")})," ","From library"]}),(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:`obj-icon-src-${l}`,value:"image",checked:!r,onChange:()=>i("icon_source","image")})," ","Custom image"]})]}),r&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(c,{icons:a,selectedIconId:n.icon_image_id_svg,onSelect:e=>i("icon_image_id_svg",e)}),(0,t.jsx)("p",{className:"description",children:(0,t.jsx)("a",{href:window.cnsMapSuite.iconsUrl,target:"_blank",rel:"noreferrer",children:"Manage icon library →"})})]}),!r&&(0,t.jsx)(o,{imageId:n.icon_image_id_custom,imageUrl:n.icon_image_url,title:"Select Icon Image",onChange:e=>s({...n,icon_image_id_custom:e?e.id:0,icon_image_url:e?e.url:""})})]}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Details"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Title"}),(0,t.jsx)("input",{type:"text",className:"large-text",value:n.title,onChange:e=>i("title",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Type"}),(0,t.jsx)("select",{value:n.type,onChange:e=>i("type",e.target.value),children:m.map(e=>(0,t.jsx)("option",{value:e.value,children:e.label},e.value))})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Object Time"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.object_time,onChange:e=>i("object_time",parseInt(e.target.value,10)||0)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"X (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.x,onChange:e=>i("x",parseInt(e.target.value,10)||0)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Y (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.y,onChange:e=>i("y",parseInt(e.target.value,10)||0)})]})]})]}),(0,t.jsx)(d,{formData:n,onChange:s}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Design"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Icon Size (px)"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{type:"range",min:"8",max:"128",step:"1",value:n.style_size,onChange:e=>i("style_size",parseInt(e.target.value,10))}),(0,t.jsx)("output",{className:"cns-range-value",children:n.style_size})]})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Fill Color"}),(0,t.jsx)("input",{type:"color",value:n.style_fill,onChange:e=>i("style_fill",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Stroke Color"}),(0,t.jsx)("input",{type:"color",value:n.style_stroke,onChange:e=>i("style_stroke",e.target.value)})]})]}),(0,t.jsx)("p",{className:"description",children:"Fill and stroke are applied to SVG icons only."})]})]})}function p(e,t,n){const s=!e||!e.icon_image_id||"image/svg+xml"===e.icon_mime;return{icon_source:s?"svg":"image",icon_image_id_svg:s&&e?.icon_image_id?e.icon_image_id:null,icon_image_id_custom:!s&&e?.icon_image_id?e.icon_image_id:0,icon_image_url:e?.icon_url&&!s?e.icon_url:"",title:e?.title||"",type:e?.type||"LOCATION",object_time:e?.object_time??0,x:e?e.x:t??0,y:e?e.y:n??0,...u(e),style_size:e?.canvas_styles?.size||32,style_fill:e?.canvas_styles?.fillStyle||"#ffffff",style_stroke:e?.canvas_styles?.strokeStyle||"#2271b1"}}function x(e){return{icon_image_id:"svg"===e.icon_source?e.icon_image_id_svg||0:e.icon_image_id_custom||0,title:e.title||"",type:e.type||"LOCATION",x:e.x||0,y:e.y||0,object_time:e.object_time||0,infobox_source:e.infobox_source||"manual",linked_post_id:e.linked_post_id||0,infobox_title:e.infobox_title||"",infobox_description:e.infobox_description||"",infobox_image_id:e.infobox_image_id||0,style_size:e.style_size||32,style_fill:e.style_fill||"#ffffff",style_stroke:e.style_stroke||"#2271b1"}}function f({formData:n,onChange:s}){const a=(0,e.useRef)(Math.random().toString(36).slice(2)).current;function l(e,t){s({...n,[e]:t})}const i="indicator"===n.placement;return(0,t.jsxs)(t.Fragment,{children:[(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Label"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Text"}),(0,t.jsx)("input",{type:"text",className:"large-text",value:n.text,onChange:e=>l("text",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Label Time"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.object_time,onChange:e=>l("object_time",parseInt(e.target.value,10)||0)})]})]})]}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Placement"}),(0,t.jsxs)("div",{className:"cns-radio-toggle",children:[(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:`label-placement-${a}`,value:"centered",checked:!i,onChange:()=>l("placement","centered")})," ","Centered on point"]}),(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:`label-placement-${a}`,value:"indicator",checked:i,onChange:()=>l("placement","indicator")})," ","Indicator (line & dot)"]})]}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"X (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.x,onChange:e=>l("x",parseInt(e.target.value,10)||0)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Y (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.y,onChange:e=>l("y",parseInt(e.target.value,10)||0)})]}),i&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Label Offset X (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.offset_x,onChange:e=>l("offset_x",parseInt(e.target.value,10)||0)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Label Offset Y (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.offset_y,onChange:e=>l("offset_y",parseInt(e.target.value,10)||0)})]})]})]}),i&&(0,t.jsx)("p",{className:"description",children:"The dot marks the X/Y point; the label box sits at the offset, connected by a line."})]}),(0,t.jsx)(d,{formData:n,onChange:s}),(0,t.jsx)("p",{className:"description",children:"Labels with infobox content open the infobox drawer when clicked on the map; labels without stay purely decorative."}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Design"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Font Size (px)"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{type:"range",min:"8",max:"64",step:"1",value:n.style_font_size,onChange:e=>l("style_font_size",parseInt(e.target.value,10))}),(0,t.jsx)("output",{className:"cns-range-value",children:n.style_font_size})]})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Background Color"}),(0,t.jsx)("input",{type:"color",value:n.style_bg,onChange:e=>l("style_bg",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Border Color"}),(0,t.jsx)("input",{type:"color",value:n.style_border,onChange:e=>l("style_border",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Text Color"}),(0,t.jsx)("input",{type:"color",value:n.style_text_color,onChange:e=>l("style_text_color",e.target.value)})]})]})]})]})}function b(e,t,n){return{text:e?.text||"",placement:e?.placement||"centered",x:e?e.x:t??0,y:e?e.y:n??0,offset_x:e?.offset_x??40,offset_y:e?.offset_y??-40,object_time:e?.object_time??0,...u(e),style_bg:e?.canvas_styles?.bgColor||"#ffffff",style_border:e?.canvas_styles?.borderColor||"#1e1e1e",style_text_color:e?.canvas_styles?.textColor||"#1e1e1e",style_font_size:e?.canvas_styles?.fontSize||14}}function g(e){const{infobox_image_url:t,linked_post_label:n,...s}=e;return s}const y=[{value:"GEOGRAPHY",label:"Geography"},{value:"HISTORY",label:"History"},{value:"NATURAL",label:"Natural"},{value:"EVENT",label:"Event"},{value:"OTHER",label:"Other"}],j=[{value:"POLYGON",label:"Polygon (Nodes)"},{value:"RECTANGLE",label:"Rectangle"},{value:"BEZIER",label:"Bezier Curve"},{value:"CIRCLE",label:"Circle / Oval"}];function v({formData:n,onChange:s,onShapeTypeChange:a}){function l(e,t){s({...n,[e]:t})}return(0,e.useRef)(Math.random().toString(36).slice(2)).current,(0,t.jsxs)(t.Fragment,{children:[(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Details"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Title"}),(0,t.jsx)("input",{type:"text",className:"large-text",value:n.title,onChange:e=>l("title",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Type"}),(0,t.jsx)("select",{value:n.type,onChange:e=>l("type",e.target.value),children:y.map(e=>(0,t.jsx)("option",{value:e.value,children:e.label},e.value))})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Shape"}),(0,t.jsx)("select",{value:n.shape_type,onChange:function(e){const t=e.target.value;l("shape_type",t),a?.(t)},children:j.map(e=>(0,t.jsx)("option",{value:e.value,children:e.label},e.value))})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Object Time"}),(0,t.jsx)("input",{type:"number",className:"small-text",value:n.object_time,onChange:e=>l("object_time",parseInt(e.target.value,10)||0)})]})]})]}),(0,t.jsx)(d,{formData:n,onChange:s}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Design"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Fill Color"}),(0,t.jsx)("input",{type:"color",value:n.style_fill,onChange:e=>l("style_fill",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Fill Opacity"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{type:"range",min:"0",max:"1",step:"0.05",value:n.style_fill_opacity,onChange:e=>l("style_fill_opacity",parseFloat(e.target.value))}),(0,t.jsx)("output",{className:"cns-range-value",children:parseFloat(String(n.style_fill_opacity)).toFixed(2)})]})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Stroke Color"}),(0,t.jsx)("input",{type:"color",value:n.style_stroke,onChange:e=>l("style_stroke",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Stroke Width (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",min:"1",max:"10",value:n.style_stroke_width,onChange:e=>l("style_stroke_width",parseInt(e.target.value,10)||2)})]})]})]})]})}function _(e){const t=e?.canvas_styles||{};return{title:e?.title||"",type:e?.type||"GEOGRAPHY",shape_type:e?.shape_type||"POLYGON",object_time:e?.object_time??0,...u(e??null),style_fill:t.fill||"#2271b1",style_fill_opacity:t.fillOpacity??.3,style_stroke:t.stroke||"#2271b1",style_stroke_width:t.strokeWidth||2}}function w({childMapId:n,childMapLabel:s,onChange:a}){const[l,i]=(0,e.useState)(""),[o,c]=(0,e.useState)([]),[r,d]=(0,e.useState)(!1),u=(0,e.useRef)(null);return(0,e.useEffect)(()=>()=>{u.current&&clearTimeout(u.current)},[]),(0,t.jsxs)("div",{className:"cns-post-search-wrap",children:[(0,t.jsx)("label",{children:"Child Map"}),(0,t.jsx)("input",{type:"text",className:"large-text",placeholder:"Search maps…",autoComplete:"off",value:l,onChange:function(e){const t=e.target.value;i(t),u.current&&clearTimeout(u.current),t.length<2?d(!1):u.current=setTimeout(async()=>{try{const e=window.cnsMapSuite.wpRestUrl+"/search?search="+encodeURIComponent(t)+"&type=post&subtype=maps&per_page=10",n=await fetch(e,{headers:{"X-WP-Nonce":window.cnsMapSuite.nonce}}),s=await n.json();Array.isArray(s)&&(c(s),d(!0))}catch{}},350)}}),r&&o.length>0&&(0,t.jsx)("div",{className:"cns-post-results",children:o.map(e=>(0,t.jsx)("button",{type:"button",className:"cns-post-result",onClick:()=>function(e){a({id:e.id,title:e.title}),i(""),c([]),d(!1)}(e),children:e.title},e.id))}),n>0&&(0,t.jsxs)("p",{className:"description",children:[s||`Map ID: ${n}`," ",(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:()=>a({id:0,title:""}),children:"Clear"})]})]})}function N({formData:e,onChange:n}){function s(t,s){n({...e,[t]:s})}return(0,t.jsxs)(t.Fragment,{children:[(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Child Map"}),(0,t.jsx)(w,{childMapId:e.child_map_id,childMapLabel:e.child_map_label,onChange:t=>n({...e,child_map_id:t?t.id:0,child_map_label:t?t.title:""})})]}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Infobox Override"}),(0,t.jsx)("p",{className:"description",children:"Leave blank to use the child map's title and excerpt."}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Title"}),(0,t.jsx)("input",{type:"text",className:"large-text",value:e.title_override,placeholder:e.child_map_label||"Child map title",onChange:e=>s("title_override",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Description"}),(0,t.jsx)("textarea",{rows:3,className:"large-text",value:e.description_override,placeholder:"Child map excerpt",onChange:e=>s("description_override",e.target.value)})]})]})]}),(0,t.jsxs)("section",{className:"cns-modal-section",children:[(0,t.jsx)("h3",{children:"Region Style"}),(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Fill Color"}),(0,t.jsx)("input",{type:"color",value:e.style_fill,onChange:e=>s("style_fill",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Fill Opacity"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{type:"range",min:"0",max:"1",step:"0.05",value:e.style_fill_opacity,onChange:e=>s("style_fill_opacity",parseFloat(e.target.value))}),(0,t.jsx)("output",{className:"cns-range-value",children:parseFloat(String(e.style_fill_opacity)).toFixed(2)})]})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Stroke Color"}),(0,t.jsx)("input",{type:"color",value:e.style_stroke,onChange:e=>s("style_stroke",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{children:"Stroke Width (px)"}),(0,t.jsx)("input",{type:"number",className:"small-text",min:"1",max:"10",value:e.style_stroke_width,onChange:e=>s("style_stroke_width",parseInt(e.target.value,10)||2)})]})]})]})]})}function C(e){const t=e?.canvas_styles||{};return{child_map_id:e?.child_map_id||0,child_map_label:e?.child_map_title||"",title_override:e?.title_override||"",description_override:e?.description_override||"",style_fill:t.fill||"#e8a020",style_fill_opacity:t.fillOpacity??.25,style_stroke:t.stroke||"#e8a020",style_stroke_width:t.strokeWidth||2}}function k(e,t,n){const s={"X-WP-Nonce":window.cnsMapSuite.nonce},a={method:e,headers:s};return void 0!==n&&(s["Content-Type"]="application/json",a.body=JSON.stringify(n)),fetch(window.cnsMapSuite.restUrl+t,a)}function S(e){const t=e.target;return!!t&&"function"==typeof t.closest&&!!t.closest('input, textarea, select, [contenteditable="true"]')}const I={};function E(e){return e?I[e]?Promise.resolve(I[e]):new Promise(t=>{const n=new Image;n.onload=()=>{I[e]=n,t(n)},n.onerror=()=>{t(null)},n.src=e}):Promise.resolve(null)}async function R(e,t){const n=e.getContext("2d"),s=t.width,a=Math.round(s/t.aspectRatio);if(e.width=s,e.height=a,n.clearRect(0,0,s,a),"image"===t.bgType){const e=await E(t.bgImageUrl);if(e){const t=Math.max(s/e.naturalWidth,a/e.naturalHeight),l=e.naturalWidth*t,i=e.naturalHeight*t;n.drawImage(e,(s-l)/2,(a-i)/2,l,i)}else n.fillStyle="#888",n.fillRect(0,0,s,a)}else n.fillStyle=t.bgColor,n.fillRect(0,0,s,a);const l=await E(t.imgUrl);if(l){const e=s*t.imageW,i=e*(l.naturalHeight/l.naturalWidth);n.drawImage(l,s*t.imageX,a*t.imageY,e,i)}}function D(e,t){const n=e.getBoundingClientRect();return{x:Math.round((t.clientX-n.left)*(e.width/n.width)),y:Math.round((t.clientY-n.top)*(e.height/n.height))}}function L(e){return{width:e.width,aspectRatio:e.aspectRatio,bgType:e.bgType,bgColor:e.bgColor,bgImageUrl:e.bgImageUrl,imgUrl:e.imageUrl,imageX:e.imageX,imageY:e.imageY,imageW:e.imageW}}function T(e,t,n,s,a){if(e.beginPath(),t.length)switch(n){case"BEZIER":t.length>=3&&function(e,t,n,s){const a=t.length,l=(t[a-1].x+t[0].x)/2*n,i=(t[a-1].y+t[0].y)/2*s;e.moveTo(l,i);for(let l=0;l<a;l++){const i=t[l],o=t[(l+1)%a];e.quadraticCurveTo(i.x*n,i.y*s,(i.x+o.x)/2*n,(i.y+o.y)/2*s)}e.closePath()}(e,t,s,a);break;case"CIRCLE":t.length>=2&&function(e,t,n,s){const a=t[0].x*n,l=t[0].y*s,i=Math.max(Math.abs(t[1].x-t[0].x)*n,1),o=Math.max(Math.abs(t[1].y-t[0].y)*s,1);e.ellipse(a,l,i,o,0,0,2*Math.PI)}(e,t,s,a);break;default:t.length>=3&&function(e,t,n,s){e.moveTo(t[0].x*n,t[0].y*s);for(let a=1;a<t.length;a++)e.lineTo(t[a].x*n,t[a].y*s);e.closePath()}(e,t,s,a)}}function O(e,t){const n=t.canvas_styles?.fontSize||14;e.font=`bold ${n}px sans-serif`;const s=e.measureText(t.text||"").width+16,a=n+10,l="indicator"===t.placement?t.x+(t.offset_x??40):t.x,i="indicator"===t.placement?t.y+(t.offset_y??-40):t.y;return{left:l-s/2,top:i-a/2,w:s,h:a,cx:l,cy:i,fontSize:n}}function P(e,t,n,s,a,l){"function"==typeof e.roundRect?e.roundRect(t,n,s,a,l):e.rect(t,n,s,a)}function M(e,t,n={}){const s=t.canvas_styles?.bgColor||"#ffffff",a=t.canvas_styles?.borderColor||"#1e1e1e",l=t.canvas_styles?.textColor||"#1e1e1e",i=O(e,t);e.save(),"indicator"===t.placement&&(e.beginPath(),e.moveTo(t.x,t.y),e.lineTo(i.cx,i.cy),e.strokeStyle=a,e.lineWidth=1.5,e.stroke(),e.beginPath(),e.arc(t.x,t.y,4,0,2*Math.PI),e.fillStyle=a,e.fill()),e.beginPath(),P(e,i.left,i.top,i.w,i.h,4),e.fillStyle=s,e.fill(),e.strokeStyle=a,e.lineWidth=1.5,e.stroke(),e.font=`bold ${i.fontSize}px sans-serif`,e.textAlign="center",e.textBaseline="middle",e.fillStyle=l,e.fillText(t.text||(n.showEmptyPlaceholder?"(empty label)":""),i.cx,i.cy),n.selected&&(e.beginPath(),P(e,i.left-4,i.top-4,i.w+8,i.h+8,6),e.strokeStyle="#2271b1",e.lineWidth=2,e.setLineDash([4,3]),e.stroke()),e.restore()}function U(e,t,n,s){if(4!==e.length)return null;const a=e.map(e=>({...e}));switch(a[t]={x:n,y:s},t){case 0:a[1].y=s,a[3].x=n;break;case 1:a[0].y=s,a[2].x=n;break;case 2:a[3].y=s,a[1].x=n;break;case 3:a[2].y=s,a[0].x=n}return a}function A(e){return"CIRCLE"===e?[{x:.5,y:.5},{x:.7,y:.65}]:[{x:.25,y:.25},{x:.75,y:.25},{x:.75,y:.75},{x:.25,y:.75}]}function F(e,t,n,s){const a=e.shape_type||"POLYGON";let l=(e.nodes||[]).map(e=>({...e}));if("RECTANGLE"===a)l=U(l,t,n,s)||l;else if("CIRCLE"===a&&0===t){const e=n-l[0].x,t=s-l[0].y;l[0]={x:n,y:s},l[1]&&(l[1]={x:l[1].x+e,y:l[1].y+t})}else l[t]={x:n,y:s};return l}function W(e,t){return"RECTANGLE"===t?4===e.length?e:A("RECTANGLE"):"CIRCLE"===t?e.length>=2?e.slice(0,2):1===e.length?[e[0],{x:e[0].x+.2,y:e[0].y+.15}]:A("CIRCLE"):e}function $(e,t,n,s,a,l,i,o=null){const c=t.nodes||[];if(!c.length)return;const r=t.shape_type||"POLYGON",d=a?function(e,t,n,s,a,l){if(null===n||!s)return e;const i=s.x/a,o=s.y/l;if("RECTANGLE"===t)return U(e,n,i,o)||e;const c=e.map(e=>({...e}));if("CIRCLE"===t&&0===n){const t=i-e[0].x,n=o-e[0].y;c[0]={x:i,y:o},c[1]&&(c[1]={x:e[1].x+t,y:e[1].y+n})}else c[n]={x:i,y:o};return c}(c,r,l,i,n,s):c,u="CIRCLE"===r?2:3;if(d.length>=u){const l=t.canvas_styles||{},i=l.fill||"#2271b1",o=l.fillOpacity??.3,c=l.stroke||"#2271b1",u=l.strokeWidth||2;T(e,d,r,n,s),e.save(),e.globalAlpha=o,e.fillStyle=i,e.fill(),e.restore(),e.strokeStyle=c,e.lineWidth=a?Math.max(u,2):u,e.stroke()}a&&d.forEach((t,a)=>{const i=l===a,c=!i&&null===l&&o===a;e.beginPath(),e.rect(t.x*n-5,t.y*s-5,10,10),c&&(e.fillStyle="#2271b1",e.fill()),e.strokeStyle=i?"#e75252":"#2271b1",e.lineWidth=2,e.stroke()})}const G={RECTANGLE:["TL","TR","BR","BL"],CIRCLE:["Center","Edge"]};function Y({area:e,onNodesChange:n}){const s=e.nodes||[],a=e.shape_type||"POLYGON",l="RECTANGLE"===a||"CIRCLE"===a,i=G[a]||null;function o(e,t,l){const i=Math.max(0,Math.min(100,parseFloat(l)||0))/100;let o=s.map(e=>({...e}));if("RECTANGLE"===a)o=U(o,e,"x"===t?i:o[e].x,"y"===t?i:o[e].y)||o;else if("CIRCLE"===a&&0===e){const e=("x"===t?i:o[0].x)-o[0].x,n=("y"===t?i:o[0].y)-o[0].y;o[0]={x:o[0].x+e,y:o[0].y+n},o[1]&&(o[1]={x:o[1].x+e,y:o[1].y+n})}else o[e]={...o[e],[t]:i};n(o)}return(0,t.jsxs)("section",{className:"cns-modal-section cns-nodes-section",children:[(0,t.jsxs)("h3",{children:["Nodes",!l&&(0,t.jsx)("button",{type:"button",className:"button button-small cns-nodes-add-btn",onClick:function(){n([...s,{x:.5,y:.5}])},children:"+ Add Node"})]}),0===s.length?(0,t.jsx)("p",{className:"description",children:"No nodes yet. Click the canvas to add nodes."}):(0,t.jsxs)("table",{className:"cns-nodes-table",children:[(0,t.jsx)("thead",{children:(0,t.jsxs)("tr",{children:[(0,t.jsx)("th",{children:"#"}),(0,t.jsx)("th",{children:"X %"}),(0,t.jsx)("th",{children:"Y %"}),(0,t.jsx)("th",{})]})}),(0,t.jsx)("tbody",{children:s.map((e,a)=>(0,t.jsxs)("tr",{children:[(0,t.jsx)("td",{className:"cns-node-num",children:i?i[a]??a+1:a+1}),(0,t.jsx)("td",{children:(0,t.jsx)("input",{type:"number",className:"small-text cns-node-x",value:(100*e.x).toFixed(1),min:"0",max:"100",step:"0.1",onChange:e=>o(a,"x",e.target.value)})}),(0,t.jsx)("td",{children:(0,t.jsx)("input",{type:"number",className:"small-text cns-node-y",value:(100*e.y).toFixed(1),min:"0",max:"100",step:"0.1",onChange:e=>o(a,"y",e.target.value)})}),(0,t.jsx)("td",{children:!l&&(0,t.jsx)("button",{type:"button",className:"button button-small cns-node-del",onClick:()=>function(e){n(s.filter((t,n)=>n!==e))}(a),children:"×"})})]},a))})]})]})}function z({region:e,onNodesChange:n}){const s=e.nodes||[];function a(e,t,a){const l=Math.max(0,Math.min(100,parseFloat(a)||0))/100,i=s.map(e=>({...e}));i[e]={...i[e],[t]:l},n(i)}return(0,t.jsxs)("section",{className:"cns-modal-section cns-nodes-section",children:[(0,t.jsxs)("h3",{children:["Nodes",(0,t.jsx)("button",{type:"button",className:"button button-small cns-nodes-add-btn",onClick:function(){n([...s,{x:.5,y:.5}])},children:"+ Add Node"})]}),0===s.length?(0,t.jsx)("p",{className:"description",children:"No nodes yet. Click the canvas to add nodes."}):(0,t.jsxs)("table",{className:"cns-nodes-table",children:[(0,t.jsx)("thead",{children:(0,t.jsxs)("tr",{children:[(0,t.jsx)("th",{children:"#"}),(0,t.jsx)("th",{children:"X %"}),(0,t.jsx)("th",{children:"Y %"}),(0,t.jsx)("th",{})]})}),(0,t.jsx)("tbody",{children:s.map((e,l)=>(0,t.jsxs)("tr",{children:[(0,t.jsx)("td",{className:"cns-node-num",children:l+1}),(0,t.jsx)("td",{children:(0,t.jsx)("input",{type:"number",className:"small-text cns-node-x",value:(100*e.x).toFixed(1),min:"0",max:"100",step:"0.1",onChange:e=>a(l,"x",e.target.value)})}),(0,t.jsx)("td",{children:(0,t.jsx)("input",{type:"number",className:"small-text cns-node-y",value:(100*e.y).toFixed(1),min:"0",max:"100",step:"0.1",onChange:e=>a(l,"y",e.target.value)})}),(0,t.jsx)("td",{children:(0,t.jsx)("button",{type:"button",className:"button button-small cns-node-del",onClick:()=>function(e){n(s.filter((t,n)=>n!==e))}(l),children:"×"})})]},l))})]})]})}let H=null;async function X(){try{const e=await k("GET","/icons"),t=await e.json();e.ok&&(H=t)}catch{H=[]}}function B({activeTab:s,selectedObject:a,selectedArea:l,selectedLabel:i,selectedRegion:o,onObjectSave:c,onObjectDelete:r,onObjectClose:d,onObjectReposition:u,onObjectDuplicate:m,onLabelSave:y,onLabelDelete:j,onLabelClose:w,onLabelReposition:k,onLabelDuplicate:S,onLabelLocalUpdate:I,onAreaSave:E,onAreaDelete:R,onAreaClose:D,onAreaDuplicate:L,onAreaNodesUpdate:T,onAreaShapeTypeChange:O,onRegionSave:P,onRegionDelete:M,onRegionClose:U,onRegionNodesUpdate:A}){const[F,W]=(0,e.useState)(null),[$,G]=(0,e.useState)(null),[B,J]=(0,e.useState)(null),[V,K]=(0,e.useState)(null),[Z,q]=(0,e.useState)(H||[]),[Q,ee]=(0,e.useState)({text:"",type:""}),[te,ne]=(0,e.useState)(!1);if((0,e.useEffect)(()=>{a&&(W(p(a,null,null)),ee({text:"",type:""}),H||X().then(()=>q(H||[])))},[a?.id]),(0,e.useEffect)(()=>{l&&(G(_(l)),ee({text:"",type:""}))},[l?.id]),(0,e.useEffect)(()=>{i&&J(b(i,null,null))},[i?.id,i?.x,i?.y,i?.offset_x,i?.offset_y]),(0,e.useEffect)(()=>{i&&ee({text:"",type:""})},[i?.id]),(0,e.useEffect)(()=>{o&&(K(C(o)),ee({text:"",type:""}))},[o?.id]),!(a||l||i||o))return(0,t.jsx)("aside",{className:"cns-editor-context","aria-label":"Context panel",children:(0,t.jsx)("div",{className:"cns-editor-context__empty",children:(0,t.jsx)("p",{children:"areas"===s?"Select an area on the canvas to edit it here.":"labels"===s?"Select a label on the canvas to edit it here.":"hierarchy"===s?"Select a region on the canvas to edit it here.":"Select an object on the canvas to edit it here."})})});const se=!!a,ae=!se&&!!i,le=!se&&!ae&&!!o,ie=se?a.title||"(no title)":ae?i.text||"(empty label)":le?o.child_map_title||"New Region":l.title||"(no title)";return(0,t.jsx)("aside",{className:"cns-editor-context","aria-label":"Context panel",children:(0,t.jsxs)("div",{id:"cns-context-form",children:[(0,t.jsxs)("div",{className:"cns-editor-context__header",children:[(0,t.jsx)("span",{className:"cns-editor-context__title",children:ie}),se&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:u,children:"Reposition"}),(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:m,children:"Duplicate"})]}),!se&&!ae&&!le&&(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:L,children:"Duplicate"}),ae&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:k,children:"Reposition"}),(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:S,children:"Duplicate"})]}),(0,t.jsx)("button",{type:"button",className:"cns-editor-context__close","aria-label":"Close",onClick:function(){se?d():ae?w():le?U():D()},children:"×"})]}),(0,t.jsxs)("div",{className:"cns-editor-context__body",children:[se&&F&&(0,t.jsx)(h,{formData:F,onChange:W,icons:Z}),ae&&B&&(0,t.jsx)(f,{formData:B,onChange:e=>{J(e),i&&I(i.id,{text:e.text,placement:e.placement,x:e.x,y:e.y,offset_x:e.offset_x,offset_y:e.offset_y,infobox_source:e.infobox_source,linked_post_id:e.linked_post_id,infobox_data:{title:e.infobox_title,description:e.infobox_description,image_id:e.infobox_image_id},canvas_styles:{bgColor:e.style_bg,borderColor:e.style_border,textColor:e.style_text_color,fontSize:e.style_font_size}})}}),!se&&!ae&&!le&&$&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(v,{formData:$,onChange:G,onShapeTypeChange:e=>{l&&O?.(l.id,e),G(t=>t?{...t,shape_type:e}:t)}}),l&&(0,t.jsx)(Y,{area:l,onNodesChange:e=>T?.(l.id,e)})]}),le&&V&&(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)(N,{formData:V,onChange:K}),o&&(0,t.jsx)(z,{region:o,onNodesChange:e=>A(o.id,e)})]})]}),(0,t.jsxs)("div",{className:"cns-editor-context__footer",children:[(0,t.jsx)(n,{text:Q.text,type:Q.type}),(0,t.jsx)("button",{type:"button",className:"button button-small button-primary",disabled:te,onClick:async function(){ne(!0),ee({text:"Saving…",type:""});try{if(se&&F){const e=await c(x(F));e?.title&&W(t=>t?{...t,title:e.title}:t)}else if(ae&&B){const e=await y(g(B));e&&J(b(e,null,null))}else if(le&&V){const e=await P(V);e&&K(C(e))}else $&&await E($);ee({text:"Saved.",type:"ok"}),setTimeout(()=>ee({text:"",type:""}),2e3)}catch(e){ee({text:e.message,type:"error"})}finally{ne(!1)}},children:"Save"}),(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:async function(){if(se){if(!confirm("Delete this object?"))return;await r()}else if(ae){if(!confirm("Delete this label?"))return;await j()}else if(le){if(!confirm("Delete this hierarchy region?"))return;await M()}else{if(!confirm("Delete this area?"))return;await R()}},children:"Delete"})]})]})})}function J({settings:n}){const s=(0,e.useRef)(null);return(0,e.useEffect)(()=>{const e=s.current;e&&R(e,{width:n.width,aspectRatio:n.aspectRatio,bgType:n.bgType,bgColor:n.bgColor,bgImageUrl:n.bgImageUrl,imgUrl:n.imageUrl,imageX:n.imageX,imageY:n.imageY,imageW:n.imageW})},[n.width,n.aspectRatio,n.bgType,n.bgColor,n.bgImageUrl,n.imageUrl,n.imageX,n.imageY,n.imageW]),(0,t.jsxs)("div",{className:"cns-settings-canvas",children:[(0,t.jsx)("canvas",{ref:s}),(0,t.jsx)("p",{className:"description",children:"Live preview — updates as you edit settings."})]})}function V({settings:e,onChange:n}){function s(e,t){n(n=>({...n,[e]:t}))}return(0,t.jsx)("div",{className:"cns-tab-panel cns-tab-panel--active","data-panel":"settings",role:"tabpanel",children:(0,t.jsxs)("div",{className:"cns-settings-layout",children:[(0,t.jsx)("div",{className:"cns-settings-form",children:(0,t.jsxs)("div",{className:"cns-form-grid",children:[(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{htmlFor:"cns-map-title",children:"Map Title"}),(0,t.jsx)("input",{id:"cns-map-title",type:"text",className:"large-text",value:e.title,placeholder:"Enter map title…",onChange:e=>s("title",e.target.value)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{htmlFor:"cns-map-width",children:"Max Width (px)"}),(0,t.jsx)("input",{id:"cns-map-width",type:"number",className:"small-text",min:"100",step:"10",value:e.width,onChange:e=>s("width",parseInt(e.target.value,10)||1e3)})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{htmlFor:"cns-map-aspect-ratio",children:"Aspect Ratio"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{id:"cns-map-aspect-ratio",type:"range",min:"0.25",max:"4",step:"0.01",value:e.aspectRatio,onChange:e=>s("aspectRatio",parseFloat(e.target.value))}),(0,t.jsx)("output",{className:"cns-range-value",children:e.aspectRatio.toFixed(2)})]}),(0,t.jsx)("p",{className:"description",children:"Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)"})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{htmlFor:"cns-map-time",children:"Map Time"}),(0,t.jsx)("input",{id:"cns-map-time",type:"number",className:"small-text",value:e.time,onChange:e=>s("time",parseInt(e.target.value,10)||0)}),(0,t.jsx)("p",{className:"description",children:"In-world timeline value."})]}),(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Base Map Image"}),(0,t.jsx)(o,{imageId:e.imageId,imageUrl:e.imageUrl,title:"Select Base Map Image",onChange:e=>n(t=>({...t,imageId:e?e.id:0,imageUrl:e?e.url:""}))})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{htmlFor:"cns-map-image-x",children:"Image X offset"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{id:"cns-map-image-x",type:"range",min:"0",max:"1",step:"0.01",value:e.imageX,onChange:e=>s("imageX",parseFloat(e.target.value))}),(0,t.jsx)("output",{className:"cns-range-value",children:e.imageX.toFixed(2)})]})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{htmlFor:"cns-map-image-y",children:"Image Y offset"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{id:"cns-map-image-y",type:"range",min:"0",max:"1",step:"0.01",value:e.imageY,onChange:e=>s("imageY",parseFloat(e.target.value))}),(0,t.jsx)("output",{className:"cns-range-value",children:e.imageY.toFixed(2)})]})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsx)("label",{htmlFor:"cns-map-image-width",children:"Image Width"}),(0,t.jsxs)("div",{className:"cns-range-wrap",children:[(0,t.jsx)("input",{id:"cns-map-image-width",type:"range",min:"0.1",max:"2",step:"0.01",value:e.imageW,onChange:e=>s("imageW",parseFloat(e.target.value))}),(0,t.jsx)("output",{className:"cns-range-value",children:e.imageW.toFixed(2)})]}),(0,t.jsx)("p",{className:"description",children:"1.0 = full canvas width. Height follows image ratio."})]}),(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Background"}),(0,t.jsxs)("div",{className:"cns-bg-type-toggle",children:[(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:"cns-map-bg-type",value:"color",checked:"color"===e.bgType,onChange:()=>s("bgType","color")})," ","Color"]}),(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"radio",name:"cns-map-bg-type",value:"image",checked:"image"===e.bgType,onChange:()=>s("bgType","image")})," ","Image"]})]}),"color"===e.bgType&&(0,t.jsx)("div",{className:"cns-bg-section cns-bg-section--color",children:(0,t.jsx)("input",{type:"color",className:"cns-color-picker",value:e.bgColor,onChange:e=>s("bgColor",e.target.value)})}),"image"===e.bgType&&(0,t.jsx)("div",{className:"cns-bg-section cns-bg-section--image",children:(0,t.jsx)(o,{imageId:e.bgImageId,imageUrl:e.bgImageUrl,title:"Select Background Image",onChange:e=>n(t=>({...t,bgImageId:e?e.id:0,bgImageUrl:e?e.url:""}))})})]}),(0,t.jsxs)("div",{className:"cns-form-row",children:[(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"checkbox",checked:e.isMaster,onChange:e=>s("isMaster",e.target.checked)})," ","MasterMap mode"]}),(0,t.jsx)("p",{className:"description",children:"Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy."})]}),(0,t.jsxs)("div",{className:"cns-form-row cns-form-row--full",children:[(0,t.jsx)("label",{children:"Thumbnail"}),e.thumbnailUrl&&(0,t.jsx)("div",{style:{marginBottom:8},children:(0,t.jsx)("img",{src:e.thumbnailUrl,alt:"",style:{maxWidth:120,maxHeight:80,display:"block",borderRadius:4,border:"1px solid #ddd"}})}),(0,t.jsxs)("div",{style:{display:"flex",gap:8},children:[(0,t.jsx)("button",{type:"button",className:"button",onClick:function(){const e=window.wp?.media?.({title:"Select Map Thumbnail",button:{text:"Use as thumbnail"},multiple:!1,library:{type:"image"}});e&&(e.on("select",()=>{const t=e.state().get("selection").first().toJSON();n(e=>({...e,thumbnailId:t.id,thumbnailUrl:t.url}))}),e.open())},children:e.thumbnailId?"Change thumbnail":"Set thumbnail"}),e.thumbnailId&&(0,t.jsx)("button",{type:"button",className:"button",onClick:()=>n(e=>({...e,thumbnailId:null,thumbnailUrl:""})),children:"Remove"})]}),(0,t.jsx)("p",{className:"description",children:"Used as the map’s featured image in listings."})]}),(0,t.jsx)("div",{className:"cns-form-row",children:(0,t.jsxs)("label",{children:[(0,t.jsx)("input",{type:"checkbox",checked:e.featured,onChange:e=>s("featured",e.target.checked)})," ","Featured"]})})]})}),(0,t.jsx)(J,{settings:e})]})})}function K(e,t,n,s,a,l){e.save(),e.beginPath(),e.arc(t,n,s/2,0,2*Math.PI),e.fillStyle=a||"#2271b1",e.strokeStyle=l||"#fff",e.lineWidth=2,e.fill(),e.stroke(),e.restore()}async function Z(e,t,n){const s=t.canvas_styles?.size??32,a=t.canvas_styles?.fillStyle??"#ffffff",l=t.canvas_styles?.strokeStyle??"#2271b1";if(t.icon_url){const n="image/svg+xml"===t.icon_mime?await async function(e,t,n){const s=`${e}|${t??""}|${n??""}`;if(I[s])return I[s];try{const a=await fetch(e,{credentials:"same-origin"}),l=await a.text(),i=(new DOMParser).parseFromString(l,"image/svg+xml"),o=i.documentElement;t&&o.setAttribute("fill",t),n&&o.setAttribute("stroke",n);const c=new Blob([(new XMLSerializer).serializeToString(i)],{type:"image/svg+xml"}),r=URL.createObjectURL(c);return new Promise(e=>{const t=new Image;t.onload=()=>{URL.revokeObjectURL(r),I[s]=t,e(t)},t.onerror=()=>{URL.revokeObjectURL(r),e(null)},t.src=r})}catch{return null}}(t.icon_url,a,l):await E(t.icon_url);n?e.drawImage(n,t.x-s/2,t.y-s/2,s,s):K(e,t.x,t.y,s,a,l)}else K(e,t.x,t.y,s,a,l);n&&(e.save(),e.beginPath(),e.arc(t.x,t.y,s/2+4,0,2*Math.PI),e.strokeStyle="#2271b1",e.lineWidth=2,e.setLineDash([4,3]),e.stroke(),e.restore())}function q(t){const n=(0,e.useRef)(null),s=(0,e.useRef)(null),a=(0,e.useRef)(t);function l(e){s.current={payload:e,cursor:null},n.current&&(n.current.style.cursor="grabbing"),a.current.redraw()}return a.current=t,(0,e.useEffect)(()=>{const e=n.current;if(e)return e.addEventListener("mousemove",i),e.addEventListener("click",o),document.addEventListener("keydown",c),()=>{e.removeEventListener("mousemove",i),e.removeEventListener("click",o),document.removeEventListener("keydown",c)};function t(){s.current=null,e.style.cursor="",a.current.onDragEnd?.()}function i(t){const n=D(e,t),l=s.current;if(!l){const t=e.getContext("2d");return void(e.style.cursor=a.current.hitTest(t,n.x,n.y)?"grab":"")}l.cursor=n,a.current.redraw()}function o(n){const l=D(e,n),i=e.getContext("2d"),o=s.current;if(o){const e=o.payload;return t(),a.current.redraw(),void a.current.onDrop(e,l)}const c=a.current.hitTest(i,l.x,l.y);if(null!==c)return a.current.onPickup(c),s.current={payload:c,cursor:l},e.style.cursor="grabbing",void a.current.redraw();a.current.onEmptyClick(l)}function c(e){if("Escape"===e.key)return void(s.current?(t(),a.current.redraw()):a.current.onEscapeIdle());if("Enter"!==e.key||S(e))return;if(e.target?.closest?.("button, a"))return;const n=s.current;if(n){e.preventDefault();const{payload:s,cursor:l}=n;t(),a.current.redraw(),a.current.onDrop(s,l)}else{const t=a.current.dragFromSelection();null!==t&&(e.preventDefault(),l(t))}}},[]),{canvasRef:n,dragRef:s,startDrag:l}}let Q=1;function ee({children:n,allowFullscreen:s=!1}){const[a,l]=(0,e.useState)(Q),[i,o]=(0,e.useState)(!1),c=(0,e.useRef)(null);function r(e){const t=Math.min(4,Math.max(1,Math.round(10*(a+e))/10));if(t===a)return;Q=t;const n=c.current,s=n?(n.scrollLeft+n.clientWidth/2)/a:0,i=n?(n.scrollTop+n.clientHeight/2)/a:0;l(t),requestAnimationFrame(()=>{n&&(n.scrollLeft=s*t-n.clientWidth/2,n.scrollTop=i*t-n.clientHeight/2)})}(0,e.useEffect)(()=>{if(i)return document.addEventListener("keydown",e),document.body.classList.add("cns-canvas-fullscreen-open"),()=>{document.removeEventListener("keydown",e),document.body.classList.remove("cns-canvas-fullscreen-open")};function e(e){"Escape"===e.key&&o(!1)}},[i]);const d="cns-canvas-zoom"+(a>1?" cns-canvas-zoom--zoomed":"")+(i?" is-fullscreen":"");return(0,t.jsxs)("div",{className:d,children:[(0,t.jsxs)("div",{className:"cns-canvas-zoom__controls",children:[s&&(0,t.jsx)("button",{type:"button",className:"button",onClick:()=>o(e=>!e),"aria-label":i?"Exit fullscreen":"View fullscreen",children:i?"✕":"⛶"}),(0,t.jsx)("button",{type:"button",className:"button",onClick:()=>r(.1),disabled:a>=4,"aria-label":"Zoom in",children:"+"}),(0,t.jsxs)("span",{className:"cns-canvas-zoom__value",children:[Math.round(100*a),"%"]}),(0,t.jsx)("button",{type:"button",className:"button",onClick:()=>r(-.1),disabled:a<=1,"aria-label":"Zoom out",children:"−"})]}),(0,t.jsx)("div",{className:"cns-canvas-zoom__scroll",ref:c,children:(0,t.jsx)("div",{className:"cns-canvas-zoom__inner",style:a>1?{width:100*a+"%"}:void 0,children:n})})]})}function te({drawState:n,objects:s,selectedObjectId:a,repositioningObjectId:l,onSelect:i,onDeselect:o,onPositionUpdate:c,onRepositionComplete:r,onPlace:d}){const u=(0,e.useRef)({objects:[],selectedObjectId:null});function m(){const e=h.current;if(!e)return;const{objects:t,selectedObjectId:s}=u.current,a=p.current;!async function(e,t,n,s,a,l){await R(e,t);const i=e.getContext("2d");for(const e of n)a===e.id&&l?await Z(i,{...e,...l},!0):await Z(i,e,s===e.id)}(e,n,t,s,a?.payload.id??null,a?.cursor??null)}u.current={objects:s,selectedObjectId:a};const{canvasRef:h,dragRef:p,startDrag:x}=q({hitTest:(e,t,n)=>{const s=function(e,t,n,s){for(let a=s.length-1;a>=0;a--){const l=s[a],i=l.canvas_styles?.size??32,o=i/2;if(e.beginPath(),e.rect(l.x-o,l.y-o,i,i),e.isPointInPath(t,n))return l}return null}(e,t,n,u.current.objects);return s?{id:s.id}:null},onPickup:e=>i?.(e.id),onDrop:(e,t)=>{t&&c?.(e.id,Math.round(t.x),Math.round(t.y))},dragFromSelection:()=>u.current.selectedObjectId?{id:u.current.selectedObjectId}:null,onEmptyClick:e=>{u.current.selectedObjectId?o?.():d?.(Math.round(e.x),Math.round(e.y))},onEscapeIdle:()=>{u.current.selectedObjectId&&o?.()},onDragEnd:()=>r?.(),redraw:m});return(0,e.useEffect)(()=>{m()}),(0,e.useEffect)(()=>{l&&x({id:l})},[l]),(0,t.jsx)("div",{className:"cns-objects-canvas-wrap",children:(0,t.jsx)(ee,{children:(0,t.jsx)("canvas",{ref:h})})})}function ne({items:e,columns:n,emptyText:s,renderActions:a}){return e.length?(0,t.jsxs)("table",{className:"widefat cns-objects-table",children:[(0,t.jsx)("thead",{children:(0,t.jsxs)("tr",{children:[n.map((e,n)=>(0,t.jsx)("th",{style:e.width?{width:e.width}:void 0,children:e.header},n)),(0,t.jsx)("th",{children:"Actions"})]})}),(0,t.jsx)("tbody",{children:e.map(e=>(0,t.jsxs)("tr",{children:[n.map((n,s)=>(0,t.jsx)("td",{className:n.className,children:n.render(e)},s)),(0,t.jsx)("td",{className:"cns-maps-actions",children:a(e)})]},e.id))})]}):(0,t.jsx)("p",{className:"cns-objects-empty",children:s})}const se=[{header:"",width:36,className:"col-icon",render:e=>e.icon_url?(0,t.jsx)("img",{src:e.icon_url,width:"28",height:"28",alt:"",style:{display:"block",objectFit:"contain"}}):(0,t.jsx)("span",{className:"cns-obj-dot",style:{background:e.canvas_styles?.fillStyle||"#2271b1"}})},{header:"Title",render:e=>e.title||"(no title)"},{header:"Type",render:e=>(0,t.jsx)("span",{className:"cns-badge cns-badge--type",children:e.type})},{header:"Position",render:e=>(0,t.jsxs)(t.Fragment,{children:[e.x,", ",e.y]})}];function ae({objects:e,onEdit:n,onDuplicate:s,onDelete:a}){return(0,t.jsx)(ne,{items:e,columns:se,emptyText:"No objects yet. Click on the canvas to place one.",renderActions:e=>(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)("button",{className:"button button-small",onClick:()=>n(e),children:"Edit"})," ",(0,t.jsx)("button",{className:"button button-small",onClick:()=>s(e.id),children:"Duplicate"})," ",(0,t.jsx)("button",{className:"button button-small",onClick:()=>a(e.id),children:"Delete"})]})})}const le={ArrowUp:[0,-1],ArrowDown:[0,1],ArrowLeft:[-1,0],ArrowRight:[1,0]};function ie(t){const n=(0,e.useRef)(t);n.current=t,(0,e.useEffect)(()=>{function e(e){if(S(e))return;const t=n.current,s=e.metaKey||e.ctrlKey,a=e.key.toLowerCase();if(s&&"c"===a)window.getSelection()?.toString()||t.copy?.();else if(s&&"v"===a)t.paste?.();else if(s&&"d"===a)t.duplicate?.()&&e.preventDefault();else if("Delete"!==e.key&&"Backspace"!==e.key)if("Tab"!==e.key||s||e.altKey){if(le[e.key]&&t.nudge){const n=e.shiftKey?10:1;t.nudge(le[e.key][0]*n,le[e.key][1]*n)&&e.preventDefault()}}else t.tab?.(e.shiftKey)&&e.preventDefault();else t.remove?.()&&e.preventDefault()}return document.addEventListener("keydown",e),()=>document.removeEventListener("keydown",e)},[])}function oe(e,t,n,s=500){let a=null,l=null;function i(){a&&(window.clearTimeout(a),a=null);const e=l;l=null,e&&n(e.id,e.x,e.y)}return{nudge:function(n,o){const c=e();if(!c)return!1;l&&l.id!==c.id&&i();const r=l??{id:c.id,x:c.x,y:c.y},d=Math.max(0,r.x+n),u=Math.max(0,r.y+o);return l={id:c.id,x:d,y:u},t(c.id,d,u),a&&window.clearTimeout(a),a=window.setTimeout(i,s),!0},flush:i}}function ce(t,n,s){const[a,l]=(0,e.useState)(!1),i=(0,e.useRef)(s);i.current=s,(0,e.useEffect)(()=>{!a&&t&&k("GET",`/maps/${t}/${n}`).then(e=>e.json()).then(e=>{Array.isArray(e)&&i.current(e)}).catch(()=>{}).finally(()=>l(!0))},[t])}let re=null;function de({mapId:n,settings:s,objects:a,selectedObjectId:l,repositioningObjectId:i,onObjectsLoaded:o,onSelect:c,onDeselect:r,onAdd:d,onPositionUpdate:u,onLocalUpdate:m,onDuplicate:h,onRepositionStart:f,onRepositionComplete:b,onDelete:g}){ce(n,"objects",o);const y=(0,e.useRef)({objects:a,selectedObjectId:l});y.current={objects:a,selectedObjectId:l};const j=(0,e.useRef)({onPositionUpdate:u,onLocalUpdate:m});j.current={onPositionUpdate:u,onLocalUpdate:m};const v=a.find(e=>e.id===l)||null,_=(0,e.useRef)(oe(()=>{const e=y.current;return e.objects.find(t=>t.id===e.selectedObjectId)||null},(e,t,n)=>j.current.onLocalUpdate(e,{x:t,y:n}),(e,t,n)=>{j.current.onPositionUpdate(e,t,n)}));async function w(e,t){const n=x({...p(null,e,t),title:"New Object"}),s=await d(n);c(s.id)}(0,e.useEffect)(()=>()=>_.current.flush(),[]),ie({copy:()=>!!v&&(re=x(p(v,null,null)),!0),paste:()=>!!re&&(async function(){if(!re)return;const e={...re,x:re.x+24,y:re.y+24};re=e;const t=await d(e);c(t.id)}(),!0),duplicate:()=>!!v&&(h(v.id),!0),remove:()=>!!v&&(confirm("Delete this object?")&&g(v.id),!0),nudge:(e,t)=>_.current.nudge(e,t)});const N=L(s);return(0,t.jsx)("div",{className:"cns-tab-panel cns-tab-panel--active","data-panel":"objects",role:"tabpanel",children:(0,t.jsxs)("div",{className:"cns-objects-layout",children:[(0,t.jsxs)("div",{className:"cns-objects-toolbar",children:[(0,t.jsx)("button",{type:"button",className:"button button-primary",onClick:function(){w(Math.round(s.width/2),Math.round(s.width/s.aspectRatio/2))},children:"Add Object"}),(0,t.jsx)("p",{className:"description",children:"Click an object to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty canvas to place a new object at that position, then edit it in the side panel. With an object selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes."})]}),(0,t.jsx)(te,{drawState:N,objects:a,selectedObjectId:l,repositioningObjectId:i,onSelect:c,onDeselect:r,onPositionUpdate:u,onRepositionComplete:b,onPlace:(e,t)=>{w(e,t)}}),(0,t.jsx)(ae,{objects:a,onEdit:e=>c(e.id),onDuplicate:e=>{h(e)},onDelete:async function(e){confirm("Delete this object?")&&await g(e)}})]})})}function ue(e,t,n,s,a){return F(t,n,s/e.width,a/e.height)}function me({drawState:n,areas:s,selectedAreaId:a,focusedNodeIdx:l,onSelect:i,onDeselect:o,onNodesChange:c,onNodeFocusChange:r}){const d=(0,e.useRef)(null),[u,m]=(0,e.useState)(null),[h,p]=(0,e.useState)(null),x=(0,e.useRef)({areas:[],selectedAreaId:null,focusedNodeIdx:null,onNodesChange:c,onDeselect:o,onNodeFocusChange:r,repoNodeIdx:null,repoCursor:null});x.current={areas:s,selectedAreaId:a,focusedNodeIdx:l,onNodesChange:c,onDeselect:o,onNodeFocusChange:r,repoNodeIdx:u,repoCursor:h},(0,e.useEffect)(()=>{const e=d.current;e&&async function(e,t,n,s,a,l,i=null){await R(e,t);const o=e.getContext("2d"),c=e.width,r=e.height;for(const e of n){const t=e.id===s;$(o,e,c,r,t,t?a:null,t?l:null,t?i:null)}}(e,n,s,a,u,h,l)}),(0,e.useEffect)(()=>{function e(e){const{areas:t,selectedAreaId:n,onNodesChange:s,onDeselect:a,repoNodeIdx:l,repoCursor:i}=x.current;if("Escape"!==e.key){if("Enter"===e.key&&!S(e)&&!e.target?.closest?.("button, a")){if(null!==l&&i){e.preventDefault();const a=t.find(e=>e.id===n);a&&null!==n&&s?.(n,ue(d.current,a,l,i.x,i.y))}m(null),p(null)}}else null!==l?(m(null),p(null)):null!==x.current.focusedNodeIdx?x.current.onNodeFocusChange?.(null):n&&a?.()}return document.addEventListener("keydown",e),()=>document.removeEventListener("keydown",e)},[]);const f=null!==u;return(0,t.jsx)("div",{className:"cns-objects-canvas-wrap"+(f?" cns-canvas--repositioning":""),children:(0,t.jsx)(ee,{children:(0,t.jsx)("canvas",{ref:d,onClick:function(e){const t=d.current,{x:n,y:l}=D(t,e.nativeEvent),h=t.getContext("2d"),x=t.width,f=t.height;if(null!==u){const e=s.find(e=>e.id===a);return e&&c?.(a,ue(t,e,u,n,l)),m(null),void p(null)}const b=a?s.find(e=>e.id===a):null;if(b){const e=function(e,t,n,s,a,l){for(let i=s.length-1;i>=0;i--)if(e.beginPath(),e.rect(s[i].x*a-5,s[i].y*l-5,10,10),e.isPointInPath(t,n))return i;return-1}(h,n,l,b.nodes||[],x,f);if(-1!==e)return m(e),p({x:n,y:l}),void r?.(e)}const g=function(e,t,n,s,a,l){for(let i=s.length-1;i>=0;i--){const o=s[i],c=o.nodes||[],r=o.shape_type||"POLYGON",d="CIRCLE"===r?2:3;if(!(c.length<d)&&(T(e,c,r,a,l),e.isPointInPath(t,n)))return o}return null}(h,n,l,s,x,f);if(g)i?.(g.id);else{if(b){const e=b.shape_type||"POLYGON";return void("RECTANGLE"!==e&&"CIRCLE"!==e&&c?.(a,[...b.nodes,{x:n/x,y:l/f}]))}o?.()}},onMouseMove:function(e){null!==u&&p(D(d.current,e.nativeEvent))}})})})}const he=[{header:"Title",render:e=>e.title||"(no title)"},{header:"Type",render:e=>(0,t.jsx)("span",{className:"cns-badge cns-badge--type",children:e.type})},{header:"Nodes",render:e=>`${(e.nodes||[]).length} nodes`}];function pe({areas:e,onSelect:n,onDuplicate:s,onDelete:a}){return(0,t.jsx)(ne,{items:e,columns:he,emptyText:"No areas yet. Click “Add Area” to create one.",renderActions:e=>(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)("button",{className:"button button-small",onClick:()=>n(e.id),children:"Edit"})," ",(0,t.jsx)("button",{className:"button button-small",onClick:()=>s(e.id),children:"Duplicate"})," ",(0,t.jsx)("button",{className:"button button-small",onClick:()=>a(e.id),children:"Delete"})]})})}let xe=null;function fe({mapId:n,settings:s,areas:a,selectedAreaId:l,onAreasLoaded:i,onSelect:o,onDeselect:c,onNodesUpdate:r,onDuplicate:d,onDelete:u}){ce(n,"areas",i);const m=a.find(e=>e.id===l)||null,h=s.width||1e3,p=h/(s.aspectRatio||1),[x,f]=(0,e.useState)(null);(0,e.useEffect)(()=>{f(null)},[l]);const b=m?(m.nodes||[]).length:0;(0,e.useEffect)(()=>{null!==x&&x>=b&&f(b?b-1:null)},[b]),ie({copy:()=>!!m&&(xe={form:_(m),nodes:(m.nodes||[]).map(e=>({...e}))},!0),paste:()=>!!xe&&(async function(){if(!xe)return;const e=xe.nodes.map(e=>({...e,x:e.x+24/h,y:e.y+24/p}));xe={...xe,nodes:e};const t=await k("POST",`/maps/${n}/areas`,{...xe.form,nodes:JSON.stringify(e)}),s=await t.json();t.ok&&(i([...a,s]),o(s.id))}(),!0),duplicate:()=>!!m&&(d(m.id),!0),remove:()=>{if(!m)return!1;if(null!==x){if(function(e){const t=e.shape_type||"POLYGON";return("POLYGON"===t||"BEZIER"===t)&&(e.nodes||[]).length>3}(m)){const e=(m.nodes||[]).filter((e,t)=>t!==x);r(m.id,e),f(x>0?x-1:0)}return!0}return confirm("Delete this area?")&&u(m.id),!0},nudge:(e,t)=>{if(!m)return!1;if(null!==x&&(m.nodes||[])[x]){const n=m.nodes[x],s=Math.min(1,Math.max(0,n.x+e/h)),a=Math.min(1,Math.max(0,n.y+t/p));return r(m.id,F(m,x,s,a)),!0}const n=(m.nodes||[]).map(n=>({...n,x:n.x+e/h,y:n.y+t/p}));return r(m.id,n),!0},tab:e=>!(!m||!b||(f(t=>null===t?e?b-1:0:(t+(e?-1:1)+b)%b),0))});const g=L(s);return(0,t.jsx)("div",{className:"cns-tab-panel cns-tab-panel--active","data-panel":"areas",role:"tabpanel",children:(0,t.jsxs)("div",{className:"cns-objects-layout",children:[(0,t.jsxs)("div",{className:"cns-objects-toolbar",children:[(0,t.jsx)("button",{type:"button",className:"button button-primary",onClick:async function(){if(!n)return;const e=A("POLYGON");try{const t=await k("POST",`/maps/${n}/areas`,{title:"New Area",nodes:JSON.stringify(e),style_fill:"#2271b1",style_fill_opacity:.3,style_stroke:"#2271b1",style_stroke_width:2}),s=await t.json();if(!t.ok)throw new Error(s.message||"Failed to create area.");i([...a,s]),o(s.id)}catch(e){alert(e.message)}},children:"Add Area"}),(0,t.jsx)("p",{className:"description",children:"Click a node to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty space on a selected area to add a node. With an area selected: arrow keys move the whole area (Shift = 10 px), Tab/Shift+Tab cycles its nodes — arrows then nudge that node and Delete removes it (Esc clears) — Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area."})]}),(0,t.jsx)(me,{drawState:g,areas:a,selectedAreaId:l,focusedNodeIdx:x,onSelect:o,onDeselect:c,onNodesChange:r,onNodeFocusChange:f}),(0,t.jsx)(pe,{areas:a,onSelect:o,onDuplicate:e=>{d(e)},onDelete:async function(e){confirm("Delete this area?")&&await u(e)}})]})})}function be(e,t,n){if("indicator"!==e.placement||"whole"===t)return{...e,x:Math.round(n.x),y:Math.round(n.y)};if("box"===t)return{...e,offset_x:Math.round(n.x-e.x),offset_y:Math.round(n.y-e.y)};const s=e.x+e.offset_x,a=e.y+e.offset_y;return{...e,x:Math.round(n.x),y:Math.round(n.y),offset_x:Math.round(s-n.x),offset_y:Math.round(a-n.y)}}function ge({drawState:n,labels:s,selectedLabelId:a,repositioningLabelId:l,onSelect:i,onDeselect:o,onGeometryUpdate:c,onRepositionComplete:r}){const d=(0,e.useRef)({labels:[],selectedLabelId:null});function u(){const e=m.current;if(!e)return;const{labels:t,selectedLabelId:s}=d.current,a=h.current,l=a&&a.cursor?t.map(e=>e.id===a.payload.id?be(e,a.payload.part,a.cursor):e):t;!async function(e,t,n,s){await R(e,t);const a=e.getContext("2d");for(const e of n)M(a,e,{selected:s===e.id,showEmptyPlaceholder:!0})}(e,n,l,s)}d.current={labels:s,selectedLabelId:a};const{canvasRef:m,dragRef:h,startDrag:p}=q({hitTest:(e,t,n)=>{const s=function(e,t,n,s){for(let a=s.length-1;a>=0;a--){const l=s[a];if("indicator"===l.placement&&(e.beginPath(),e.arc(l.x,l.y,8,0,2*Math.PI),e.isPointInPath(t,n)))return{label:l,part:"anchor"};const i=O(e,l);if(e.beginPath(),e.rect(i.left,i.top,i.w,i.h),e.isPointInPath(t,n))return{label:l,part:"box"}}return null}(e,t,n,d.current.labels);return s?{id:s.label.id,part:s.part}:null},onPickup:e=>i?.(e.id),onDrop:(e,t)=>{const n=(s=e.id,d.current.labels.find(e=>e.id===s));var s;if(!n||!t)return;const a=be(n,e.part,t);c?.(e.id,{x:a.x,y:a.y,offset_x:a.offset_x,offset_y:a.offset_y})},dragFromSelection:()=>d.current.selectedLabelId?{id:d.current.selectedLabelId,part:"whole"}:null,onEmptyClick:()=>o?.(),onEscapeIdle:()=>{d.current.selectedLabelId&&o?.()},onDragEnd:()=>r?.(),redraw:u});return(0,e.useEffect)(()=>{u()}),(0,e.useEffect)(()=>{l&&p({id:l,part:"whole"})},[l]),(0,t.jsx)("div",{className:"cns-objects-canvas-wrap",children:(0,t.jsx)(ee,{children:(0,t.jsx)("canvas",{ref:m})})})}const ye=[{header:"",width:36,className:"col-icon",render:e=>(0,t.jsx)("span",{className:"cns-obj-dot",style:{background:e.canvas_styles?.bgColor||"#ffffff",border:`2px solid ${e.canvas_styles?.borderColor||"#1e1e1e"}`,borderRadius:3}})},{header:"Text",render:e=>e.text||"(empty label)"},{header:"Placement",render:e=>(0,t.jsx)("span",{className:"cns-badge cns-badge--type",children:"indicator"===e.placement?"Indicator":"Centered"})},{header:"Position",render:e=>(0,t.jsxs)(t.Fragment,{children:[e.x,", ",e.y]})}];function je({labels:e,onEdit:n,onDuplicate:s,onDelete:a}){return(0,t.jsx)(ne,{items:e,columns:ye,emptyText:"No labels yet. Click on the canvas to place one.",renderActions:e=>(0,t.jsxs)(t.Fragment,{children:[(0,t.jsx)("button",{className:"button button-small",onClick:()=>n(e),children:"Edit"})," ",(0,t.jsx)("button",{className:"button button-small",onClick:()=>s(e.id),children:"Duplicate"})," ",(0,t.jsx)("button",{className:"button button-small",onClick:()=>a(e.id),children:"Delete"})]})})}let ve=null;function _e({mapId:n,settings:s,labels:a,selectedLabelId:l,repositioningLabelId:i,onLabelsLoaded:o,onSelect:c,onDeselect:r,onAdd:d,onGeometryUpdate:u,onLocalUpdate:m,onDuplicate:h,onRepositionComplete:p,onDelete:x}){ce(n,"labels",o);const f=(0,e.useRef)({labels:a,selectedLabelId:l});f.current={labels:a,selectedLabelId:l};const y=(0,e.useRef)({onGeometryUpdate:u,onLocalUpdate:m});y.current={onGeometryUpdate:u,onLocalUpdate:m};const j=a.find(e=>e.id===l)||null,v=(0,e.useRef)(oe(()=>{const e=f.current;return e.labels.find(t=>t.id===e.selectedLabelId)||null},(e,t,n)=>y.current.onLocalUpdate(e,{x:t,y:n}),(e,t,n)=>{y.current.onGeometryUpdate(e,{x:t,y:n})}));(0,e.useEffect)(()=>()=>v.current.flush(),[]),ie({copy:()=>!!j&&(ve=g(b(j,null,null)),!0),paste:()=>!!ve&&(async function(){if(!ve)return;const e={...ve,x:ve.x+24,y:ve.y+24};ve=e;const t=await d(e);c(t.id)}(),!0),duplicate:()=>!!j&&(h(j.id),!0),remove:()=>!!j&&(confirm("Delete this label?")&&x(j.id),!0),nudge:(e,t)=>v.current.nudge(e,t)});const _=L(s);return(0,t.jsx)("div",{className:"cns-tab-panel cns-tab-panel--active","data-panel":"labels",role:"tabpanel",children:(0,t.jsxs)("div",{className:"cns-objects-layout",children:[(0,t.jsxs)("div",{className:"cns-objects-toolbar",children:[(0,t.jsx)("button",{type:"button",className:"button button-primary",onClick:async function(){const e=g({...b(null,Math.round(s.width/2),Math.round(s.width/s.aspectRatio/2)),text:"New Label"}),t=await d(e);c(t.id)},children:"Add Label"}),(0,t.jsx)("p",{className:"description",children:"Click a label to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). In indicator mode the dot and the text box move independently. With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes."})]}),(0,t.jsx)(ge,{drawState:_,labels:a,selectedLabelId:l,repositioningLabelId:i,onSelect:c,onDeselect:r,onGeometryUpdate:u,onRepositionComplete:p}),(0,t.jsx)(je,{labels:a,onEdit:e=>c(e.id),onDuplicate:e=>{h(e)},onDelete:async function(e){confirm("Delete this label?")&&await x(e)}})]})})}function we(e,t,n,s){e.moveTo(t[0].x*n,t[0].y*s);for(let a=1;a<t.length;a++)e.lineTo(t[a].x*n,t[a].y*s);e.closePath()}function Ne(e,t,n,s,a,l,i){const o=t.nodes||[];if(o.length<3)return;let c=o;a&&null!==l&&i&&(c=o.map(e=>({...e})),c[l]={x:i.x/n,y:i.y/s});const r=t.canvas_styles||{},d=r.fill||"#e8a020",u=r.fillOpacity??.25,m=r.stroke||"#e8a020",h=r.strokeWidth||2;if(e.beginPath(),we(e,c,n,s),e.save(),e.globalAlpha=u,e.fillStyle=d,e.fill(),e.restore(),e.strokeStyle=m,e.lineWidth=a?Math.max(h,2):h,e.stroke(),t.child_map_title){const a=c.reduce((e,t)=>e+t.x,0)/c.length*n,l=c.reduce((e,t)=>e+t.y,0)/c.length*s;e.save(),e.font="bold 12px sans-serif",e.textAlign="center",e.textBaseline="middle",e.fillStyle="#fff",e.strokeStyle="rgba(0,0,0,0.6)",e.lineWidth=3,e.strokeText(t.child_map_title,a,l),e.fillText(t.child_map_title,a,l),e.restore()}a&&c.forEach((t,a)=>{e.beginPath(),e.rect(t.x*n-5,t.y*s-5,10,10),e.strokeStyle=l===a?"#e75252":"#e8a020",e.lineWidth=2,e.stroke()})}function Ce({drawState:n,regions:s,selectedRegionId:a,onSelect:l,onDeselect:i,onNodesChange:o}){const c=(0,e.useRef)(null),[r,d]=(0,e.useState)(null),[u,m]=(0,e.useState)(null),h=(0,e.useRef)({regions:[],selectedRegionId:null,onNodesChange:o,repoNodeIdx:null,repoCursor:null});h.current={regions:s,selectedRegionId:a,onNodesChange:o,repoNodeIdx:r,repoCursor:u},(0,e.useEffect)(()=>{const e=c.current;e&&async function(e,t,n,s,a,l){await R(e,t);const i=e.getContext("2d"),o=e.width,c=e.height;for(const e of n){const t=e.id===s;Ne(i,e,o,c,t,t?a:null,t?l:null)}}(e,n,s,a,r,u)}),(0,e.useEffect)(()=>{function e(e){if(!document.querySelector('[data-panel="hierarchy"].cns-tab-panel--active'))return;const{regions:t,selectedRegionId:n,onNodesChange:s,repoNodeIdx:a,repoCursor:l}=h.current;if("Enter"===e.key&&null!==a&&l){const e=t.find(e=>e.id===n);if(e&&null!==n){const t=e.nodes.map(e=>({...e}));t[a]={x:l.x/c.current.width,y:l.y/c.current.height},s(n,t)}}"Escape"!==e.key&&"Enter"!==e.key||(d(null),m(null))}return document.addEventListener("keydown",e),()=>document.removeEventListener("keydown",e)},[]);const p=null!==r;return(0,t.jsx)("div",{className:"cns-objects-canvas-wrap"+(p?" cns-canvas--repositioning":""),children:(0,t.jsx)(ee,{children:(0,t.jsx)("canvas",{ref:c,onClick:function(e){const t=c.current,{x:n,y:u}=D(t,e.nativeEvent),h=t.getContext("2d"),p=t.width,x=t.height;if(null!==r){const e=s.find(e=>e.id===a);if(e&&null!==a){const t=e.nodes.map(e=>({...e}));t[r]={x:n/p,y:u/x},o(a,t)}return d(null),void m(null)}const f=a?s.find(e=>e.id===a):null;if(f){const e=function(e,t,n,s,a,l){for(let i=s.length-1;i>=0;i--)if(e.beginPath(),e.rect(s[i].x*a-5,s[i].y*l-5,10,10),e.isPointInPath(t,n))return i;return-1}(h,n,u,f.nodes||[],p,x);if(-1!==e)return d(e),void m({x:n,y:u})}const b=function(e,t,n,s,a,l){for(let i=s.length-1;i>=0;i--){const o=s[i],c=o.nodes||[];if(!(c.length<3)&&(e.beginPath(),we(e,c,a,l),e.isPointInPath(t,n)))return o}return null}(h,n,u,s,p,x);b?l(b.id):f?o(a,[...f.nodes,{x:n/p,y:u/x}]):i()},onMouseMove:function(e){null!==r&&m(D(c.current,e.nativeEvent))}})})})}function ke({regions:e,onSelect:n,onDelete:s}){return e.length?(0,t.jsx)("ul",{className:"cns-items-list",children:e.map(e=>(0,t.jsxs)("li",{className:"cns-items-list__item",children:[e.child_map_thumbnail&&(0,t.jsx)("img",{src:e.child_map_thumbnail,alt:"",className:"cns-items-list__thumb"}),(0,t.jsxs)("span",{className:"cns-items-list__label",children:[e.child_map_title||`Map #${e.child_map_id}`,e.child_map_status&&"publish"!==e.child_map_status&&(0,t.jsxs)("em",{className:"cns-items-list__status",children:[" — ",e.child_map_status]})]}),(0,t.jsxs)("span",{className:"cns-items-list__actions",children:[(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:()=>n(e.id),children:"Edit"})," ",(0,t.jsx)("button",{type:"button",className:"button button-small",onClick:()=>s(e.id),children:"Delete"})]})]},e.id))}):(0,t.jsx)("p",{className:"description",children:'No child-map regions yet. Click "Add Region" to draw one.'})}function Se({mapId:e,settings:n,regions:s,selectedRegionId:a,parentMaps:l,onRegionsLoaded:i,onSelect:o,onDeselect:c,onNodesUpdate:r,onDelete:d}){ce(e,"hierarchy",i);const u=L(n);return(0,t.jsx)("div",{className:"cns-tab-panel cns-tab-panel--active","data-panel":"hierarchy",role:"tabpanel",children:(0,t.jsxs)("div",{className:"cns-objects-layout",children:[l.length>0&&(0,t.jsxs)("div",{className:"cns-hierarchy-parents",children:[(0,t.jsx)("span",{className:"cns-hierarchy-parents__label",children:"Parent maps:"}),l.map(e=>(0,t.jsxs)("a",{href:e.url,className:"cns-hierarchy-parents__link",children:[e.thumbnail&&(0,t.jsx)("img",{src:e.thumbnail,alt:""}),e.title]},e.map_id))]}),(0,t.jsxs)("div",{className:"cns-objects-toolbar",children:[(0,t.jsx)("button",{type:"button",className:"button button-primary",onClick:async function(){if(!e)return;const t={id:-1,parent_map_id:e,child_map_id:0,nodes:A("POLYGON"),canvas_styles:{fill:"#e8a020",fillOpacity:.25,stroke:"#e8a020",strokeWidth:2},title_override:null,description_override:null,child_map_title:"",child_map_excerpt:"",child_map_status:"",child_map_thumbnail:"",child_map_url:"",created_at:"",updated_at:""};i([...s,t]),o(-1)},children:"Add Region"}),(0,t.jsx)("p",{className:"description",children:"Draw a polygon region that links to a child map. Click a node to reposition it; click empty canvas on a selected region to add a node."})]}),(0,t.jsx)(Ce,{drawState:u,regions:s,selectedRegionId:a,onSelect:o,onDeselect:c,onNodesChange:r}),(0,t.jsx)(ke,{regions:s.filter(e=>-1!==e.id),onSelect:o,onDelete:async function(e){if(-1===e)return i(s.filter(e=>-1!==e.id)),void c();confirm("Delete this hierarchy region?")&&await d(e)}})]})})}function Ie({drawState:n,objects:s,areas:a,labels:l}){const i=(0,e.useRef)(null);return(0,e.useEffect)(()=>{const e=i.current;e&&async function(e,t,n,s,a,l){await R(e,s);const i=e.getContext("2d");for(const t of n)a(i,t,e.width,e.height,!1,null,null);for(const e of t)await l(i,e,!1)}(e,s,a,n,$,Z).then(()=>{const t=e.getContext("2d");for(const e of l)e.text&&M(t,e)})}),(0,t.jsx)("div",{className:"cns-canvas-wrap",children:(0,t.jsx)(ee,{allowFullscreen:!0,children:(0,t.jsx)("canvas",{ref:i})})})}function Ee({settings:e,objects:n,areas:s,labels:a,viewUrl:l}){return(0,t.jsxs)("div",{className:"cns-tab-panel cns-tab-panel--active","data-panel":"preview",role:"tabpanel",children:[(0,t.jsx)(Ie,{drawState:L(e),objects:n,areas:s,labels:a}),l&&(0,t.jsx)("div",{className:"cns-preview-actions",children:(0,t.jsx)("a",{href:l,className:"button",target:"_blank",rel:"noopener noreferrer",children:"View map page"})})]})}function Re(){const e=window.cnsMapEditor||{};return{status:e.status??"draft",title:e.title??"",width:e.width??1e3,aspectRatio:e.aspectRatio??1,time:e.time??0,imageId:e.imageId??0,imageUrl:e.imageUrl??"",imageX:e.imageX??0,imageY:e.imageY??0,imageW:e.imageWidth??1,isMaster:e.isMaster??!1,featured:e.featured??!1,bgType:e.bgType??"color",bgColor:e.bgColor??"#1a1a2e",bgImageId:e.bgImageId??0,bgImageUrl:e.bgImageUrl??"",thumbnailId:e.thumbnailId?e.thumbnailId:null,thumbnailUrl:e.thumbnailUrl??""}}function De(){const n=window.cnsMapEditor||{},s=n.mapId||0,l=n.isNew||!1,o=n.overviewUrl||"#",c=n.parentMaps||[],[r,d]=(0,e.useState)(Re),[u,m]=(0,e.useState)(n.viewUrl||""),[h,f]=(0,e.useState)("settings"),[y,j]=(0,e.useState)([]),[v,w]=(0,e.useState)([]),[N,C]=(0,e.useState)(null),[S,I]=(0,e.useState)(null),[E,R]=(0,e.useState)([]),[D,L]=(0,e.useState)(null),[T,O]=(0,e.useState)(null),[P,M]=(0,e.useState)(null),[U,A]=(0,e.useState)([]),[F,$]=(0,e.useState)(null),[G,Y]=(0,e.useState)({text:"",type:""}),z=y.find(e=>e.id===N)||null,H=v.find(e=>e.id===S)||null,X=E.find(e=>e.id===D)||null,J=U.find(e=>e.id===P)||null,K=(0,e.useRef)(JSON.stringify(Re()));async function Z(e){const t=y.find(t=>t.id===e);if(!t)return;const n=x(p(t,null,null));n.x+=24,n.y+=24;const s=await oe(n);C(s.id)}async function q(e){const t=await k("POST",`/maps/${s}/labels`,e),n=await t.json();if(!t.ok)throw new Error(n.message||"Failed.");return R(e=>[...e,n]),n}function Q(e,t){R(n=>n.map(n=>n.id===e?{...n,...t}:n))}async function ee(e){const t=E.find(t=>t.id===e);if(!t)return;const n=g(b(t,null,null));n.x+=24,n.y+=24;const s=await q(n);L(s.id)}async function te(e){if(!(await k("DELETE",`/labels/${e}`)).ok)throw new Error("Delete failed.");R(t=>t.filter(t=>t.id!==e)),D===e&&L(null)}(0,e.useEffect)(()=>{function e(e){JSON.stringify(r)===K.current&&null===se.current.timer||(e.preventDefault(),e.returnValue="")}return window.addEventListener("beforeunload",e),()=>window.removeEventListener("beforeunload",e)},[r]);const ne=(0,e.useRef)(v);ne.current=v;const se=(0,e.useRef)({timer:null,areaId:null});async function ae(e){const t=ne.current.find(t=>t.id===e);t&&await k("PATCH",`/areas/${e}/nodes`,{nodes:JSON.stringify(t.nodes||[]),shape_type:t.shape_type||"POLYGON"})}function le(e){const t=se.current;t.timer&&(window.clearTimeout(t.timer),null!==t.areaId&&t.areaId!==e&&ae(t.areaId)),t.areaId=e,t.timer=window.setTimeout(()=>{t.timer=null,t.areaId=null,ae(e)},600)}function ie(e,t){w(n=>n.map(n=>n.id===e?{...n,nodes:t}:n)),le(e)}async function oe(e){const t=await k("POST",`/maps/${s}/objects`,e),n=await t.json();if(!t.ok)throw new Error(n.message||"Failed.");return j(e=>[...e,n]),n}async function ce(e){if(!(await k("DELETE",`/objects/${e}`)).ok)throw new Error("Delete failed.");j(t=>t.filter(t=>t.id!==e)),N===e&&C(null)}async function re(e){const t=v.find(t=>t.id===e);if(!t)return;const n=r.width||1e3,a=n/(r.aspectRatio||1),l=(t.nodes||[]).map(e=>({...e,x:e.x+24/n,y:e.y+24/a})),i={..._(t),nodes:JSON.stringify(l)},o=await k("POST",`/maps/${s}/areas`,i),c=await o.json();if(!o.ok)throw new Error(c.message||"Failed.");w(e=>[...e,c]),I(c.id)}async function ue(e){if(!(await k("DELETE",`/areas/${e}`)).ok)throw new Error("Delete failed.");w(t=>t.filter(t=>t.id!==e)),S===e&&I(null)}function me(e,t){A(n=>n.map(n=>n.id===e?{...n,nodes:t}:n))}async function he(e){if(-1===e)return A(e=>e.filter(e=>-1!==e.id)),void M(null);if(!(await k("DELETE",`/hierarchy/${e}`)).ok)throw new Error("Delete failed.");A(t=>t.filter(t=>t.id!==e)),P===e&&M(null)}const pe=l?"New Map":`Edit: ${r.title||"(no title)"}`;return(0,t.jsxs)("div",{className:"cns-map-editor",children:[(0,t.jsx)(a,{pageTitle:pe,overviewUrl:o,viewUrl:!l&&u?u:"",status:r.status,onStatusChange:e=>d(t=>({...t,status:e})),saveStatus:G,onSave:async function(){Y({text:"Saving…",type:""});const e={map_id:s,title:r.title,status:r.status,width:r.width,aspect_ratio:r.aspectRatio,time:r.time,image_id:r.imageId,image_x:r.imageX,image_y:r.imageY,image_width:r.imageW,is_master:r.isMaster,featured:r.featured,bg_type:r.bgType,bg_color:r.bgColor,bg_image_id:r.bgImageId,thumbnail_id:r.thumbnailId??0};try{const t=await k("POST","/maps",e),n=await t.json();if(!t.ok)throw new Error(n.message||"Save failed.");K.current=JSON.stringify(r),n.created&&n.edit_url?window.location.href=n.edit_url:(void 0!==n.view_url&&m(n.view_url),Y({text:"Saved.",type:"ok"}),setTimeout(()=>Y({text:"",type:""}),2e3))}catch(e){Y({text:e.message,type:"error"})}}}),(0,t.jsxs)("div",{className:"cns-editor-main",children:[(0,t.jsxs)("div",{className:"cns-map-editor__body",children:[(0,t.jsx)(i,{activeTab:h,isMaster:r.isMaster,onChange:function(e){"objects"!==e&&(C(null),$(null)),"labels"!==e&&(L(null),O(null)),"areas"!==e&&I(null),"hierarchy"!==e&&M(null),f(e)}}),(0,t.jsxs)("div",{className:"cns-map-editor__content",children:["settings"===h&&(0,t.jsx)(V,{settings:r,onChange:d}),"objects"===h&&!r.isMaster&&(0,t.jsx)(de,{mapId:s,settings:r,objects:y,selectedObjectId:N,repositioningObjectId:F,onObjectsLoaded:j,onSelect:C,onDeselect:()=>C(null),onAdd:oe,onPositionUpdate:async function(e,t,n){const s=await k("PATCH",`/objects/${e}/position`,{x:t,y:n}),a=await s.json();s.ok&&j(t=>t.map(t=>t.id===e?a:t))},onLocalUpdate:function(e,t){j(n=>n.map(n=>n.id===e?{...n,...t}:n))},onDuplicate:Z,onRepositionStart:e=>$(e),onRepositionComplete:()=>$(null),onDelete:ce}),"areas"===h&&!r.isMaster&&(0,t.jsx)(fe,{mapId:s,settings:r,areas:v,selectedAreaId:S,onAreasLoaded:w,onSelect:I,onDeselect:()=>I(null),onNodesUpdate:ie,onDuplicate:re,onDelete:ue}),"labels"===h&&!r.isMaster&&(0,t.jsx)(_e,{mapId:s,settings:r,labels:E,selectedLabelId:D,repositioningLabelId:T,onLabelsLoaded:R,onSelect:L,onDeselect:()=>L(null),onAdd:q,onGeometryUpdate:async function(e,t){const n=await k("PATCH",`/labels/${e}/position`,t),s=await n.json();n.ok&&R(t=>t.map(t=>t.id===e?s:t))},onLocalUpdate:Q,onDuplicate:ee,onRepositionComplete:()=>O(null),onDelete:te}),"hierarchy"===h&&(0,t.jsx)(Se,{mapId:s,settings:r,regions:U,selectedRegionId:P,parentMaps:c,onRegionsLoaded:A,onSelect:M,onDeselect:()=>M(null),onNodesUpdate:me,onDelete:he}),"preview"===h&&(0,t.jsx)(Ee,{settings:r,objects:y,areas:v,labels:E,viewUrl:!l&&u?u:""}),"stories"===h&&(0,t.jsx)("div",{id:"cns-map-stories-panel","data-map-id":s,"data-overview-url":window.cnsMapEditorExtensions?.storySuiteOverviewUrl||""})]})]}),(0,t.jsx)(B,{activeTab:h,selectedObject:z,selectedArea:H,selectedLabel:X,selectedRegion:J,onObjectSave:async function(e){if(!N)return;const t=await k("POST",`/objects/${N}`,e),n=await t.json();if(!t.ok)throw new Error(n.message||"Save failed.");return j(e=>e.map(e=>e.id===N?n:e)),n},onObjectDelete:()=>ce(N),onObjectClose:()=>C(null),onObjectReposition:()=>$(N),onObjectDuplicate:()=>Z(N),onLabelSave:async function(e){if(!D)return;const t=await k("POST",`/labels/${D}`,e),n=await t.json();if(!t.ok)throw new Error(n.message||"Save failed.");return R(e=>e.map(e=>e.id===D?n:e)),n},onLabelDelete:()=>te(D),onLabelClose:()=>L(null),onLabelReposition:()=>O(D),onLabelDuplicate:()=>ee(D),onLabelLocalUpdate:Q,onAreaSave:async function(e){if(!S)return;const t=v.find(e=>e.id===S);if(!t)return;const n={...e,nodes:JSON.stringify(t.nodes)},s=await k("POST",`/areas/${S}`,n),a=await s.json();if(!s.ok)throw new Error(a.message||"Save failed.");return w(e=>e.map(e=>e.id===S?a:e)),a},onAreaDelete:()=>ue(S),onAreaClose:()=>I(null),onAreaDuplicate:()=>re(S),onAreaNodesUpdate:ie,onAreaShapeTypeChange:function(e,t){w(n=>n.map(n=>n.id!==e?n:{...n,shape_type:t,nodes:W(n.nodes||[],t)})),le(e)},onRegionSave:async function(e){if(!P||!e.child_map_id)throw new Error("Select a child map before saving.");const t=U.find(e=>e.id===P);if(!t)return;const n={child_map_id:e.child_map_id,nodes:JSON.stringify(t.nodes),style_fill:e.style_fill,style_fill_opacity:e.style_fill_opacity,style_stroke:e.style_stroke,style_stroke_width:e.style_stroke_width,title_override:e.title_override,description_override:e.description_override};let a;a=-1===P?await k("POST",`/maps/${s}/hierarchy`,n):await k("POST",`/hierarchy/${P}`,n);const l=await a.json();if(!a.ok)throw new Error(l.message||"Save failed.");return A(e=>e.map(e=>e.id===P?l:e)),-1===P&&M(l.id),l},onRegionDelete:()=>he(P),onRegionClose:()=>M(null),onRegionNodesUpdate:me})]})]})}function Le(){const[n,s]=(0,e.useState)([]),[a,l]=(0,e.useState)("");return(0,e.useEffect)(()=>{X().then(()=>s(H||[]))},[]),(0,t.jsxs)("div",{children:[a&&(0,t.jsxs)("div",{className:"notice notice-error is-dismissible",style:{margin:"0 0 12px"},children:[(0,t.jsx)("p",{children:a}),(0,t.jsx)("button",{type:"button",className:"notice-dismiss",onClick:()=>l(""),children:(0,t.jsx)("span",{className:"screen-reader-text",children:"Dismiss"})})]}),(0,t.jsx)("div",{className:"cns-icon-library-toolbar",children:(0,t.jsx)("button",{type:"button",id:"cns-add-icon-btn",className:"button button-primary",onClick:function(){const e=window.wp.media({title:"Select or Upload SVG Icon",button:{text:"Add to library"},multiple:!1,library:{type:"image/svg+xml"}});e.on("select",async()=>{const t=e.state().get("selection").first().toJSON();l("");try{const e=await k("POST","/icons",{attachment_id:t.id}),n=await e.json();if(!e.ok)throw new Error(n.message||"Failed to add icon.");s(e=>[...e,n])}catch(e){l(e.message)}}),e.open()},children:"Add Icon"})}),(0,t.jsx)("div",{id:"cns-icon-library-grid",className:"cns-icon-library-grid",children:0===n.length?(0,t.jsx)("p",{className:"cns-icon-library-grid__empty",children:"No icons yet. Click “Add Icon” to upload an SVG."}):n.map(e=>(0,t.jsxs)("div",{className:"cns-icon-library-item",children:[(0,t.jsx)("div",{className:"cns-icon-library-item__preview",children:(0,t.jsx)("img",{src:e.url,alt:e.title})}),(0,t.jsx)("span",{className:"cns-icon-library-item__name",children:e.title}),(0,t.jsx)("button",{type:"button",className:"cns-icon-library-item__remove","aria-label":"Remove",onClick:()=>async function(e){if(confirm("Remove this icon from the library? (The attachment itself is kept.)")){l("");try{if(!(await k("DELETE",`/icons/${e}`)).ok)throw new Error("Remove failed.");s(t=>t.filter(t=>t.id!==e))}catch(e){l(e.message)}}}(e.id),children:"×"})]},e.id))})]})}document.addEventListener("DOMContentLoaded",()=>{const n=document.getElementById("cns-admin-root");n&&(0,e.createRoot)(n).render((0,t.jsx)(De,{}));const s=document.getElementById("cns-icons-root");s&&(0,e.createRoot)(s).render((0,t.jsx)(Le,{})),document.body.addEventListener("click",e=>{const t=e.target.closest("a[data-confirm]");t&&!window.confirm(t.dataset.confirm)&&e.preventDefault()})})})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/admin/app/ContextPanel.tsx"
+/*!****************************************!*\
+  !*** ./src/admin/app/ContextPanel.tsx ***!
+  \****************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ContextPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _forms_ObjectForm__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./forms/ObjectForm */ "./src/admin/app/forms/ObjectForm.tsx");
+/* harmony import */ var _forms_LabelForm__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./forms/LabelForm */ "./src/admin/app/forms/LabelForm.tsx");
+/* harmony import */ var _forms_AreaForm__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./forms/AreaForm */ "./src/admin/app/forms/AreaForm.tsx");
+/* harmony import */ var _forms_HierarchyRegionForm__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./forms/HierarchyRegionForm */ "./src/admin/app/forms/HierarchyRegionForm.tsx");
+/* harmony import */ var _forms_NodeList__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./forms/NodeList */ "./src/admin/app/forms/NodeList.tsx");
+/* harmony import */ var _forms_RegionNodeList__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./forms/RegionNodeList */ "./src/admin/app/forms/RegionNodeList.tsx");
+/* harmony import */ var _shared_SaveStatus__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./shared/SaveStatus */ "./src/admin/app/shared/SaveStatus.tsx");
+/* harmony import */ var _icons__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../icons */ "./src/admin/icons.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__);
+
+
+
+
+
+
+
+
+
+
+function ContextPanel({
+  activeTab,
+  selectedObject,
+  selectedArea,
+  selectedLabel,
+  selectedRegion,
+  onObjectSave,
+  onObjectDelete,
+  onObjectClose,
+  onObjectReposition,
+  onObjectDuplicate,
+  onLabelSave,
+  onLabelDelete,
+  onLabelClose,
+  onLabelReposition,
+  onLabelDuplicate,
+  onLabelLocalUpdate,
+  onAreaSave,
+  onAreaDelete,
+  onAreaClose,
+  onAreaDuplicate,
+  onAreaNodesUpdate,
+  onAreaShapeTypeChange,
+  onRegionSave,
+  onRegionDelete,
+  onRegionClose,
+  onRegionNodesUpdate
+}) {
+  const [objFormData, setObjFormData] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [areaFormData, setAreaFormData] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [labelFormData, setLabelFormData] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [regionFormData, setRegionFormData] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [icons, setIcons] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(_icons__WEBPACK_IMPORTED_MODULE_8__.iconLibraryCache || []);
+  const [status, setStatus] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    text: '',
+    type: ''
+  });
+  const [saving, setSaving] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (selectedObject) {
+      setObjFormData((0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_1__.defaultObjectFormData)(selectedObject, null, null));
+      setStatus({
+        text: '',
+        type: ''
+      });
+      if (!_icons__WEBPACK_IMPORTED_MODULE_8__.iconLibraryCache) {
+        (0,_icons__WEBPACK_IMPORTED_MODULE_8__.loadIconLibraryIntoCache)().then(() => setIcons(_icons__WEBPACK_IMPORTED_MODULE_8__.iconLibraryCache || []));
+      }
+    }
+  }, [selectedObject?.id]);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (selectedArea) {
+      setAreaFormData((0,_forms_AreaForm__WEBPACK_IMPORTED_MODULE_3__.defaultAreaFormData)(selectedArea));
+      setStatus({
+        text: '',
+        type: ''
+      });
+    }
+  }, [selectedArea?.id]);
+
+  // Geometry deps: canvas drags update x/y/offsets on the list — the form
+  // must pick those up. Form-driven live edits round-trip to the same
+  // values, so the reset is a no-op for them.
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (selectedLabel) {
+      setLabelFormData((0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_2__.defaultLabelFormData)(selectedLabel, null, null));
+    }
+  }, [selectedLabel?.id, selectedLabel?.x, selectedLabel?.y, selectedLabel?.offset_x, selectedLabel?.offset_y]);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (selectedLabel) {
+      setStatus({
+        text: '',
+        type: ''
+      });
+    }
+  }, [selectedLabel?.id]);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (selectedRegion) {
+      setRegionFormData((0,_forms_HierarchyRegionForm__WEBPACK_IMPORTED_MODULE_4__.defaultHierarchyFormData)(selectedRegion));
+      setStatus({
+        text: '',
+        type: ''
+      });
+    }
+  }, [selectedRegion?.id]);
+  const hasSelection = !!selectedObject || !!selectedArea || !!selectedLabel || !!selectedRegion;
+  if (!hasSelection) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("aside", {
+      className: "cns-editor-context",
+      "aria-label": "Context panel",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
+        className: "cns-editor-context__empty",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("p", {
+          children: activeTab === 'areas' ? 'Select an area on the canvas to edit it here.' : activeTab === 'labels' ? 'Select a label on the canvas to edit it here.' : activeTab === 'hierarchy' ? 'Select a region on the canvas to edit it here.' : 'Select an object on the canvas to edit it here.'
+        })
+      })
+    });
+  }
+  const isObject = !!selectedObject;
+  const isLabel = !isObject && !!selectedLabel;
+  const isRegion = !isObject && !isLabel && !!selectedRegion;
+  const title = isObject ? selectedObject.title || '(no title)' : isLabel ? selectedLabel.text || '(empty label)' : isRegion ? selectedRegion.child_map_title || 'New Region' : selectedArea.title || '(no title)';
+  async function handleSave() {
+    setSaving(true);
+    setStatus({
+      text: 'Saving…',
+      type: ''
+    });
+    try {
+      if (isObject && objFormData) {
+        const data = await onObjectSave((0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_1__.collectObjectPayload)(objFormData));
+        if (data?.title) setObjFormData(prev => prev ? {
+          ...prev,
+          title: data.title
+        } : prev);
+      } else if (isLabel && labelFormData) {
+        const data = await onLabelSave((0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_2__.collectLabelPayload)(labelFormData));
+        if (data) setLabelFormData((0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_2__.defaultLabelFormData)(data, null, null));
+      } else if (isRegion && regionFormData) {
+        const data = await onRegionSave(regionFormData);
+        if (data) setRegionFormData((0,_forms_HierarchyRegionForm__WEBPACK_IMPORTED_MODULE_4__.defaultHierarchyFormData)(data));
+      } else if (areaFormData) {
+        await onAreaSave(areaFormData);
+      }
+      setStatus({
+        text: 'Saved.',
+        type: 'ok'
+      });
+      setTimeout(() => setStatus({
+        text: '',
+        type: ''
+      }), 2000);
+    } catch (err) {
+      setStatus({
+        text: err.message,
+        type: 'error'
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+  async function handleDelete() {
+    if (isObject) {
+      if (!confirm('Delete this object?')) return;
+      await onObjectDelete();
+    } else if (isLabel) {
+      if (!confirm('Delete this label?')) return;
+      await onLabelDelete();
+    } else if (isRegion) {
+      if (!confirm('Delete this hierarchy region?')) return;
+      await onRegionDelete();
+    } else {
+      if (!confirm('Delete this area?')) return;
+      await onAreaDelete();
+    }
+  }
+  function handleClose() {
+    if (isObject) onObjectClose();else if (isLabel) onLabelClose();else if (isRegion) onRegionClose();else onAreaClose();
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("aside", {
+    className: "cns-editor-context",
+    "aria-label": "Context panel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+      id: "cns-context-form",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        className: "cns-editor-context__header",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+          className: "cns-editor-context__title",
+          children: title
+        }), isObject && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+            type: "button",
+            className: "button button-small",
+            onClick: onObjectReposition,
+            children: "Reposition"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+            type: "button",
+            className: "button button-small",
+            onClick: onObjectDuplicate,
+            children: "Duplicate"
+          })]
+        }), !isObject && !isLabel && !isRegion && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          type: "button",
+          className: "button button-small",
+          onClick: onAreaDuplicate,
+          children: "Duplicate"
+        }), isLabel && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+            type: "button",
+            className: "button button-small",
+            onClick: onLabelReposition,
+            children: "Reposition"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+            type: "button",
+            className: "button button-small",
+            onClick: onLabelDuplicate,
+            children: "Duplicate"
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          type: "button",
+          className: "cns-editor-context__close",
+          "aria-label": "Close",
+          onClick: handleClose,
+          children: "\xD7"
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        className: "cns-editor-context__body",
+        children: [isObject && objFormData && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          formData: objFormData,
+          onChange: setObjFormData,
+          icons: icons
+        }), isLabel && labelFormData && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_forms_LabelForm__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          formData: labelFormData,
+          onChange: fd => {
+            setLabelFormData(fd);
+            // Live preview: mirror every form change onto
+            // the in-memory label so the canvas updates
+            // immediately (Save persists it).
+            if (selectedLabel) {
+              onLabelLocalUpdate(selectedLabel.id, {
+                text: fd.text,
+                placement: fd.placement,
+                x: fd.x,
+                y: fd.y,
+                offset_x: fd.offset_x,
+                offset_y: fd.offset_y,
+                infobox_source: fd.infobox_source,
+                linked_post_id: fd.linked_post_id,
+                infobox_data: {
+                  title: fd.infobox_title,
+                  description: fd.infobox_description,
+                  image_id: fd.infobox_image_id
+                },
+                canvas_styles: {
+                  bgColor: fd.style_bg,
+                  borderColor: fd.style_border,
+                  textColor: fd.style_text_color,
+                  fontSize: fd.style_font_size
+                }
+              });
+            }
+          }
+        }), !isObject && !isLabel && !isRegion && areaFormData && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_forms_AreaForm__WEBPACK_IMPORTED_MODULE_3__["default"], {
+            formData: areaFormData,
+            onChange: setAreaFormData,
+            onShapeTypeChange: st => {
+              if (selectedArea) onAreaShapeTypeChange?.(selectedArea.id, st);
+              setAreaFormData(prev => prev ? {
+                ...prev,
+                shape_type: st
+              } : prev);
+            }
+          }), selectedArea && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_forms_NodeList__WEBPACK_IMPORTED_MODULE_5__["default"], {
+            area: selectedArea,
+            onNodesChange: nodes => onAreaNodesUpdate?.(selectedArea.id, nodes)
+          })]
+        }), isRegion && regionFormData && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_forms_HierarchyRegionForm__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            formData: regionFormData,
+            onChange: setRegionFormData
+          }), selectedRegion && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_forms_RegionNodeList__WEBPACK_IMPORTED_MODULE_6__["default"], {
+            region: selectedRegion,
+            onNodesChange: nodes => onRegionNodesUpdate(selectedRegion.id, nodes)
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        className: "cns-editor-context__footer",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_shared_SaveStatus__WEBPACK_IMPORTED_MODULE_7__["default"], {
+          text: status.text,
+          type: status.type
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          type: "button",
+          className: "button button-small button-primary",
+          disabled: saving,
+          onClick: handleSave,
+          children: "Save"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("button", {
+          type: "button",
+          className: "button button-small",
+          onClick: handleDelete,
+          children: "Delete"
+        })]
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/EditorHeader.tsx"
+/*!****************************************!*\
+  !*** ./src/admin/app/EditorHeader.tsx ***!
+  \****************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ EditorHeader)
+/* harmony export */ });
+/* harmony import */ var _shared_SaveStatus__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./shared/SaveStatus */ "./src/admin/app/shared/SaveStatus.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const STATUS_LABELS = {
+  draft: 'Draft',
+  publish: 'Published',
+  private: 'Private'
+};
+function EditorHeader({
+  pageTitle,
+  overviewUrl,
+  viewUrl,
+  status,
+  onStatusChange,
+  saveStatus,
+  onSave
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+    className: "cns-map-editor__header",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("a", {
+      href: overviewUrl,
+      className: "cns-back-link",
+      children: "\u2190 All Maps"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("h1", {
+      children: pageTitle
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      className: "cns-map-editor__header-actions",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_shared_SaveStatus__WEBPACK_IMPORTED_MODULE_0__["default"], {
+        text: saveStatus.text,
+        type: saveStatus.type
+      }), viewUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("a", {
+        href: viewUrl,
+        className: "button",
+        target: "_blank",
+        rel: "noopener noreferrer",
+        children: "View Map"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("select", {
+        className: "cns-status-select",
+        value: status,
+        onChange: e => onStatusChange(e.target.value),
+        "aria-label": "Post status",
+        children: Object.keys(STATUS_LABELS).map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("option", {
+          value: s,
+          children: STATUS_LABELS[s]
+        }, s))
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-primary",
+        onClick: onSave,
+        children: "Save Map"
+      })]
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/IconLibraryApp.tsx"
+/*!******************************************!*\
+  !*** ./src/admin/app/IconLibraryApp.tsx ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ IconLibraryApp)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils */ "./src/admin/utils.ts");
+/* harmony import */ var _icons__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../icons */ "./src/admin/icons.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+function IconLibraryApp() {
+  const [icons, setIcons] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [error, setError] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    (0,_icons__WEBPACK_IMPORTED_MODULE_2__.loadIconLibraryIntoCache)().then(() => setIcons(_icons__WEBPACK_IMPORTED_MODULE_2__.iconLibraryCache || []));
+  }, []);
+  function handleAdd() {
+    const frame = window.wp.media({
+      title: 'Select or Upload SVG Icon',
+      button: {
+        text: 'Add to library'
+      },
+      multiple: false,
+      library: {
+        type: 'image/svg+xml'
+      }
+    });
+    frame.on('select', async () => {
+      const att = frame.state().get('selection').first().toJSON();
+      setError('');
+      try {
+        const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_1__.apiFetch)('POST', '/icons', {
+          attachment_id: att.id
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.message || 'Failed to add icon.');
+        setIcons(prev => [...prev, data]);
+      } catch (err) {
+        setError(err.message);
+      }
+    });
+    frame.open();
+  }
+  async function handleRemove(id) {
+    if (!confirm('Remove this icon from the library? (The attachment itself is kept.)')) return;
+    setError('');
+    try {
+      const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_1__.apiFetch)('DELETE', `/icons/${id}`);
+      if (!res.ok) throw new Error('Remove failed.');
+      setIcons(prev => prev.filter(i => i.id !== id));
+    } catch (err) {
+      setError(err.message);
+    }
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+    children: [error && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "notice notice-error is-dismissible",
+      style: {
+        margin: '0 0 12px'
+      },
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+        children: error
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+        type: "button",
+        className: "notice-dismiss",
+        onClick: () => setError(''),
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+          className: "screen-reader-text",
+          children: "Dismiss"
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "cns-icon-library-toolbar",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+        type: "button",
+        id: "cns-add-icon-btn",
+        className: "button button-primary",
+        onClick: handleAdd,
+        children: "Add Icon"
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      id: "cns-icon-library-grid",
+      className: "cns-icon-library-grid",
+      children: icons.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+        className: "cns-icon-library-grid__empty",
+        children: "No icons yet. Click \u201CAdd Icon\u201D to upload an SVG."
+      }) : icons.map(icon => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-icon-library-item",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+          className: "cns-icon-library-item__preview",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("img", {
+            src: icon.url,
+            alt: icon.title
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("span", {
+          className: "cns-icon-library-item__name",
+          children: icon.title
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("button", {
+          type: "button",
+          className: "cns-icon-library-item__remove",
+          "aria-label": "Remove",
+          onClick: () => handleRemove(icon.id),
+          children: "\xD7"
+        })]
+      }, icon.id))
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/MapEditorApp.tsx"
+/*!****************************************!*\
+  !*** ./src/admin/app/MapEditorApp.tsx ***!
+  \****************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ MapEditorApp)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _EditorHeader__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./EditorHeader */ "./src/admin/app/EditorHeader.tsx");
+/* harmony import */ var _TabBar__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./TabBar */ "./src/admin/app/TabBar.tsx");
+/* harmony import */ var _ContextPanel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./ContextPanel */ "./src/admin/app/ContextPanel.tsx");
+/* harmony import */ var _panels_SettingsPanel__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./panels/SettingsPanel */ "./src/admin/app/panels/SettingsPanel.tsx");
+/* harmony import */ var _panels_DescriptionPanel__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./panels/DescriptionPanel */ "./src/admin/app/panels/DescriptionPanel.tsx");
+/* harmony import */ var _panels_ObjectsPanel__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./panels/ObjectsPanel */ "./src/admin/app/panels/ObjectsPanel.tsx");
+/* harmony import */ var _panels_AreasPanel__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./panels/AreasPanel */ "./src/admin/app/panels/AreasPanel.tsx");
+/* harmony import */ var _panels_LabelsPanel__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./panels/LabelsPanel */ "./src/admin/app/panels/LabelsPanel.tsx");
+/* harmony import */ var _panels_HierarchyPanel__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./panels/HierarchyPanel */ "./src/admin/app/panels/HierarchyPanel.tsx");
+/* harmony import */ var _panels_PreviewPanel__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! ./panels/PreviewPanel */ "./src/admin/app/panels/PreviewPanel.tsx");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! ../utils */ "./src/admin/utils.ts");
+/* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! ../areas */ "./src/admin/areas.ts");
+/* harmony import */ var _forms_LabelForm__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! ./forms/LabelForm */ "./src/admin/app/forms/LabelForm.tsx");
+/* harmony import */ var _forms_ObjectForm__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! ./forms/ObjectForm */ "./src/admin/app/forms/ObjectForm.tsx");
+/* harmony import */ var _forms_AreaForm__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! ./forms/AreaForm */ "./src/admin/app/forms/AreaForm.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function buildInitialSettings() {
+  const d = window.cnsMapEditor || {};
+  return {
+    status: d.status ?? 'draft',
+    title: d.title ?? '',
+    description: d.description ?? '',
+    width: d.width ?? 1000,
+    aspectRatio: d.aspectRatio ?? 1.0,
+    time: d.time ?? 0,
+    imageId: d.imageId ?? 0,
+    imageUrl: d.imageUrl ?? '',
+    imageX: d.imageX ?? 0,
+    imageY: d.imageY ?? 0,
+    imageW: d.imageWidth ?? 1.0,
+    isMaster: d.isMaster ?? false,
+    featured: d.featured ?? false,
+    bgType: d.bgType ?? 'color',
+    bgColor: d.bgColor ?? '#1a1a2e',
+    bgImageId: d.bgImageId ?? 0,
+    bgImageUrl: d.bgImageUrl ?? '',
+    thumbnailId: d.thumbnailId ? d.thumbnailId : null,
+    thumbnailUrl: d.thumbnailUrl ?? ''
+  };
+}
+function MapEditorApp() {
+  const d = window.cnsMapEditor || {};
+  const mapId = d.mapId || 0;
+  const isNew = d.isNew || false;
+  const overviewUrl = d.overviewUrl || '#';
+  const initialParentMaps = d.parentMaps || [];
+  const [settings, setSettings] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(buildInitialSettings);
+  const [viewUrl, setViewUrl] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(d.viewUrl || '');
+  const [activeTab, setActiveTab] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('settings');
+  const [objectsList, setObjectsList] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [areasList, setAreasList] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [selectedObjectId, setSelectedObjectId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [selectedAreaId, setSelectedAreaId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [labelsList, setLabelsList] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [selectedLabelId, setSelectedLabelId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [repositioningLabelId, setRepositioningLabelId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [selectedRegionId, setSelectedRegionId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [regionsList, setRegionsList] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [repositioningObjId, setRepositioningObjId] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [saveStatus, setSaveStatus] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)({
+    text: '',
+    type: ''
+  });
+  const selectedObject = objectsList.find(o => o.id === selectedObjectId) || null;
+  const selectedArea = areasList.find(a => a.id === selectedAreaId) || null;
+  const selectedLabel = labelsList.find(l => l.id === selectedLabelId) || null;
+  const selectedRegion = regionsList.find(r => r.id === selectedRegionId) || null;
+
+  // Warn before leaving with unsaved map settings, or while a debounced
+  // area-geometry save is still pending. Everything else persists through
+  // its own endpoint as you edit.
+  const savedSettingsRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(JSON.stringify(buildInitialSettings()));
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    function handleBeforeUnload(e) {
+      if (JSON.stringify(settings) !== savedSettingsRef.current || areaGeomSave.current.timer !== null) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [settings]);
+
+  // ── Tab switching ─────────────────────────────────────────────────────────
+
+  function handleTabChange(tab) {
+    if (tab !== 'objects') {
+      setSelectedObjectId(null);
+      setRepositioningObjId(null);
+    }
+    if (tab !== 'labels') {
+      setSelectedLabelId(null);
+      setRepositioningLabelId(null);
+    }
+    if (tab !== 'areas') setSelectedAreaId(null);
+    if (tab !== 'hierarchy') setSelectedRegionId(null);
+    setActiveTab(tab);
+  }
+
+  // ── Map settings save ─────────────────────────────────────────────────────
+
+  async function handleSave() {
+    setSaveStatus({
+      text: 'Saving…',
+      type: ''
+    });
+    const payload = {
+      map_id: mapId,
+      title: settings.title,
+      description: settings.description,
+      status: settings.status,
+      width: settings.width,
+      aspect_ratio: settings.aspectRatio,
+      time: settings.time,
+      image_id: settings.imageId,
+      image_x: settings.imageX,
+      image_y: settings.imageY,
+      image_width: settings.imageW,
+      is_master: settings.isMaster,
+      featured: settings.featured,
+      bg_type: settings.bgType,
+      bg_color: settings.bgColor,
+      bg_image_id: settings.bgImageId,
+      thumbnail_id: settings.thumbnailId ?? 0
+    };
+    try {
+      const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', '/maps', payload);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || 'Save failed.');
+      savedSettingsRef.current = JSON.stringify(settings);
+      if (data.created && data.edit_url) {
+        window.location.href = data.edit_url;
+      } else {
+        if (data.view_url !== undefined) {
+          setViewUrl(data.view_url);
+        }
+        setSaveStatus({
+          text: 'Saved.',
+          type: 'ok'
+        });
+        setTimeout(() => setSaveStatus({
+          text: '',
+          type: ''
+        }), 2000);
+      }
+    } catch (err) {
+      setSaveStatus({
+        text: err.message,
+        type: 'error'
+      });
+    }
+  }
+
+  // ── Object operations ─────────────────────────────────────────────────────
+
+  async function handleObjectSave(formPayload) {
+    if (!selectedObjectId) return;
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/objects/${selectedObjectId}`, formPayload);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Save failed.');
+    setObjectsList(prev => prev.map(o => o.id === selectedObjectId ? data : o));
+    return data;
+  }
+  async function handleObjectPositionUpdate(id, x, y) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('PATCH', `/objects/${id}/position`, {
+      x,
+      y
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setObjectsList(prev => prev.map(o => o.id === id ? data : o));
+    }
+  }
+
+  // Live/local updates: keyboard nudges patch the in-memory object so the
+  // canvas moves immediately; the position PATCH persists shortly after.
+  function handleObjectLocalUpdate(id, patch) {
+    setObjectsList(prev => prev.map(o => o.id === id ? {
+      ...o,
+      ...patch
+    } : o));
+  }
+  async function handleObjectDuplicate(id) {
+    const obj = objectsList.find(o => o.id === id);
+    if (!obj) return;
+    const payload = (0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_14__.collectObjectPayload)((0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_14__.defaultObjectFormData)(obj, null, null));
+    payload.x += 24;
+    payload.y += 24;
+    const created = await handleObjectAdd(payload);
+    setSelectedObjectId(created.id);
+  }
+
+  // ── Label operations ──────────────────────────────────────────────────────
+
+  async function handleLabelAdd(payload) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/maps/${mapId}/labels`, payload);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed.');
+    setLabelsList(prev => [...prev, data]);
+    return data;
+  }
+  async function handleLabelSave(payload) {
+    if (!selectedLabelId) return;
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/labels/${selectedLabelId}`, payload);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Save failed.');
+    setLabelsList(prev => prev.map(l => l.id === selectedLabelId ? data : l));
+    return data;
+  }
+  async function handleLabelGeometryUpdate(id, geometry) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('PATCH', `/labels/${id}/position`, geometry);
+    const data = await res.json();
+    if (res.ok) {
+      setLabelsList(prev => prev.map(l => l.id === id ? data : l));
+    }
+  }
+
+  // Live preview: form edits update the in-memory label immediately so the
+  // canvas reflects colors/text/placement before saving.
+  function handleLabelLocalUpdate(id, patch) {
+    setLabelsList(prev => prev.map(l => l.id === id ? {
+      ...l,
+      ...patch
+    } : l));
+  }
+  async function handleLabelDuplicate(id) {
+    const label = labelsList.find(l => l.id === id);
+    if (!label) return;
+    const payload = (0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_13__.collectLabelPayload)((0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_13__.defaultLabelFormData)(label, null, null));
+    payload.x += 24;
+    payload.y += 24;
+    const created = await handleLabelAdd(payload);
+    setSelectedLabelId(created.id);
+  }
+  async function handleLabelDeleteById(id) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('DELETE', `/labels/${id}`);
+    if (!res.ok) throw new Error('Delete failed.');
+    setLabelsList(prev => prev.filter(l => l.id !== id));
+    if (selectedLabelId === id) setSelectedLabelId(null);
+  }
+
+  // ── Area operations ───────────────────────────────────────────────────────
+
+  // Canvas node edits, node-list edits, and shape-type switches update local
+  // state for instant feedback and are persisted shortly after via the
+  // geometry PATCH — matching how object/label moves save immediately. The
+  // debounce absorbs per-keystroke node-list edits; reading the area from a
+  // ref at flush time sends the latest geometry.
+  const areasRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(areasList);
+  areasRef.current = areasList;
+  const areaGeomSave = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    timer: null,
+    areaId: null
+  });
+  async function commitAreaGeometry(areaId) {
+    const area = areasRef.current.find(a => a.id === areaId);
+    if (!area) return;
+    await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('PATCH', `/areas/${areaId}/nodes`, {
+      nodes: JSON.stringify(area.nodes || []),
+      shape_type: area.shape_type || 'POLYGON'
+    });
+  }
+  function scheduleAreaGeometrySave(areaId) {
+    const pending = areaGeomSave.current;
+    if (pending.timer) {
+      window.clearTimeout(pending.timer);
+      // Switching areas mid-debounce: flush the previous one first.
+      if (pending.areaId !== null && pending.areaId !== areaId) {
+        void commitAreaGeometry(pending.areaId);
+      }
+    }
+    pending.areaId = areaId;
+    pending.timer = window.setTimeout(() => {
+      pending.timer = null;
+      pending.areaId = null;
+      void commitAreaGeometry(areaId);
+    }, 600);
+  }
+  async function handleAreaSave(formData) {
+    if (!selectedAreaId) return;
+    const area = areasList.find(a => a.id === selectedAreaId);
+    if (!area) return;
+    const payload = {
+      ...formData,
+      nodes: JSON.stringify(area.nodes)
+    };
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/areas/${selectedAreaId}`, payload);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Save failed.');
+    setAreasList(prev => prev.map(a => a.id === selectedAreaId ? data : a));
+    return data;
+  }
+  function handleAreaNodesUpdate(areaId, nodes) {
+    setAreasList(prev => prev.map(a => a.id === areaId ? {
+      ...a,
+      nodes
+    } : a));
+    scheduleAreaGeometrySave(areaId);
+  }
+  function handleAreaShapeTypeChange(areaId, shapeType) {
+    setAreasList(prev => prev.map(a => {
+      if (a.id !== areaId) return a;
+      return {
+        ...a,
+        shape_type: shapeType,
+        nodes: (0,_areas__WEBPACK_IMPORTED_MODULE_12__.normalizeNodesForShapeType)(a.nodes || [], shapeType)
+      };
+    }));
+    scheduleAreaGeometrySave(areaId);
+  }
+
+  // ── Object add / delete ───────────────────────────────────────────────────
+
+  async function handleObjectAdd(payload) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/maps/${mapId}/objects`, payload);
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Failed.');
+    setObjectsList(prev => [...prev, data]);
+    return data;
+  }
+  async function handleObjectDeleteById(id) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('DELETE', `/objects/${id}`);
+    if (!res.ok) throw new Error('Delete failed.');
+    setObjectsList(prev => prev.filter(o => o.id !== id));
+    if (selectedObjectId === id) setSelectedObjectId(null);
+  }
+  async function handleAreaDuplicate(id) {
+    const area = areasList.find(a => a.id === id);
+    if (!area) return;
+    const W = settings.width || 1000;
+    const H = W / (settings.aspectRatio || 1);
+    // Nodes are normalized 0–1; offset the copy by 24 px worth.
+    const nodes = (area.nodes || []).map(n => ({
+      ...n,
+      x: n.x + 24 / W,
+      y: n.y + 24 / H
+    }));
+    const payload = {
+      ...(0,_forms_AreaForm__WEBPACK_IMPORTED_MODULE_15__.defaultAreaFormData)(area),
+      nodes: JSON.stringify(nodes)
+    };
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/maps/${mapId}/areas`, payload);
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || 'Failed.');
+    }
+    setAreasList(prev => [...prev, data]);
+    setSelectedAreaId(data.id);
+  }
+  async function handleAreaDeleteById(id) {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('DELETE', `/areas/${id}`);
+    if (!res.ok) throw new Error('Delete failed.');
+    setAreasList(prev => prev.filter(a => a.id !== id));
+    if (selectedAreaId === id) setSelectedAreaId(null);
+  }
+
+  // ── Hierarchy region operations ───────────────────────────────────────────
+
+  function handleRegionNodesUpdate(regionId, nodes) {
+    setRegionsList(prev => prev.map(r => r.id === regionId ? {
+      ...r,
+      nodes
+    } : r));
+  }
+  async function handleRegionSave(formData) {
+    if (!selectedRegionId || !formData.child_map_id) {
+      throw new Error('Select a child map before saving.');
+    }
+    const region = regionsList.find(r => r.id === selectedRegionId);
+    if (!region) return;
+    const payload = {
+      child_map_id: formData.child_map_id,
+      nodes: JSON.stringify(region.nodes),
+      style_fill: formData.style_fill,
+      style_fill_opacity: formData.style_fill_opacity,
+      style_stroke: formData.style_stroke,
+      style_stroke_width: formData.style_stroke_width,
+      title_override: formData.title_override,
+      description_override: formData.description_override
+    };
+    let res;
+    if (selectedRegionId === -1) {
+      // Unsaved draft — create.
+      res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/maps/${mapId}/hierarchy`, payload);
+    } else {
+      res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('POST', `/hierarchy/${selectedRegionId}`, payload);
+    }
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.message || 'Save failed.');
+    setRegionsList(prev => prev.map(r => r.id === selectedRegionId ? data : r));
+    // After creating a draft, update the selected ID to the real one.
+    if (selectedRegionId === -1) setSelectedRegionId(data.id);
+    return data;
+  }
+  async function handleRegionDeleteById(id) {
+    if (id === -1) {
+      setRegionsList(prev => prev.filter(r => r.id !== -1));
+      setSelectedRegionId(null);
+      return;
+    }
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_11__.apiFetch)('DELETE', `/hierarchy/${id}`);
+    if (!res.ok) throw new Error('Delete failed.');
+    setRegionsList(prev => prev.filter(r => r.id !== id));
+    if (selectedRegionId === id) setSelectedRegionId(null);
+  }
+
+  // ── Render ────────────────────────────────────────────────────────────────
+
+  const pageTitle = isNew ? 'New Map' : `Edit: ${settings.title || '(no title)'}`;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+    className: "cns-map-editor",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_EditorHeader__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      pageTitle: pageTitle,
+      overviewUrl: overviewUrl,
+      viewUrl: !isNew && viewUrl ? viewUrl : '',
+      status: settings.status,
+      onStatusChange: s => setSettings(prev => ({
+        ...prev,
+        status: s
+      })),
+      saveStatus: saveStatus,
+      onSave: handleSave
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+      className: "cns-map-editor__main",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+        className: "cns-map-editor__body",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_TabBar__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          activeTab: activeTab,
+          isMaster: settings.isMaster,
+          onChange: handleTabChange
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsxs)("div", {
+          className: "cns-map-editor__content",
+          children: [activeTab === 'settings' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_SettingsPanel__WEBPACK_IMPORTED_MODULE_4__["default"], {
+            settings: settings,
+            onChange: setSettings
+          }), activeTab === 'description' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_DescriptionPanel__WEBPACK_IMPORTED_MODULE_5__["default"], {
+            value: settings.description,
+            onChange: html => setSettings(prev => ({
+              ...prev,
+              description: html
+            }))
+          }), activeTab === 'objects' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_ObjectsPanel__WEBPACK_IMPORTED_MODULE_6__["default"], {
+            mapId: mapId,
+            settings: settings,
+            objects: objectsList,
+            selectedObjectId: selectedObjectId,
+            repositioningObjectId: repositioningObjId,
+            onObjectsLoaded: setObjectsList,
+            onSelect: setSelectedObjectId,
+            onDeselect: () => setSelectedObjectId(null),
+            onAdd: handleObjectAdd,
+            onPositionUpdate: handleObjectPositionUpdate,
+            onLocalUpdate: handleObjectLocalUpdate,
+            onDuplicate: handleObjectDuplicate,
+            onRepositionStart: id => setRepositioningObjId(id),
+            onRepositionComplete: () => setRepositioningObjId(null),
+            onDelete: handleObjectDeleteById
+          }), activeTab === 'areas' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_AreasPanel__WEBPACK_IMPORTED_MODULE_7__["default"], {
+            mapId: mapId,
+            settings: settings,
+            areas: areasList,
+            selectedAreaId: selectedAreaId,
+            onAreasLoaded: setAreasList,
+            onSelect: setSelectedAreaId,
+            onDeselect: () => setSelectedAreaId(null),
+            onNodesUpdate: handleAreaNodesUpdate,
+            onDuplicate: handleAreaDuplicate,
+            onDelete: handleAreaDeleteById
+          }), activeTab === 'labels' && !settings.isMaster && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_LabelsPanel__WEBPACK_IMPORTED_MODULE_8__["default"], {
+            mapId: mapId,
+            settings: settings,
+            labels: labelsList,
+            selectedLabelId: selectedLabelId,
+            repositioningLabelId: repositioningLabelId,
+            onLabelsLoaded: setLabelsList,
+            onSelect: setSelectedLabelId,
+            onDeselect: () => setSelectedLabelId(null),
+            onAdd: handleLabelAdd,
+            onGeometryUpdate: handleLabelGeometryUpdate,
+            onLocalUpdate: handleLabelLocalUpdate,
+            onDuplicate: handleLabelDuplicate,
+            onRepositionComplete: () => setRepositioningLabelId(null),
+            onDelete: handleLabelDeleteById
+          }), activeTab === 'hierarchy' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_HierarchyPanel__WEBPACK_IMPORTED_MODULE_9__["default"], {
+            mapId: mapId,
+            settings: settings,
+            regions: regionsList,
+            selectedRegionId: selectedRegionId,
+            parentMaps: initialParentMaps,
+            onRegionsLoaded: setRegionsList,
+            onSelect: setSelectedRegionId,
+            onDeselect: () => setSelectedRegionId(null),
+            onNodesUpdate: handleRegionNodesUpdate,
+            onDelete: handleRegionDeleteById
+          }), activeTab === 'preview' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_panels_PreviewPanel__WEBPACK_IMPORTED_MODULE_10__["default"], {
+            settings: settings,
+            objects: objectsList,
+            areas: areasList,
+            labels: labelsList,
+            viewUrl: !isNew && viewUrl ? viewUrl : ''
+          }), activeTab === 'stories' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)("div", {
+            id: "cns-map-stories-panel",
+            "data-map-id": mapId,
+            "data-overview-url": window.cnsMapEditorExtensions?.storySuiteOverviewUrl || ''
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_16__.jsx)(_ContextPanel__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        activeTab: activeTab,
+        selectedObject: selectedObject,
+        selectedArea: selectedArea,
+        selectedLabel: selectedLabel,
+        selectedRegion: selectedRegion,
+        onObjectSave: handleObjectSave,
+        onObjectDelete: () => handleObjectDeleteById(selectedObjectId),
+        onObjectClose: () => setSelectedObjectId(null),
+        onObjectReposition: () => setRepositioningObjId(selectedObjectId),
+        onObjectDuplicate: () => handleObjectDuplicate(selectedObjectId),
+        onLabelSave: handleLabelSave,
+        onLabelDelete: () => handleLabelDeleteById(selectedLabelId),
+        onLabelClose: () => setSelectedLabelId(null),
+        onLabelReposition: () => setRepositioningLabelId(selectedLabelId),
+        onLabelDuplicate: () => handleLabelDuplicate(selectedLabelId),
+        onLabelLocalUpdate: handleLabelLocalUpdate,
+        onAreaSave: handleAreaSave,
+        onAreaDelete: () => handleAreaDeleteById(selectedAreaId),
+        onAreaClose: () => setSelectedAreaId(null),
+        onAreaDuplicate: () => handleAreaDuplicate(selectedAreaId),
+        onAreaNodesUpdate: handleAreaNodesUpdate,
+        onAreaShapeTypeChange: handleAreaShapeTypeChange,
+        onRegionSave: handleRegionSave,
+        onRegionDelete: () => handleRegionDeleteById(selectedRegionId),
+        onRegionClose: () => setSelectedRegionId(null),
+        onRegionNodesUpdate: handleRegionNodesUpdate
+      })]
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/TabBar.tsx"
+/*!**********************************!*\
+  !*** ./src/admin/app/TabBar.tsx ***!
+  \**********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ TabBar)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+const TABS = [{
+  id: 'settings',
+  label: 'Settings',
+  masterHide: false,
+  masterShow: false
+}, {
+  id: 'description',
+  label: 'Description',
+  masterHide: false,
+  masterShow: false
+}, {
+  id: 'objects',
+  label: 'Objects',
+  masterHide: true,
+  masterShow: false
+}, {
+  id: 'areas',
+  label: 'Areas',
+  masterHide: true,
+  masterShow: false
+}, {
+  id: 'labels',
+  label: 'Labels',
+  masterHide: true,
+  masterShow: false
+}, {
+  id: 'hierarchy',
+  label: 'Hierarchy',
+  masterHide: false,
+  masterShow: true
+}, {
+  id: 'preview',
+  label: 'Preview',
+  masterHide: true,
+  masterShow: false
+}, {
+  id: 'stories',
+  label: 'Stories',
+  masterHide: true,
+  masterShow: false,
+  extensionKey: 'hasStorySuite'
+}];
+function TabBar({
+  activeTab,
+  isMaster,
+  onChange
+}) {
+  const ext = window.cnsMapEditorExtensions || {};
+  const visible = TABS.filter(t => {
+    if (t.masterHide && isMaster) return false;
+    if (t.masterShow && !isMaster) return false;
+    if (t.extensionKey && !ext[t.extensionKey]) return false;
+    return true;
+  });
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("nav", {
+    className: "cns-map-editor__tabs",
+    role: "tablist",
+    "aria-label": "Editor modes",
+    children: visible.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("button", {
+      className: `cns-tab${activeTab === t.id ? ' cns-tab--active' : ''}`,
+      role: "tab",
+      "aria-selected": activeTab === t.id,
+      onClick: () => onChange(t.id),
+      children: t.label
+    }, t.id))
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/AreasCanvas.tsx"
+/*!************************************************!*\
+  !*** ./src/admin/app/canvases/AreasCanvas.tsx ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ AreasCanvas)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../areas */ "./src/admin/areas.ts");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../utils */ "./src/admin/utils.ts");
+/* harmony import */ var _CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./CanvasZoomWrap */ "./src/admin/app/canvases/CanvasZoomWrap.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__);
+
+
+
+
+
+
+function commitNodePosition(canvas, area, idx, x, y) {
+  return (0,_areas__WEBPACK_IMPORTED_MODULE_1__.moveAreaNode)(area, idx, x / canvas.width, y / canvas.height);
+}
+function AreasCanvas({
+  drawState,
+  areas,
+  selectedAreaId,
+  focusedNodeIdx,
+  onSelect,
+  onDeselect,
+  onNodesChange,
+  onNodeFocusChange
+}) {
+  const canvasRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [repoNodeIdx, setRepoNodeIdx] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [repoCursor, setRepoCursor] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const stateRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    areas: [],
+    selectedAreaId: null,
+    focusedNodeIdx: null,
+    onNodesChange,
+    onDeselect,
+    onNodeFocusChange,
+    repoNodeIdx: null,
+    repoCursor: null
+  });
+  stateRef.current = {
+    areas,
+    selectedAreaId,
+    focusedNodeIdx,
+    onNodesChange,
+    onDeselect,
+    onNodeFocusChange,
+    repoNodeIdx,
+    repoCursor
+  };
+
+  // ── Draw ────────────────────────────────────────────────────────────────────
+
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    (0,_areas__WEBPACK_IMPORTED_MODULE_1__.drawAreasOnCanvas)(canvas, drawState, areas, selectedAreaId, repoNodeIdx, repoCursor, focusedNodeIdx);
+  });
+
+  // ── JSX event handlers — always read current props/state, no stale closures ──
+
+  function handleMouseMove(e) {
+    if (repoNodeIdx === null) return;
+    setRepoCursor((0,_canvas__WEBPACK_IMPORTED_MODULE_2__.getCanvasCoords)(canvasRef.current, e.nativeEvent));
+  }
+  function handleClick(e) {
+    const canvas = canvasRef.current;
+    const {
+      x,
+      y
+    } = (0,_canvas__WEBPACK_IMPORTED_MODULE_2__.getCanvasCoords)(canvas, e.nativeEvent);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    if (repoNodeIdx !== null) {
+      const area = areas.find(a => a.id === selectedAreaId);
+      if (area) {
+        onNodesChange?.(selectedAreaId, commitNodePosition(canvas, area, repoNodeIdx, x, y));
+      }
+      setRepoNodeIdx(null);
+      setRepoCursor(null);
+      return;
+    }
+    const selArea = selectedAreaId ? areas.find(a => a.id === selectedAreaId) : null;
+    if (selArea) {
+      const nIdx = (0,_areas__WEBPACK_IMPORTED_MODULE_1__.findNodeAtPoint)(ctx, x, y, selArea.nodes || [], W, H);
+      if (nIdx !== -1) {
+        setRepoNodeIdx(nIdx);
+        setRepoCursor({
+          x,
+          y
+        });
+        // Keep keyboard focus in sync so Tab continues from here.
+        onNodeFocusChange?.(nIdx);
+        return;
+      }
+    }
+    const hitArea = (0,_areas__WEBPACK_IMPORTED_MODULE_1__.findAreaAtPoint)(ctx, x, y, areas, W, H);
+    if (hitArea) {
+      onSelect?.(hitArea.id);
+      return;
+    }
+    if (selArea) {
+      const st = selArea.shape_type || 'POLYGON';
+      if (st !== 'RECTANGLE' && st !== 'CIRCLE') {
+        onNodesChange?.(selectedAreaId, [...selArea.nodes, {
+          x: x / W,
+          y: y / H
+        }]);
+      }
+      return;
+    }
+    onDeselect?.();
+  }
+
+  // ── document keydown — bind once; reads live values via stateRef ─────────────
+
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    function onKeyDown(e) {
+      const {
+        areas: areaList,
+        selectedAreaId: selId,
+        onNodesChange: onChange,
+        onDeselect: deselect,
+        repoNodeIdx: nodeIdx,
+        repoCursor: cursor
+      } = stateRef.current;
+      if (e.key === 'Escape') {
+        if (nodeIdx !== null) {
+          setRepoNodeIdx(null);
+          setRepoCursor(null);
+        } else if (stateRef.current.focusedNodeIdx !== null) {
+          stateRef.current.onNodeFocusChange?.(null);
+        } else if (selId) {
+          deselect?.();
+        }
+        return;
+      }
+      if (e.key !== 'Enter') return;
+      // Enter already has a job in form fields and on focused
+      // buttons/links — don't commit the node from there.
+      if ((0,_utils__WEBPACK_IMPORTED_MODULE_3__.isTypingTarget)(e)) return;
+      if (e.target?.closest?.('button, a')) return;
+      if (nodeIdx !== null && cursor) {
+        e.preventDefault();
+        const area = areaList.find(a => a.id === selId);
+        if (area && selId !== null) {
+          onChange?.(selId, commitNodePosition(canvasRef.current, area, nodeIdx, cursor.x, cursor.y));
+        }
+      }
+      setRepoNodeIdx(null);
+      setRepoCursor(null);
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+  const isRepositioning = repoNodeIdx !== null;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("div", {
+    className: `cns-objects-canvas-wrap${isRepositioning ? ' cns-canvas--repositioning' : ''}`,
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_4__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("canvas", {
+        ref: canvasRef,
+        onClick: handleClick,
+        onMouseMove: handleMouseMove
+      })
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/CanvasZoomWrap.tsx"
+/*!***************************************************!*\
+  !*** ./src/admin/app/canvases/CanvasZoomWrap.tsx ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ CanvasZoomWrap)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+/**
+ * Zoom wrapper shared by all editor canvases. Zoom scales the canvas's
+ * *display* size inside a scrollable viewport — the canvas backing store and
+ * its pixel coordinate system are untouched, so every hit test and drag
+ * keeps working: getCanvasCoords() already normalizes clicks by
+ * boundingClientRect ÷ canvas.width.
+ *
+ * +/− buttons sit at the top right, outside the scroll area so they stay
+ * put while panning. Zoom changes keep the viewport centered on the same
+ * map point. The level is module-scoped so it survives tab switches.
+ *
+ * allowFullscreen adds a lightbox-style fullscreen toggle above the zoom
+ * buttons (used by the Preview tab): the whole zoom wrap becomes a fixed
+ * dark overlay, with zooming/panning still available. Esc exits.
+ */
+const MIN_ZOOM = 1;
+const MAX_ZOOM = 4;
+const ZOOM_STEP = 0.1;
+let sharedZoom = 1;
+function CanvasZoomWrap({
+  children,
+  allowFullscreen = false
+}) {
+  const [zoom, setZoom] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(sharedZoom);
+  const [fullscreen, setFullscreen] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const scrollRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  function changeZoom(delta) {
+    const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, Math.round((zoom + delta) * 10) / 10));
+    if (next === zoom) return;
+    sharedZoom = next;
+    const scroll = scrollRef.current;
+    // Map point currently at the viewport center, in zoom-1 units.
+    const cx = scroll ? (scroll.scrollLeft + scroll.clientWidth / 2) / zoom : 0;
+    const cy = scroll ? (scroll.scrollTop + scroll.clientHeight / 2) / zoom : 0;
+    setZoom(next);
+    // After the re-render resized the canvas, restore that center point.
+    requestAnimationFrame(() => {
+      if (!scroll) return;
+      scroll.scrollLeft = cx * next - scroll.clientWidth / 2;
+      scroll.scrollTop = cy * next - scroll.clientHeight / 2;
+    });
+  }
+
+  // Fullscreen: lock body scroll, Esc exits.
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (!fullscreen) return;
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setFullscreen(false);
+    }
+    document.addEventListener('keydown', onKeyDown);
+    document.body.classList.add('cns-canvas-fullscreen-open');
+    return () => {
+      document.removeEventListener('keydown', onKeyDown);
+      document.body.classList.remove('cns-canvas-fullscreen-open');
+    };
+  }, [fullscreen]);
+  const rootClass = 'cns-canvas-zoom' + (zoom > 1 ? ' cns-canvas-zoom--zoomed' : '') + (fullscreen ? ' is-fullscreen' : '');
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+    className: rootClass,
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+      className: "cns-canvas-zoom__controls",
+      children: [allowFullscreen && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        type: "button",
+        className: "button",
+        onClick: () => setFullscreen(f => !f),
+        "aria-label": fullscreen ? 'Exit fullscreen' : 'View fullscreen',
+        children: fullscreen ? '✕' : '⛶'
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        type: "button",
+        className: "button",
+        onClick: () => changeZoom(ZOOM_STEP),
+        disabled: zoom >= MAX_ZOOM,
+        "aria-label": "Zoom in",
+        children: "+"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("span", {
+        className: "cns-canvas-zoom__value",
+        children: [Math.round(zoom * 100), "%"]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        type: "button",
+        className: "button",
+        onClick: () => changeZoom(-ZOOM_STEP),
+        disabled: zoom <= MIN_ZOOM,
+        "aria-label": "Zoom out",
+        children: "\u2212"
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+      className: "cns-canvas-zoom__scroll",
+      ref: scrollRef,
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+        className: "cns-canvas-zoom__inner",
+        style: zoom > 1 ? {
+          width: `${zoom * 100}%`
+        } : undefined,
+        children: children
+      })
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/HierarchyCanvas.tsx"
+/*!****************************************************!*\
+  !*** ./src/admin/app/canvases/HierarchyCanvas.tsx ***!
+  \****************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ HierarchyCanvas)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./CanvasZoomWrap */ "./src/admin/app/canvases/CanvasZoomWrap.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+const NODE_HALF = 5;
+function buildPolygonPath(ctx, nodes, W, H) {
+  ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
+  for (let i = 1; i < nodes.length; i++) {
+    ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
+  }
+  ctx.closePath();
+}
+function drawRegion(ctx, region, W, H, isSelected, repoNodeIdx, repoCursor) {
+  const nodes = region.nodes || [];
+  if (nodes.length < 3) return;
+
+  // Apply live cursor position for the node being dragged.
+  let liveNodes = nodes;
+  if (isSelected && repoNodeIdx !== null && repoCursor) {
+    liveNodes = nodes.map(n => ({
+      ...n
+    }));
+    liveNodes[repoNodeIdx] = {
+      x: repoCursor.x / W,
+      y: repoCursor.y / H
+    };
+  }
+  const styles = region.canvas_styles || {};
+  const fill = styles.fill || '#e8a020';
+  const fillOpacity = styles.fillOpacity ?? 0.25;
+  const stroke = styles.stroke || '#e8a020';
+  const strokeWidth = styles.strokeWidth || 2;
+  ctx.beginPath();
+  buildPolygonPath(ctx, liveNodes, W, H);
+  ctx.save();
+  ctx.globalAlpha = fillOpacity;
+  ctx.fillStyle = fill;
+  ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = stroke;
+  ctx.lineWidth = isSelected ? Math.max(strokeWidth, 2) : strokeWidth;
+  ctx.stroke();
+
+  // Label: child map title centred inside region.
+  if (region.child_map_title) {
+    const cx = liveNodes.reduce((s, n) => s + n.x, 0) / liveNodes.length * W;
+    const cy = liveNodes.reduce((s, n) => s + n.y, 0) / liveNodes.length * H;
+    ctx.save();
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = 3;
+    ctx.strokeText(region.child_map_title, cx, cy);
+    ctx.fillText(region.child_map_title, cx, cy);
+    ctx.restore();
+  }
+  if (!isSelected) return;
+
+  // Node handles.
+  liveNodes.forEach((node, idx) => {
+    ctx.beginPath();
+    ctx.rect(node.x * W - NODE_HALF, node.y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2);
+    ctx.strokeStyle = repoNodeIdx === idx ? '#e75252' : '#e8a020';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+async function drawHierarchyCanvas(canvas, drawState, regions, selectedRegionId, repoNodeIdx, repoCursor) {
+  await (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.drawMapCanvas)(canvas, drawState);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  for (const region of regions) {
+    const isSel = region.id === selectedRegionId;
+    drawRegion(ctx, region, W, H, isSel, isSel ? repoNodeIdx : null, isSel ? repoCursor : null);
+  }
+}
+function findRegionAtPoint(ctx, x, y, regions, W, H) {
+  for (let i = regions.length - 1; i >= 0; i--) {
+    const r = regions[i];
+    const nodes = r.nodes || [];
+    if (nodes.length < 3) continue;
+    ctx.beginPath();
+    buildPolygonPath(ctx, nodes, W, H);
+    if (ctx.isPointInPath(x, y)) return r;
+  }
+  return null;
+}
+function findNodeAtPointLocal(ctx, x, y, nodes, W, H) {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    ctx.beginPath();
+    ctx.rect(nodes[i].x * W - NODE_HALF, nodes[i].y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2);
+    if (ctx.isPointInPath(x, y)) return i;
+  }
+  return -1;
+}
+function HierarchyCanvas({
+  drawState,
+  regions,
+  selectedRegionId,
+  onSelect,
+  onDeselect,
+  onNodesChange
+}) {
+  const canvasRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const [repoNodeIdx, setRepoNodeIdx] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const [repoCursor, setRepoCursor] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const stateRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    regions: [],
+    selectedRegionId: null,
+    onNodesChange,
+    repoNodeIdx: null,
+    repoCursor: null
+  });
+  stateRef.current = {
+    regions,
+    selectedRegionId,
+    onNodesChange,
+    repoNodeIdx,
+    repoCursor
+  };
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    drawHierarchyCanvas(canvas, drawState, regions, selectedRegionId, repoNodeIdx, repoCursor);
+  });
+  function handleMouseMove(e) {
+    if (repoNodeIdx === null) return;
+    setRepoCursor((0,_canvas__WEBPACK_IMPORTED_MODULE_1__.getCanvasCoords)(canvasRef.current, e.nativeEvent));
+  }
+  function handleClick(e) {
+    const canvas = canvasRef.current;
+    const {
+      x,
+      y
+    } = (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.getCanvasCoords)(canvas, e.nativeEvent);
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    if (repoNodeIdx !== null) {
+      const region = regions.find(r => r.id === selectedRegionId);
+      if (region && selectedRegionId !== null) {
+        const updated = region.nodes.map(n => ({
+          ...n
+        }));
+        updated[repoNodeIdx] = {
+          x: x / W,
+          y: y / H
+        };
+        onNodesChange(selectedRegionId, updated);
+      }
+      setRepoNodeIdx(null);
+      setRepoCursor(null);
+      return;
+    }
+    const selRegion = selectedRegionId ? regions.find(r => r.id === selectedRegionId) : null;
+    if (selRegion) {
+      const nIdx = findNodeAtPointLocal(ctx, x, y, selRegion.nodes || [], W, H);
+      if (nIdx !== -1) {
+        setRepoNodeIdx(nIdx);
+        setRepoCursor({
+          x,
+          y
+        });
+        return;
+      }
+    }
+    const hitRegion = findRegionAtPoint(ctx, x, y, regions, W, H);
+    if (hitRegion) {
+      onSelect(hitRegion.id);
+      return;
+    }
+
+    // Click empty space on selected region: add node.
+    if (selRegion) {
+      onNodesChange(selectedRegionId, [...selRegion.nodes, {
+        x: x / W,
+        y: y / H
+      }]);
+      return;
+    }
+    onDeselect();
+  }
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    function onKeyDown(e) {
+      const hierarchyActive = document.querySelector('[data-panel="hierarchy"].cns-tab-panel--active');
+      if (!hierarchyActive) return;
+      const {
+        regions: regionList,
+        selectedRegionId: selId,
+        onNodesChange: onChange,
+        repoNodeIdx: nodeIdx,
+        repoCursor: cursor
+      } = stateRef.current;
+      if (e.key === 'Enter' && nodeIdx !== null && cursor) {
+        const region = regionList.find(r => r.id === selId);
+        if (region && selId !== null) {
+          const updated = region.nodes.map(n => ({
+            ...n
+          }));
+          updated[nodeIdx] = {
+            x: cursor.x / canvasRef.current.width,
+            y: cursor.y / canvasRef.current.height
+          };
+          onChange(selId, updated);
+        }
+      }
+      if (e.key === 'Escape' || e.key === 'Enter') {
+        setRepoNodeIdx(null);
+        setRepoCursor(null);
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+  const isRepositioning = repoNodeIdx !== null;
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+    className: `cns-objects-canvas-wrap${isRepositioning ? ' cns-canvas--repositioning' : ''}`,
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("canvas", {
+        ref: canvasRef,
+        onClick: handleClick,
+        onMouseMove: handleMouseMove
+      })
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/LabelsCanvas.tsx"
+/*!*************************************************!*\
+  !*** ./src/admin/app/canvases/LabelsCanvas.tsx ***!
+  \*************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LabelsCanvas)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _labels__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../labels */ "./src/admin/labels.ts");
+/* harmony import */ var _usePickupDrag__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./usePickupDrag */ "./src/admin/app/canvases/usePickupDrag.ts");
+/* harmony import */ var _CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./CanvasZoomWrap */ "./src/admin/app/canvases/CanvasZoomWrap.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__);
+
+
+
+
+
+/**
+ * Pick-up/drop interaction comes from usePickupDrag; the drag payload names
+ * the label and which part is carried:
+ *
+ *  - 'box'    — the text box. Centered labels move their anchor; indicator
+ *               labels move only the box (offset), the dot stays put.
+ *  - 'anchor' — the indicator dot; moves only the dot, the box stays put.
+ *  - 'whole'  — anchor + box together (offset kept). Used by the
+ *               "Reposition" button and Enter-pick-up.
+ */
+
+function applyDragCursor(label, part, cursor) {
+  if (label.placement !== 'indicator' || part === 'whole') {
+    // Centered labels and whole-label moves: the anchor follows the
+    // cursor; in indicator mode the box tags along via the offset.
+    return {
+      ...label,
+      x: Math.round(cursor.x),
+      y: Math.round(cursor.y)
+    };
+  }
+  if (part === 'box') {
+    // Box follows the cursor, dot stays: cursor becomes anchor + offset.
+    return {
+      ...label,
+      offset_x: Math.round(cursor.x - label.x),
+      offset_y: Math.round(cursor.y - label.y)
+    };
+  }
+  // part === 'anchor': dot follows the cursor, box stays at its absolute
+  // position, so the offset compensates.
+  const boxX = label.x + label.offset_x;
+  const boxY = label.y + label.offset_y;
+  return {
+    ...label,
+    x: Math.round(cursor.x),
+    y: Math.round(cursor.y),
+    offset_x: Math.round(boxX - cursor.x),
+    offset_y: Math.round(boxY - cursor.y)
+  };
+}
+function LabelsCanvas({
+  drawState,
+  labels,
+  selectedLabelId,
+  repositioningLabelId,
+  onSelect,
+  onDeselect,
+  onGeometryUpdate,
+  onRepositionComplete
+}) {
+  const stateRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    labels: [],
+    selectedLabelId: null
+  });
+  stateRef.current = {
+    labels,
+    selectedLabelId
+  };
+  function liveLabel(id) {
+    return stateRef.current.labels.find(l => l.id === id);
+  }
+  function redraw() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const {
+      labels: lbls,
+      selectedLabelId: selId
+    } = stateRef.current;
+    const drag = dragRef.current;
+    const list = drag && drag.cursor ? lbls.map(l => l.id === drag.payload.id ? applyDragCursor(l, drag.payload.part, drag.cursor) : l) : lbls;
+    (0,_labels__WEBPACK_IMPORTED_MODULE_1__.drawLabelsOnCanvas)(canvas, drawState, list, selId);
+  }
+  const {
+    canvasRef,
+    dragRef,
+    startDrag
+  } = (0,_usePickupDrag__WEBPACK_IMPORTED_MODULE_2__.usePickupDrag)({
+    hitTest: (ctx, x, y) => {
+      const hit = (0,_labels__WEBPACK_IMPORTED_MODULE_1__.findLabelPartAtPoint)(ctx, x, y, stateRef.current.labels);
+      return hit ? {
+        id: hit.label.id,
+        part: hit.part
+      } : null;
+    },
+    onPickup: drag => onSelect?.(drag.id),
+    onDrop: (drag, cursor) => {
+      const label = liveLabel(drag.id);
+      if (!label || !cursor) return; // never moved: nothing to commit
+      const p = applyDragCursor(label, drag.part, cursor);
+      void onGeometryUpdate?.(drag.id, {
+        x: p.x,
+        y: p.y,
+        offset_x: p.offset_x,
+        offset_y: p.offset_y
+      });
+    },
+    dragFromSelection: () => stateRef.current.selectedLabelId ? {
+      id: stateRef.current.selectedLabelId,
+      part: 'whole'
+    } : null,
+    onEmptyClick: () => onDeselect?.(),
+    onEscapeIdle: () => {
+      if (stateRef.current.selectedLabelId) onDeselect?.();
+    },
+    onDragEnd: () => onRepositionComplete?.(),
+    redraw
+  });
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    redraw();
+  }); // run after every render
+
+  // The context panel's "Reposition" button starts a whole-label drag.
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (repositioningLabelId) startDrag({
+      id: repositioningLabelId,
+      part: 'whole'
+    });
+  }, [repositioningLabelId]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+    className: "cns-objects-canvas-wrap",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("canvas", {
+        ref: canvasRef
+      })
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/ObjectsCanvas.tsx"
+/*!**************************************************!*\
+  !*** ./src/admin/app/canvases/ObjectsCanvas.tsx ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ObjectsCanvas)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _objects__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../objects */ "./src/admin/objects.ts");
+/* harmony import */ var _usePickupDrag__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./usePickupDrag */ "./src/admin/app/canvases/usePickupDrag.ts");
+/* harmony import */ var _CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./CanvasZoomWrap */ "./src/admin/app/canvases/CanvasZoomWrap.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__);
+
+
+
+
+
+/**
+ * Pick-up/drop interaction comes from usePickupDrag; here a drag payload is
+ * simply the object id, and the preview draws the marker at the cursor.
+ * Clicking empty canvas with nothing selected places a new object there.
+ */
+
+function ObjectsCanvas({
+  drawState,
+  objects,
+  selectedObjectId,
+  repositioningObjectId,
+  onSelect,
+  onDeselect,
+  onPositionUpdate,
+  onRepositionComplete,
+  onPlace
+}) {
+  const stateRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    objects: [],
+    selectedObjectId: null
+  });
+  stateRef.current = {
+    objects,
+    selectedObjectId
+  };
+  function redraw() {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const {
+      objects: objs,
+      selectedObjectId: selId
+    } = stateRef.current;
+    const drag = dragRef.current;
+    (0,_objects__WEBPACK_IMPORTED_MODULE_1__.drawObjectsOnCanvas)(canvas, drawState, objs, selId, drag?.payload.id ?? null, drag?.cursor ?? null);
+  }
+  const {
+    canvasRef,
+    dragRef,
+    startDrag
+  } = (0,_usePickupDrag__WEBPACK_IMPORTED_MODULE_2__.usePickupDrag)({
+    hitTest: (ctx, x, y) => {
+      const hit = (0,_objects__WEBPACK_IMPORTED_MODULE_1__.findObjectAtPoint)(ctx, x, y, stateRef.current.objects);
+      return hit ? {
+        id: hit.id
+      } : null;
+    },
+    onPickup: drag => onSelect?.(drag.id),
+    onDrop: (drag, cursor) => {
+      if (cursor) {
+        void onPositionUpdate?.(drag.id, Math.round(cursor.x), Math.round(cursor.y));
+      }
+    },
+    dragFromSelection: () => stateRef.current.selectedObjectId ? {
+      id: stateRef.current.selectedObjectId
+    } : null,
+    onEmptyClick: coords => {
+      if (stateRef.current.selectedObjectId) {
+        onDeselect?.();
+      } else {
+        onPlace?.(Math.round(coords.x), Math.round(coords.y));
+      }
+    },
+    onEscapeIdle: () => {
+      if (stateRef.current.selectedObjectId) onDeselect?.();
+    },
+    onDragEnd: () => onRepositionComplete?.(),
+    redraw
+  });
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    redraw();
+  }); // run after every render
+
+  // The context panel's "Reposition" button starts a drag.
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (repositioningObjectId) startDrag({
+      id: repositioningObjectId
+    });
+  }, [repositioningObjectId]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+    className: "cns-objects-canvas-wrap",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_3__["default"], {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("canvas", {
+        ref: canvasRef
+      })
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/PreviewCanvas.tsx"
+/*!**************************************************!*\
+  !*** ./src/admin/app/canvases/PreviewCanvas.tsx ***!
+  \**************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ PreviewCanvas)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./CanvasZoomWrap */ "./src/admin/app/canvases/CanvasZoomWrap.tsx");
+/* harmony import */ var _objects__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../objects */ "./src/admin/objects.ts");
+/* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../areas */ "./src/admin/areas.ts");
+/* harmony import */ var _labels__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../labels */ "./src/admin/labels.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+
+
+
+
+
+
+
+function PreviewCanvas({
+  drawState,
+  objects,
+  areas,
+  labels
+}) {
+  const canvasRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.drawFullCanvas)(canvas, objects, areas, drawState, _areas__WEBPACK_IMPORTED_MODULE_4__.drawAreaShape, _objects__WEBPACK_IMPORTED_MODULE_3__.drawObjectMarker).then(() => {
+      const ctx = canvas.getContext('2d');
+      // Match the frontend: labels without text are skipped.
+      for (const label of labels) {
+        if (label.text) (0,_labels__WEBPACK_IMPORTED_MODULE_5__.drawLabelShape)(ctx, label);
+      }
+    });
+  });
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+    className: "cns-canvas-wrap",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_CanvasZoomWrap__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      allowFullscreen: true,
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("canvas", {
+        ref: canvasRef
+      })
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/SettingsCanvas.tsx"
+/*!***************************************************!*\
+  !*** ./src/admin/app/canvases/SettingsCanvas.tsx ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ SettingsCanvas)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+function SettingsCanvas({
+  settings
+}) {
+  const canvasRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.drawMapCanvas)(canvas, {
+      width: settings.width,
+      aspectRatio: settings.aspectRatio,
+      bgType: settings.bgType,
+      bgColor: settings.bgColor,
+      bgImageUrl: settings.bgImageUrl,
+      imgUrl: settings.imageUrl,
+      imageX: settings.imageX,
+      imageY: settings.imageY,
+      imageW: settings.imageW
+    });
+  }, [settings.width, settings.aspectRatio, settings.bgType, settings.bgColor, settings.bgImageUrl, settings.imageUrl, settings.imageX, settings.imageY, settings.imageW]);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    className: "cns-settings-canvas",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("canvas", {
+      ref: canvasRef
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+      className: "description",
+      children: "Live preview \u2014 updates as you edit settings."
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/canvases/usePickupDrag.ts"
+/*!*************************************************!*\
+  !*** ./src/admin/app/canvases/usePickupDrag.ts ***!
+  \*************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   usePickupDrag: () => (/* binding */ usePickupDrag)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../utils */ "./src/admin/utils.ts");
+
+
+
+
+/**
+ * The shared pick-up / follow-cursor / drop interaction used by the Objects
+ * and Labels canvases:
+ *
+ *   click a draggable thing → select it and pick it up (payload from hitTest)
+ *   mousemove               → the preview follows the cursor (via redraw)
+ *   click or Enter          → drop (onDrop with the final cursor position)
+ *   Escape                  → cancel the drag, or fall through to onEscapeIdle
+ *   Enter while idle        → pick up the current selection (dragFromSelection)
+ *   hover                   → grab / grabbing cursors
+ *
+ * The payload D is opaque to the hook — canvases decide what a drag means
+ * (an object id, a label part, …) and how the preview is rendered: redraw()
+ * reads the returned dragRef. Enter is ignored in form fields and on focused
+ * buttons/links, where it already has a job. Listeners bind once; config is
+ * read through a ref so handlers always see the current render's props.
+ */
+
+function usePickupDrag(config) {
+  const canvasRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const dragRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  const cfgRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(config);
+  cfgRef.current = config;
+  function startDrag(payload) {
+    dragRef.current = {
+      payload,
+      cursor: null
+    };
+    if (canvasRef.current) canvasRef.current.style.cursor = 'grabbing';
+    cfgRef.current.redraw();
+  }
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    function endDrag() {
+      dragRef.current = null;
+      canvas.style.cursor = '';
+      cfgRef.current.onDragEnd?.();
+    }
+    function onMouseMove(e) {
+      const c = (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.getCanvasCoords)(canvas, e);
+      const drag = dragRef.current;
+      if (!drag) {
+        const ctx = canvas.getContext('2d');
+        canvas.style.cursor = cfgRef.current.hitTest(ctx, c.x, c.y) ? 'grab' : '';
+        return;
+      }
+      drag.cursor = c;
+      cfgRef.current.redraw();
+    }
+    function onClick(e) {
+      const coords = (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.getCanvasCoords)(canvas, e);
+      const ctx = canvas.getContext('2d');
+      const drag = dragRef.current;
+      if (drag) {
+        const payload = drag.payload;
+        endDrag();
+        cfgRef.current.redraw();
+        cfgRef.current.onDrop(payload, coords);
+        return;
+      }
+      const hit = cfgRef.current.hitTest(ctx, coords.x, coords.y);
+      if (hit !== null) {
+        cfgRef.current.onPickup(hit);
+        dragRef.current = {
+          payload: hit,
+          cursor: coords
+        };
+        canvas.style.cursor = 'grabbing';
+        cfgRef.current.redraw();
+        return;
+      }
+      cfgRef.current.onEmptyClick(coords);
+    }
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        if (dragRef.current) {
+          endDrag();
+          cfgRef.current.redraw();
+        } else {
+          cfgRef.current.onEscapeIdle();
+        }
+        return;
+      }
+      if (e.key !== 'Enter' || (0,_utils__WEBPACK_IMPORTED_MODULE_2__.isTypingTarget)(e)) return;
+      if (e.target?.closest?.('button, a')) return;
+      const drag = dragRef.current;
+      if (drag) {
+        e.preventDefault();
+        const {
+          payload,
+          cursor
+        } = drag;
+        endDrag();
+        cfgRef.current.redraw();
+        cfgRef.current.onDrop(payload, cursor);
+      } else {
+        const payload = cfgRef.current.dragFromSelection();
+        if (payload !== null) {
+          e.preventDefault();
+          startDrag(payload);
+        }
+      }
+    }
+    canvas.addEventListener('mousemove', onMouseMove);
+    canvas.addEventListener('click', onClick);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      canvas.removeEventListener('mousemove', onMouseMove);
+      canvas.removeEventListener('click', onClick);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, []); // bind once; cfgRef keeps values current
+
+  return {
+    canvasRef,
+    dragRef,
+    startDrag
+  };
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/AreaForm.tsx"
+/*!******************************************!*\
+  !*** ./src/admin/app/forms/AreaForm.tsx ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ AreaForm),
+/* harmony export */   defaultAreaFormData: () => (/* binding */ defaultAreaFormData)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_RangeField__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/RangeField */ "./src/admin/app/shared/RangeField.tsx");
+/* harmony import */ var _shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./shared/InfoboxSection */ "./src/admin/app/forms/shared/InfoboxSection.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+const TYPES = [{
+  value: 'GEOGRAPHY',
+  label: 'Geography'
+}, {
+  value: 'HISTORY',
+  label: 'History'
+}, {
+  value: 'NATURAL',
+  label: 'Natural'
+}, {
+  value: 'EVENT',
+  label: 'Event'
+}, {
+  value: 'OTHER',
+  label: 'Other'
+}];
+const SHAPES = [{
+  value: 'POLYGON',
+  label: 'Polygon (Nodes)'
+}, {
+  value: 'RECTANGLE',
+  label: 'Rectangle'
+}, {
+  value: 'BEZIER',
+  label: 'Bezier Curve'
+}, {
+  value: 'CIRCLE',
+  label: 'Circle / Oval'
+}];
+function AreaForm({
+  formData,
+  onChange,
+  onShapeTypeChange
+}) {
+  const uid = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(Math.random().toString(36).slice(2));
+  const n = uid.current;
+  function set(key, val) {
+    onChange({
+      ...formData,
+      [key]: val
+    });
+  }
+  function handleShapeChange(e) {
+    const st = e.target.value;
+    set('shape_type', st);
+    onShapeTypeChange?.(st);
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+        children: "Details"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Title"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "text",
+            className: "large-text",
+            value: formData.title,
+            onChange: e => set('title', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Type"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("select", {
+            value: formData.type,
+            onChange: e => set('type', e.target.value),
+            children: TYPES.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("option", {
+              value: t.value,
+              children: t.label
+            }, t.value))
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Shape"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("select", {
+            value: formData.shape_type,
+            onChange: handleShapeChange,
+            children: SHAPES.map(s => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("option", {
+              value: s.value,
+              children: s.label
+            }, s.value))
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Object Time"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.object_time,
+            onChange: e => set('object_time', parseInt(e.target.value, 10) || 0)
+          })]
+        })]
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      formData: formData,
+      onChange: onChange
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+        children: "Design"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Fill Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "color",
+            value: formData.style_fill,
+            onChange: e => set('style_fill', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Fill Opacity"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_shared_RangeField__WEBPACK_IMPORTED_MODULE_1__["default"], {
+            min: 0,
+            max: 1,
+            step: 0.05,
+            value: parseFloat(String(formData.style_fill_opacity)),
+            onChange: v => set('style_fill_opacity', v)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Stroke Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "color",
+            value: formData.style_stroke,
+            onChange: e => set('style_stroke', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Stroke Width (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            min: "1",
+            max: "10",
+            value: formData.style_stroke_width,
+            onChange: e => set('style_stroke_width', parseInt(e.target.value, 10) || 2)
+          })]
+        })]
+      })]
+    })]
+  });
+}
+function defaultAreaFormData(area) {
+  const styles = area?.canvas_styles || {};
+  return {
+    title: area?.title || '',
+    type: area?.type || 'GEOGRAPHY',
+    shape_type: area?.shape_type || 'POLYGON',
+    object_time: area?.object_time ?? 0,
+    ...(0,_shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_2__.infoboxFormDefaults)(area ?? null),
+    style_fill: styles.fill || '#2271b1',
+    style_fill_opacity: styles.fillOpacity ?? 0.3,
+    style_stroke: styles.stroke || '#2271b1',
+    style_stroke_width: styles.strokeWidth || 2
+  };
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/HierarchyRegionForm.tsx"
+/*!*****************************************************!*\
+  !*** ./src/admin/app/forms/HierarchyRegionForm.tsx ***!
+  \*****************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ HierarchyRegionForm),
+/* harmony export */   defaultHierarchyFormData: () => (/* binding */ defaultHierarchyFormData)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_RangeField__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/RangeField */ "./src/admin/app/shared/RangeField.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+// ── Map search (filters to 'maps' CPT only) ───────────────────────────────────
+
+function MapSearch({
+  childMapId,
+  childMapLabel,
+  onChange
+}) {
+  const [query, setQuery] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [results, setResults] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [open, setOpen] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const timer = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+  function handleInput(e) {
+    const val = e.target.value;
+    setQuery(val);
+    if (timer.current) clearTimeout(timer.current);
+    if (val.length < 2) {
+      setOpen(false);
+      return;
+    }
+    timer.current = setTimeout(async () => {
+      try {
+        const url = window.cnsMapSuite.wpRestUrl + '/search?search=' + encodeURIComponent(val) + '&type=post&subtype=maps&per_page=10';
+        const res = await fetch(url, {
+          headers: {
+            'X-WP-Nonce': window.cnsMapSuite.nonce
+          }
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setResults(data);
+          setOpen(true);
+        }
+      } catch {/* silent */}
+    }, 350);
+  }
+  function selectResult(item) {
+    onChange({
+      id: item.id,
+      title: item.title
+    });
+    setQuery('');
+    setResults([]);
+    setOpen(false);
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+    className: "cns-post-search-wrap",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+      children: "Child Map"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+      type: "text",
+      className: "large-text",
+      placeholder: "Search maps\u2026",
+      autoComplete: "off",
+      value: query,
+      onChange: handleInput
+    }), open && results.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+      className: "cns-post-results",
+      children: results.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        type: "button",
+        className: "cns-post-result",
+        onClick: () => selectResult(item),
+        children: item.title
+      }, item.id))
+    }), childMapId > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("p", {
+      className: "description",
+      children: [childMapLabel || `Map ID: ${childMapId}`, ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("button", {
+        type: "button",
+        className: "button button-small",
+        onClick: () => onChange({
+          id: 0,
+          title: ''
+        }),
+        children: "Clear"
+      })]
+    })]
+  });
+}
+
+// ── Form ──────────────────────────────────────────────────────────────────────
+
+function HierarchyRegionForm({
+  formData,
+  onChange
+}) {
+  function set(key, val) {
+    onChange({
+      ...formData,
+      [key]: val
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
+        children: "Child Map"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(MapSearch, {
+        childMapId: formData.child_map_id,
+        childMapLabel: formData.child_map_label,
+        onChange: item => onChange({
+          ...formData,
+          child_map_id: item ? item.id : 0,
+          child_map_label: item ? item.title : ''
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
+        children: "Infobox Override"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+        className: "description",
+        children: "Leave blank to use the child map's title and excerpt."
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+            children: "Title"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+            type: "text",
+            className: "large-text",
+            value: formData.title_override,
+            placeholder: formData.child_map_label || 'Child map title',
+            onChange: e => set('title_override', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+            children: "Description"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
+            rows: 3,
+            className: "large-text",
+            value: formData.description_override,
+            placeholder: "Child map excerpt",
+            onChange: e => set('description_override', e.target.value)
+          })]
+        })]
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("h3", {
+        children: "Region Style"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+            children: "Fill Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+            type: "color",
+            value: formData.style_fill,
+            onChange: e => set('style_fill', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+            children: "Fill Opacity"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)(_shared_RangeField__WEBPACK_IMPORTED_MODULE_1__["default"], {
+            min: 0,
+            max: 1,
+            step: 0.05,
+            value: parseFloat(String(formData.style_fill_opacity)),
+            onChange: v => set('style_fill_opacity', v)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+            children: "Stroke Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+            type: "color",
+            value: formData.style_stroke,
+            onChange: e => set('style_stroke', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("label", {
+            children: "Stroke Width (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            min: "1",
+            max: "10",
+            value: formData.style_stroke_width,
+            onChange: e => set('style_stroke_width', parseInt(e.target.value, 10) || 2)
+          })]
+        })]
+      })]
+    })]
+  });
+}
+function defaultHierarchyFormData(region) {
+  const styles = region?.canvas_styles || {};
+  return {
+    child_map_id: region?.child_map_id || 0,
+    child_map_label: region?.child_map_title || '',
+    title_override: region?.title_override || '',
+    description_override: region?.description_override || '',
+    style_fill: styles.fill || '#e8a020',
+    style_fill_opacity: styles.fillOpacity ?? 0.25,
+    style_stroke: styles.stroke || '#e8a020',
+    style_stroke_width: styles.strokeWidth || 2
+  };
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/LabelForm.tsx"
+/*!*******************************************!*\
+  !*** ./src/admin/app/forms/LabelForm.tsx ***!
+  \*******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   collectLabelPayload: () => (/* binding */ collectLabelPayload),
+/* harmony export */   "default": () => (/* binding */ LabelForm),
+/* harmony export */   defaultLabelFormData: () => (/* binding */ defaultLabelFormData)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_RangeField__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/RangeField */ "./src/admin/app/shared/RangeField.tsx");
+/* harmony import */ var _shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./shared/InfoboxSection */ "./src/admin/app/forms/shared/InfoboxSection.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+function LabelForm({
+  formData,
+  onChange
+}) {
+  const uid = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(Math.random().toString(36).slice(2));
+  const n = uid.current;
+  function set(key, val) {
+    onChange({
+      ...formData,
+      [key]: val
+    });
+  }
+  const isIndicator = formData.placement === 'indicator';
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+        children: "Label"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Text"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "text",
+            className: "large-text",
+            value: formData.text,
+            onChange: e => set('text', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Label Time"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.object_time,
+            onChange: e => set('object_time', parseInt(e.target.value, 10) || 0)
+          })]
+        })]
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+        children: "Placement"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-radio-toggle",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "radio",
+            name: `label-placement-${n}`,
+            value: "centered",
+            checked: !isIndicator,
+            onChange: () => set('placement', 'centered')
+          }), ' ', "Centered on point"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "radio",
+            name: `label-placement-${n}`,
+            value: "indicator",
+            checked: isIndicator,
+            onChange: () => set('placement', 'indicator')
+          }), ' ', "Indicator (line & dot)"]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "X (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.x,
+            onChange: e => set('x', parseInt(e.target.value, 10) || 0)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Y (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.y,
+            onChange: e => set('y', parseInt(e.target.value, 10) || 0)
+          })]
+        }), isIndicator && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.Fragment, {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+            className: "cns-form-row",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+              children: "Label Offset X (px)"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+              type: "number",
+              className: "small-text",
+              value: formData.offset_x,
+              onChange: e => set('offset_x', parseInt(e.target.value, 10) || 0)
+            })]
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+            className: "cns-form-row",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+              children: "Label Offset Y (px)"
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+              type: "number",
+              className: "small-text",
+              value: formData.offset_y,
+              onChange: e => set('offset_y', parseInt(e.target.value, 10) || 0)
+            })]
+          })]
+        })]
+      }), isIndicator && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+        className: "description",
+        children: "The dot marks the X/Y point; the label box sits at the offset, connected by a line."
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      formData: formData,
+      onChange: onChange
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+      className: "description",
+      children: "Labels with infobox content open the infobox drawer when clicked on the map; labels without stay purely decorative."
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+        children: "Design"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Font Size (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_shared_RangeField__WEBPACK_IMPORTED_MODULE_1__["default"], {
+            min: 8,
+            max: 64,
+            step: 1,
+            value: formData.style_font_size,
+            onChange: v => set('style_font_size', v)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Background Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "color",
+            value: formData.style_bg,
+            onChange: e => set('style_bg', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Border Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "color",
+            value: formData.style_border,
+            onChange: e => set('style_border', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+            children: "Text Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+            type: "color",
+            value: formData.style_text_color,
+            onChange: e => set('style_text_color', e.target.value)
+          })]
+        })]
+      })]
+    })]
+  });
+}
+function defaultLabelFormData(label, x, y) {
+  return {
+    text: label?.text || '',
+    placement: label?.placement || 'centered',
+    x: label ? label.x : x ?? 0,
+    y: label ? label.y : y ?? 0,
+    offset_x: label?.offset_x ?? 40,
+    offset_y: label?.offset_y ?? -40,
+    object_time: label?.object_time ?? 0,
+    ...(0,_shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_2__.infoboxFormDefaults)(label),
+    style_bg: label?.canvas_styles?.bgColor || '#ffffff',
+    style_border: label?.canvas_styles?.borderColor || '#1e1e1e',
+    style_text_color: label?.canvas_styles?.textColor || '#1e1e1e',
+    style_font_size: label?.canvas_styles?.fontSize || 14
+  };
+}
+function collectLabelPayload(formData) {
+  const {
+    infobox_image_url,
+    linked_post_label,
+    ...payload
+  } = formData;
+  return payload;
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/NodeList.tsx"
+/*!******************************************!*\
+  !*** ./src/admin/app/forms/NodeList.tsx ***!
+  \******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ NodeList)
+/* harmony export */ });
+/* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../../areas */ "./src/admin/areas.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const NODE_LABELS = {
+  RECTANGLE: ['TL', 'TR', 'BR', 'BL'],
+  CIRCLE: ['Center', 'Edge']
+};
+function NodeList({
+  area,
+  onNodesChange
+}) {
+  const nodes = area.nodes || [];
+  const shapeType = area.shape_type || 'POLYGON';
+  const isFixed = shapeType === 'RECTANGLE' || shapeType === 'CIRCLE';
+  const labels = NODE_LABELS[shapeType] || null;
+  function updateNode(idx, axis, rawVal) {
+    const val = Math.max(0, Math.min(100, parseFloat(rawVal) || 0)) / 100;
+    let updated = nodes.map(n => ({
+      ...n
+    }));
+    if (shapeType === 'RECTANGLE') {
+      const newX = axis === 'x' ? val : updated[idx].x;
+      const newY = axis === 'y' ? val : updated[idx].y;
+      updated = (0,_areas__WEBPACK_IMPORTED_MODULE_0__.applyRectangleConstraint)(updated, idx, newX, newY) || updated;
+    } else if (shapeType === 'CIRCLE' && idx === 0) {
+      const dx = (axis === 'x' ? val : updated[0].x) - updated[0].x;
+      const dy = (axis === 'y' ? val : updated[0].y) - updated[0].y;
+      updated[0] = {
+        x: updated[0].x + dx,
+        y: updated[0].y + dy
+      };
+      if (updated[1]) updated[1] = {
+        x: updated[1].x + dx,
+        y: updated[1].y + dy
+      };
+    } else {
+      updated[idx] = {
+        ...updated[idx],
+        [axis]: val
+      };
+    }
+    onNodesChange(updated);
+  }
+  function addNode() {
+    onNodesChange([...nodes, {
+      x: 0.5,
+      y: 0.5
+    }]);
+  }
+  function deleteNode(idx) {
+    onNodesChange(nodes.filter((_, i) => i !== idx));
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("section", {
+    className: "cns-modal-section cns-nodes-section",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("h3", {
+      children: ["Nodes", !isFixed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        type: "button",
+        className: "button button-small cns-nodes-add-btn",
+        onClick: addNode,
+        children: "+ Add Node"
+      })]
+    }), nodes.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("p", {
+      className: "description",
+      children: "No nodes yet. Click the canvas to add nodes."
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("table", {
+      className: "cns-nodes-table",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("thead", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("th", {
+            children: "#"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("th", {
+            children: "X\xA0%"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("th", {
+            children: "Y\xA0%"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("th", {})]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("tbody", {
+        children: nodes.map((node, idx) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("td", {
+            className: "cns-node-num",
+            children: labels ? labels[idx] ?? idx + 1 : idx + 1
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("td", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+              type: "number",
+              className: "small-text cns-node-x",
+              value: (node.x * 100).toFixed(1),
+              min: "0",
+              max: "100",
+              step: "0.1",
+              onChange: e => updateNode(idx, 'x', e.target.value)
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("td", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+              type: "number",
+              className: "small-text cns-node-y",
+              value: (node.y * 100).toFixed(1),
+              min: "0",
+              max: "100",
+              step: "0.1",
+              onChange: e => updateNode(idx, 'y', e.target.value)
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("td", {
+            children: !isFixed && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+              type: "button",
+              className: "button button-small cns-node-del",
+              onClick: () => deleteNode(idx),
+              children: "\xD7"
+            })
+          })]
+        }, idx))
+      })]
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/ObjectForm.tsx"
+/*!********************************************!*\
+  !*** ./src/admin/app/forms/ObjectForm.tsx ***!
+  \********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   collectObjectPayload: () => (/* binding */ collectObjectPayload),
+/* harmony export */   "default": () => (/* binding */ ObjectForm),
+/* harmony export */   defaultObjectFormData: () => (/* binding */ defaultObjectFormData)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_MediaPicker__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/MediaPicker */ "./src/admin/app/shared/MediaPicker.tsx");
+/* harmony import */ var _shared_IconPicker__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/IconPicker */ "./src/admin/app/shared/IconPicker.tsx");
+/* harmony import */ var _shared_RangeField__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../shared/RangeField */ "./src/admin/app/shared/RangeField.tsx");
+/* harmony import */ var _shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./shared/InfoboxSection */ "./src/admin/app/forms/shared/InfoboxSection.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__);
+
+
+
+
+
+
+const TYPES = [{
+  value: 'LOCATION',
+  label: 'Location'
+}, {
+  value: 'HISTORY',
+  label: 'History'
+}, {
+  value: 'NATURAL',
+  label: 'Natural'
+}, {
+  value: 'EVENT',
+  label: 'Event'
+}, {
+  value: 'OTHER',
+  label: 'Other'
+}];
+function ObjectForm({
+  formData,
+  onChange,
+  icons
+}) {
+  const uid = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(Math.random().toString(36).slice(2));
+  const n = uid.current;
+  function set(key, val) {
+    onChange({
+      ...formData,
+      [key]: val
+    });
+  }
+  const isSvgSource = formData.icon_source !== 'image';
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
+        children: "Icon"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+        className: "cns-radio-toggle",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "radio",
+            name: `obj-icon-src-${n}`,
+            value: "svg",
+            checked: isSvgSource,
+            onChange: () => set('icon_source', 'svg')
+          }), ' ', "From library"]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("label", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "radio",
+            name: `obj-icon-src-${n}`,
+            value: "image",
+            checked: !isSvgSource,
+            onChange: () => set('icon_source', 'image')
+          }), ' ', "Custom image"]
+        })]
+      }), isSvgSource && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_shared_IconPicker__WEBPACK_IMPORTED_MODULE_2__["default"], {
+          icons: icons,
+          selectedIconId: formData.icon_image_id_svg,
+          onSelect: id => set('icon_image_id_svg', id)
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("p", {
+          className: "description",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("a", {
+            href: window.cnsMapSuite.iconsUrl,
+            target: "_blank",
+            rel: "noreferrer",
+            children: "Manage icon library \u2192"
+          })
+        })]
+      }), !isSvgSource && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_shared_MediaPicker__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        imageId: formData.icon_image_id_custom,
+        imageUrl: formData.icon_image_url,
+        title: "Select Icon Image",
+        onChange: att => onChange({
+          ...formData,
+          icon_image_id_custom: att ? att.id : 0,
+          icon_image_url: att ? att.url : ''
+        })
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
+        children: "Details"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Title"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "text",
+            className: "large-text",
+            value: formData.title,
+            onChange: e => set('title', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Type"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("select", {
+            value: formData.type,
+            onChange: e => set('type', e.target.value),
+            children: TYPES.map(t => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("option", {
+              value: t.value,
+              children: t.label
+            }, t.value))
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Object Time"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.object_time,
+            onChange: e => set('object_time', parseInt(e.target.value, 10) || 0)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "X (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.x,
+            onChange: e => set('x', parseInt(e.target.value, 10) || 0)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Y (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "number",
+            className: "small-text",
+            value: formData.y,
+            onChange: e => set('y', parseInt(e.target.value, 10) || 0)
+          })]
+        })]
+      })]
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_4__["default"], {
+      formData: formData,
+      onChange: onChange
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("section", {
+      className: "cns-modal-section",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("h3", {
+        children: "Design"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+        className: "cns-form-grid",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row cns-form-row--full",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Icon Size (px)"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)(_shared_RangeField__WEBPACK_IMPORTED_MODULE_3__["default"], {
+            min: 8,
+            max: 128,
+            step: 1,
+            value: formData.style_size,
+            onChange: v => set('style_size', v)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Fill Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "color",
+            value: formData.style_fill,
+            onChange: e => set('style_fill', e.target.value)
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsxs)("div", {
+          className: "cns-form-row",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("label", {
+            children: "Stroke Color"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("input", {
+            type: "color",
+            value: formData.style_stroke,
+            onChange: e => set('style_stroke', e.target.value)
+          })]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_5__.jsx)("p", {
+        className: "description",
+        children: "Fill and stroke are applied to SVG icons only."
+      })]
+    })]
+  });
+}
+function defaultObjectFormData(obj, x, y) {
+  const isSvg = !obj || !obj.icon_image_id || obj.icon_mime === 'image/svg+xml';
+  return {
+    icon_source: isSvg ? 'svg' : 'image',
+    icon_image_id_svg: isSvg && obj?.icon_image_id ? obj.icon_image_id : null,
+    icon_image_id_custom: !isSvg && obj?.icon_image_id ? obj.icon_image_id : 0,
+    icon_image_url: obj?.icon_url && !isSvg ? obj.icon_url : '',
+    title: obj?.title || '',
+    type: obj?.type || 'LOCATION',
+    object_time: obj?.object_time ?? 0,
+    x: obj ? obj.x : x ?? 0,
+    y: obj ? obj.y : y ?? 0,
+    ...(0,_shared_InfoboxSection__WEBPACK_IMPORTED_MODULE_4__.infoboxFormDefaults)(obj),
+    style_size: obj?.canvas_styles?.size || 32,
+    style_fill: obj?.canvas_styles?.fillStyle || '#ffffff',
+    style_stroke: obj?.canvas_styles?.strokeStyle || '#2271b1'
+  };
+}
+function collectObjectPayload(formData) {
+  const iconImageId = formData.icon_source === 'svg' ? formData.icon_image_id_svg || 0 : formData.icon_image_id_custom || 0;
+  return {
+    icon_image_id: iconImageId,
+    title: formData.title || '',
+    type: formData.type || 'LOCATION',
+    x: formData.x || 0,
+    y: formData.y || 0,
+    object_time: formData.object_time || 0,
+    infobox_source: formData.infobox_source || 'manual',
+    linked_post_id: formData.linked_post_id || 0,
+    infobox_title: formData.infobox_title || '',
+    infobox_description: formData.infobox_description || '',
+    infobox_image_id: formData.infobox_image_id || 0,
+    style_size: formData.style_size || 32,
+    style_fill: formData.style_fill || '#ffffff',
+    style_stroke: formData.style_stroke || '#2271b1'
+  };
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/RegionNodeList.tsx"
+/*!************************************************!*\
+  !*** ./src/admin/app/forms/RegionNodeList.tsx ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ RegionNodeList)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+function RegionNodeList({
+  region,
+  onNodesChange
+}) {
+  const nodes = region.nodes || [];
+  function updateNode(idx, axis, rawVal) {
+    const val = Math.max(0, Math.min(100, parseFloat(rawVal) || 0)) / 100;
+    const updated = nodes.map(n => ({
+      ...n
+    }));
+    updated[idx] = {
+      ...updated[idx],
+      [axis]: val
+    };
+    onNodesChange(updated);
+  }
+  function addNode() {
+    onNodesChange([...nodes, {
+      x: 0.5,
+      y: 0.5
+    }]);
+  }
+  function deleteNode(idx) {
+    onNodesChange(nodes.filter((_, i) => i !== idx));
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("section", {
+    className: "cns-modal-section cns-nodes-section",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("h3", {
+      children: ["Nodes", /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("button", {
+        type: "button",
+        className: "button button-small cns-nodes-add-btn",
+        onClick: addNode,
+        children: "+ Add Node"
+      })]
+    }), nodes.length === 0 ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("p", {
+      className: "description",
+      children: "No nodes yet. Click the canvas to add nodes."
+    }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("table", {
+      className: "cns-nodes-table",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("thead", {
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("th", {
+            children: "#"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("th", {
+            children: "X\xA0%"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("th", {
+            children: "Y\xA0%"
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("th", {})]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("tbody", {
+        children: nodes.map((node, idx) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("td", {
+            className: "cns-node-num",
+            children: idx + 1
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("td", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("input", {
+              type: "number",
+              className: "small-text cns-node-x",
+              value: (node.x * 100).toFixed(1),
+              min: "0",
+              max: "100",
+              step: "0.1",
+              onChange: e => updateNode(idx, 'x', e.target.value)
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("td", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("input", {
+              type: "number",
+              className: "small-text cns-node-y",
+              value: (node.y * 100).toFixed(1),
+              min: "0",
+              max: "100",
+              step: "0.1",
+              onChange: e => updateNode(idx, 'y', e.target.value)
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("td", {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("button", {
+              type: "button",
+              className: "button button-small cns-node-del",
+              onClick: () => deleteNode(idx),
+              children: "\xD7"
+            })
+          })]
+        }, idx))
+      })]
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/forms/shared/InfoboxSection.tsx"
+/*!*******************************************************!*\
+  !*** ./src/admin/app/forms/shared/InfoboxSection.tsx ***!
+  \*******************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ InfoboxSection),
+/* harmony export */   infoboxFormDefaults: () => (/* binding */ infoboxFormDefaults)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _shared_MediaPicker__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../../shared/MediaPicker */ "./src/admin/app/shared/MediaPicker.tsx");
+/* harmony import */ var _shared_PostSearch__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../shared/PostSearch */ "./src/admin/app/shared/PostSearch.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+/**
+ * The Infobox form section shared by the object, area, and label forms.
+ * One model everywhere: an optional connected post (adds a "Read more" link
+ * to the frontend drawer regardless of source) and a radio that only picks
+ * where the content comes from — written manually or pulled from that post.
+ */
+
+function InfoboxSection({
+  formData,
+  onChange
+}) {
+  const uid = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(Math.random().toString(36).slice(2));
+  const n = uid.current;
+  const isManualIb = formData.infobox_source !== 'post';
+  function set(key, val) {
+    onChange({
+      ...formData,
+      [key]: val
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("section", {
+    className: "cns-modal-section",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("h3", {
+      children: "Infobox"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_shared_PostSearch__WEBPACK_IMPORTED_MODULE_2__["default"], {
+      linkedPostId: formData.linked_post_id,
+      linkedPostLabel: formData.linked_post_label,
+      onChange: item => onChange({
+        ...formData,
+        linked_post_id: item ? item.id : 0,
+        linked_post_label: item ? item.title : ''
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+      className: "description",
+      children: "Optional \u2014 a connected post adds a \u201CRead more\u201D link to the infobox."
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "cns-radio-toggle",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+          type: "radio",
+          name: `ib-src-${n}`,
+          value: "manual",
+          checked: isManualIb,
+          onChange: () => set('infobox_source', 'manual')
+        }), ' ', "Write content manually"]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("label", {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+          type: "radio",
+          name: `ib-src-${n}`,
+          value: "post",
+          checked: !isManualIb,
+          onChange: () => set('infobox_source', 'post')
+        }), ' ', "Use the connected post\u2019s content"]
+      })]
+    }), isManualIb && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "cns-form-grid",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-row cns-form-row--full",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "Infobox Title"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("input", {
+          type: "text",
+          className: "large-text",
+          value: formData.infobox_title,
+          onChange: e => set('infobox_title', e.target.value)
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-row cns-form-row--full",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "Description"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("textarea", {
+          rows: 4,
+          className: "large-text",
+          value: formData.infobox_description,
+          onChange: e => set('infobox_description', e.target.value)
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+        className: "cns-form-row cns-form-row--full",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("label", {
+          children: "Infobox Image"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_shared_MediaPicker__WEBPACK_IMPORTED_MODULE_1__["default"], {
+          imageId: formData.infobox_image_id,
+          imageUrl: formData.infobox_image_url,
+          title: "Select Infobox Image",
+          onChange: att => onChange({
+            ...formData,
+            infobox_image_id: att ? att.id : 0,
+            infobox_image_url: att ? att.url : ''
+          })
+        })]
+      })]
+    }), !isManualIb && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("p", {
+      className: "description",
+      children: "Title, description and image are pulled from the connected post."
+    })]
+  });
+}
+
+/** Default infobox form values for an existing item (or null for a new one). */
+function infoboxFormDefaults(item) {
+  return {
+    infobox_source: item?.infobox_source || 'manual',
+    infobox_title: item?.infobox_data?.title || '',
+    infobox_description: item?.infobox_data?.description || '',
+    infobox_image_id: item?.infobox_data?.image_id || 0,
+    infobox_image_url: '',
+    linked_post_id: item?.linked_post_id || 0,
+    linked_post_label: item?.linked_post_id ? `Post ID: ${item.linked_post_id}` : ''
+  };
+}
+
+/***/ },
+
+/***/ "./src/admin/app/lists/AreasList.tsx"
+/*!*******************************************!*\
+  !*** ./src/admin/app/lists/AreasList.tsx ***!
+  \*******************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ AreasList)
+/* harmony export */ });
+/* harmony import */ var _EntityTable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EntityTable */ "./src/admin/app/lists/EntityTable.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const COLUMNS = [{
+  header: 'Title',
+  render: area => area.title || '(no title)'
+}, {
+  header: 'Type',
+  render: area => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+    className: "cns-badge cns-badge--type",
+    children: area.type
+  })
+}, {
+  header: 'Nodes',
+  render: area => `${(area.nodes || []).length} nodes`
+}];
+function AreasList({
+  areas,
+  onSelect,
+  onDuplicate,
+  onDelete
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_EntityTable__WEBPACK_IMPORTED_MODULE_0__["default"], {
+    items: areas,
+    columns: COLUMNS,
+    emptyText: 'No areas yet. Click “Add Area” to create one.',
+    renderActions: area => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onSelect(area.id),
+        children: "Edit"
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onDuplicate(area.id),
+        children: "Duplicate"
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onDelete(area.id),
+        children: "Delete"
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/lists/EntityTable.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/lists/EntityTable.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ EntityTable)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+/**
+ * Generic list table for the entity tabs (objects / areas / labels): the
+ * per-entity lists only declare their columns and action buttons, so layout,
+ * empty states, and the action-cell pattern stay identical across tabs.
+ */
+
+function EntityTable({
+  items,
+  columns,
+  emptyText,
+  renderActions
+}) {
+  if (!items.length) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("p", {
+      className: "cns-objects-empty",
+      children: emptyText
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("table", {
+    className: "widefat cns-objects-table",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("thead", {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+        children: [columns.map((col, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("th", {
+          style: col.width ? {
+            width: col.width
+          } : undefined,
+          children: col.header
+        }, i)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("th", {
+          children: "Actions"
+        })]
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("tbody", {
+      children: items.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("tr", {
+        children: [columns.map((col, i) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("td", {
+          className: col.className,
+          children: col.render(item)
+        }, i)), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("td", {
+          className: "cns-maps-actions",
+          children: renderActions(item)
+        })]
+      }, item.id))
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/lists/HierarchyRegionList.tsx"
+/*!*****************************************************!*\
+  !*** ./src/admin/app/lists/HierarchyRegionList.tsx ***!
+  \*****************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ HierarchyRegionList)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+function HierarchyRegionList({
+  regions,
+  onSelect,
+  onDelete
+}) {
+  if (!regions.length) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("p", {
+      className: "description",
+      children: "No child-map regions yet. Click \"Add Region\" to draw one."
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("ul", {
+    className: "cns-items-list",
+    children: regions.map(r => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("li", {
+      className: "cns-items-list__item",
+      children: [r.child_map_thumbnail && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("img", {
+        src: r.child_map_thumbnail,
+        alt: "",
+        className: "cns-items-list__thumb"
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("span", {
+        className: "cns-items-list__label",
+        children: [r.child_map_title || `Map #${r.child_map_id}`, r.child_map_status && r.child_map_status !== 'publish' && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("em", {
+          className: "cns-items-list__status",
+          children: [" \u2014 ", r.child_map_status]
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("span", {
+        className: "cns-items-list__actions",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("button", {
+          type: "button",
+          className: "button button-small",
+          onClick: () => onSelect(r.id),
+          children: "Edit"
+        }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("button", {
+          type: "button",
+          className: "button button-small",
+          onClick: () => onDelete(r.id),
+          children: "Delete"
+        })]
+      })]
+    }, r.id))
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/lists/LabelsList.tsx"
+/*!********************************************!*\
+  !*** ./src/admin/app/lists/LabelsList.tsx ***!
+  \********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LabelsList)
+/* harmony export */ });
+/* harmony import */ var _EntityTable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EntityTable */ "./src/admin/app/lists/EntityTable.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const COLUMNS = [{
+  header: '',
+  width: 36,
+  className: 'col-icon',
+  render: label => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+    className: "cns-obj-dot",
+    style: {
+      background: label.canvas_styles?.bgColor || '#ffffff',
+      border: `2px solid ${label.canvas_styles?.borderColor || '#1e1e1e'}`,
+      borderRadius: 3
+    }
+  })
+}, {
+  header: 'Text',
+  render: label => label.text || '(empty label)'
+}, {
+  header: 'Placement',
+  render: label => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+    className: "cns-badge cns-badge--type",
+    children: label.placement === 'indicator' ? 'Indicator' : 'Centered'
+  })
+}, {
+  header: 'Position',
+  render: label => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+    children: [label.x, ", ", label.y]
+  })
+}];
+function LabelsList({
+  labels,
+  onEdit,
+  onDuplicate,
+  onDelete
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_EntityTable__WEBPACK_IMPORTED_MODULE_0__["default"], {
+    items: labels,
+    columns: COLUMNS,
+    emptyText: "No labels yet. Click on the canvas to place one.",
+    renderActions: label => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onEdit(label),
+        children: "Edit"
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onDuplicate(label.id),
+        children: "Duplicate"
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onDelete(label.id),
+        children: "Delete"
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/lists/ObjectsList.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/lists/ObjectsList.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ObjectsList)
+/* harmony export */ });
+/* harmony import */ var _EntityTable__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./EntityTable */ "./src/admin/app/lists/EntityTable.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+const COLUMNS = [{
+  header: '',
+  width: 36,
+  className: 'col-icon',
+  render: obj => obj.icon_url ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("img", {
+    src: obj.icon_url,
+    width: "28",
+    height: "28",
+    alt: "",
+    style: {
+      display: 'block',
+      objectFit: 'contain'
+    }
+  }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+    className: "cns-obj-dot",
+    style: {
+      background: obj.canvas_styles?.fillStyle || '#2271b1'
+    }
+  })
+}, {
+  header: 'Title',
+  render: obj => obj.title || '(no title)'
+}, {
+  header: 'Type',
+  render: obj => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+    className: "cns-badge cns-badge--type",
+    children: obj.type
+  })
+}, {
+  header: 'Position',
+  render: obj => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+    children: [obj.x, ", ", obj.y]
+  })
+}];
+function ObjectsList({
+  objects,
+  onEdit,
+  onDuplicate,
+  onDelete
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_EntityTable__WEBPACK_IMPORTED_MODULE_0__["default"], {
+    items: objects,
+    columns: COLUMNS,
+    emptyText: "No objects yet. Click on the canvas to place one.",
+    renderActions: obj => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.Fragment, {
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onEdit(obj),
+        children: "Edit"
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onDuplicate(obj.id),
+        children: "Duplicate"
+      }), ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        className: "button button-small",
+        onClick: () => onDelete(obj.id),
+        children: "Delete"
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/AreasPanel.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/panels/AreasPanel.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ AreasPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _canvases_AreasCanvas__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../canvases/AreasCanvas */ "./src/admin/app/canvases/AreasCanvas.tsx");
+/* harmony import */ var _lists_AreasList__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lists/AreasList */ "./src/admin/app/lists/AreasList.tsx");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../utils */ "./src/admin/utils.ts");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../areas */ "./src/admin/areas.ts");
+/* harmony import */ var _forms_AreaForm__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../forms/AreaForm */ "./src/admin/app/forms/AreaForm.tsx");
+/* harmony import */ var _useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ../useCanvasKeyboard */ "./src/admin/app/useCanvasKeyboard.ts");
+/* harmony import */ var _useMapResource__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ../useMapResource */ "./src/admin/app/useMapResource.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__);
+
+
+
+
+
+
+
+
+
+
+
+// Internal clipboard for ⌘/Ctrl+C/V. Module scope so it survives tab
+// switches within the editor page (not across page loads / other maps).
+let areaClipboard = null;
+function AreasPanel({
+  mapId,
+  settings,
+  areas,
+  selectedAreaId,
+  onAreasLoaded,
+  onSelect,
+  onDeselect,
+  onNodesUpdate,
+  onDuplicate,
+  onDelete
+}) {
+  (0,_useMapResource__WEBPACK_IMPORTED_MODULE_9__.useMapResource)(mapId, 'areas', onAreasLoaded);
+
+  // ── Keyboard shortcuts (active while the Areas tab is mounted) ─────────────
+
+  const selectedArea = areas.find(a => a.id === selectedAreaId) || null;
+  const canvasW = settings.width || 1000;
+  const canvasH = canvasW / (settings.aspectRatio || 1);
+
+  // Keyboard-focused node of the selected area (Tab cycles it): arrows then
+  // nudge that node instead of the whole area, Delete removes it, Esc clears
+  // the focus (handled in the canvas, before deselecting).
+  const [focusedNodeIdx, setFocusedNodeIdx] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    setFocusedNodeIdx(null);
+  }, [selectedAreaId]);
+
+  // Node-list edits can shrink the node set — keep the focus index valid.
+  const nodeCount = selectedArea ? (selectedArea.nodes || []).length : 0;
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (focusedNodeIdx !== null && focusedNodeIdx >= nodeCount) {
+      setFocusedNodeIdx(nodeCount ? nodeCount - 1 : null);
+    }
+  }, [nodeCount]);
+  async function pasteArea() {
+    if (!areaClipboard) return;
+    // Cascade repeated pastes instead of stacking copies exactly on top
+    // of each other (nodes are normalized 0–1, so shift by 24 px worth).
+    const nodes = areaClipboard.nodes.map(n => ({
+      ...n,
+      x: n.x + 24 / canvasW,
+      y: n.y + 24 / canvasH
+    }));
+    areaClipboard = {
+      ...areaClipboard,
+      nodes
+    };
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_4__.apiFetch)('POST', `/maps/${mapId}/areas`, {
+      ...areaClipboard.form,
+      nodes: JSON.stringify(nodes)
+    });
+    const data = await res.json();
+    if (!res.ok) return;
+    onAreasLoaded([...areas, data]);
+    onSelect(data.id);
+  }
+  (0,_useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_8__.useCanvasKeyboard)({
+    copy: () => {
+      if (!selectedArea) return false;
+      areaClipboard = {
+        form: (0,_forms_AreaForm__WEBPACK_IMPORTED_MODULE_7__.defaultAreaFormData)(selectedArea),
+        nodes: (selectedArea.nodes || []).map(n => ({
+          ...n
+        }))
+      };
+      return true;
+    },
+    paste: () => {
+      if (!areaClipboard) return false;
+      void pasteArea();
+      return true;
+    },
+    duplicate: () => {
+      if (!selectedArea) return false;
+      void onDuplicate(selectedArea.id);
+      return true;
+    },
+    // With a node focused, Delete removes that node (where the shape
+    // allows); otherwise it deletes the whole area after a confirm.
+    remove: () => {
+      if (!selectedArea) return false;
+      if (focusedNodeIdx !== null) {
+        if ((0,_areas__WEBPACK_IMPORTED_MODULE_6__.canRemoveAreaNode)(selectedArea)) {
+          const nodes = (selectedArea.nodes || []).filter((_, i) => i !== focusedNodeIdx);
+          onNodesUpdate(selectedArea.id, nodes);
+          // The clamp effect keeps the index valid; move focus to
+          // the previous node so repeated Deletes walk backwards.
+          setFocusedNodeIdx(focusedNodeIdx > 0 ? focusedNodeIdx - 1 : 0);
+        }
+        return true; // claim the key even when the shape can't shrink
+      }
+      if (confirm((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Delete this area?', 'cns-map-suite'))) void onDelete(selectedArea.id);
+      return true;
+    },
+    // Arrow keys nudge the focused node, or move the whole area when no
+    // node is focused. Local update + persistence ride on the debounced
+    // geometry save in MapEditorApp.
+    nudge: (dx, dy) => {
+      if (!selectedArea) return false;
+      if (focusedNodeIdx !== null && (selectedArea.nodes || [])[focusedNodeIdx]) {
+        const node = selectedArea.nodes[focusedNodeIdx];
+        const newX = Math.min(1, Math.max(0, node.x + dx / canvasW));
+        const newY = Math.min(1, Math.max(0, node.y + dy / canvasH));
+        onNodesUpdate(selectedArea.id, (0,_areas__WEBPACK_IMPORTED_MODULE_6__.moveAreaNode)(selectedArea, focusedNodeIdx, newX, newY));
+        return true;
+      }
+      const nodes = (selectedArea.nodes || []).map(n => ({
+        ...n,
+        x: n.x + dx / canvasW,
+        y: n.y + dy / canvasH
+      }));
+      onNodesUpdate(selectedArea.id, nodes);
+      return true;
+    },
+    // Tab / Shift+Tab cycle through the selected area's nodes.
+    tab: backwards => {
+      if (!selectedArea || !nodeCount) return false;
+      setFocusedNodeIdx(prev => {
+        if (prev === null) return backwards ? nodeCount - 1 : 0;
+        return (prev + (backwards ? -1 : 1) + nodeCount) % nodeCount;
+      });
+      return true;
+    }
+  });
+  async function handleAddArea() {
+    if (!mapId) return;
+    const defaultNodes = (0,_areas__WEBPACK_IMPORTED_MODULE_6__.getDefaultNodes)('POLYGON');
+    try {
+      const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_4__.apiFetch)('POST', `/maps/${mapId}/areas`, {
+        title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('New Area', 'cns-map-suite'),
+        nodes: JSON.stringify(defaultNodes),
+        style_fill: '#2271b1',
+        style_fill_opacity: 0.3,
+        style_stroke: '#2271b1',
+        style_stroke_width: 2
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Failed to create area.', 'cns-map-suite'));
+      onAreasLoaded([...areas, data]);
+      onSelect(data.id);
+    } catch (err) {
+      alert(err.message);
+    }
+  }
+  async function handleDelete(id) {
+    if (!confirm('Delete this area?')) return;
+    await onDelete(id);
+  }
+  const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_5__.settingsToDrawState)(settings);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "areas",
+    role: "tabpanel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+      className: "cns-objects-layout",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("div", {
+        className: "cns-objects-toolbar",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("button", {
+          type: "button",
+          className: "button button-primary",
+          onClick: handleAddArea,
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Add Area', 'cns-map-suite')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("p", {
+          className: "description",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Click a node to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty space on a selected area to add a node. With an area selected: arrow keys move the whole area (Shift = 10 px), Tab/Shift+Tab cycles its nodes — arrows then nudge that node and Delete removes it (Esc clears) — Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.', 'cns-map-suite')
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_canvases_AreasCanvas__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        drawState: drawState,
+        areas: areas,
+        selectedAreaId: selectedAreaId,
+        focusedNodeIdx: focusedNodeIdx,
+        onSelect: onSelect,
+        onDeselect: onDeselect,
+        onNodesChange: onNodesUpdate,
+        onNodeFocusChange: setFocusedNodeIdx
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_lists_AreasList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        areas: areas,
+        onSelect: onSelect,
+        onDuplicate: id => void onDuplicate(id),
+        onDelete: handleDelete
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/DescriptionPanel.tsx"
+/*!***************************************************!*\
+  !*** ./src/admin/app/panels/DescriptionPanel.tsx ***!
+  \***************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ DescriptionPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+const EDITOR_ID = 'cns-map-description';
+/**
+ * Rich-text map description, edited with the classic (TinyMCE) editor —
+ * wp_enqueue_editor() provides it on the map editor page. The textarea is
+ * uncontrolled: TinyMCE owns the DOM, and edits stream back into the map
+ * settings state via editor events (Visual) / the input event (Text mode).
+ * The panel unmounts on tab switch, so the instance is torn down and
+ * re-initialized with the latest value each time the tab opens.
+ */
+function DescriptionPanel({
+  value,
+  onChange
+}) {
+  const onChangeRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(onChange);
+  onChangeRef.current = onChange;
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    const ed = window.wp?.oldEditor || window.wp?.editor;
+    const textarea = document.getElementById(EDITOR_ID);
+
+    // Text-mode (Quicktags) edits land directly in the textarea.
+    const onInput = () => onChangeRef.current(textarea?.value ?? '');
+    textarea?.addEventListener('input', onInput);
+    if (ed?.initialize) {
+      ed.initialize(EDITOR_ID, {
+        tinymce: {
+          wpautop: true,
+          height: 320,
+          toolbar1: 'formatselect,bold,italic,bullist,numlist,blockquote,hr,alignleft,aligncenter,alignright,link,unlink,undo,redo',
+          setup(editor) {
+            // No SetContent here — it fires during init and would
+            // mark the settings dirty before any user edit.
+            editor.on('change keyup input Undo Redo', () => {
+              onChangeRef.current(editor.getContent());
+            });
+          }
+        },
+        quicktags: true,
+        mediaButtons: true
+      });
+    }
+    return () => {
+      textarea?.removeEventListener('input', onInput);
+      ed?.remove?.(EDITOR_ID);
+    };
+  }, []);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "description",
+    role: "tabpanel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsxs)("div", {
+      className: "cns-desc-editor",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("p", {
+        className: "description",
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Shown beneath the map on its own page and wherever the map block is embedded. Not shown where the map is only used as a base (e.g. stories, master-map regions).', 'cns-map-suite')
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_2__.jsx)("textarea", {
+        id: EDITOR_ID,
+        rows: 14,
+        defaultValue: value
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/HierarchyPanel.tsx"
+/*!*************************************************!*\
+  !*** ./src/admin/app/panels/HierarchyPanel.tsx ***!
+  \*************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ HierarchyPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _canvases_HierarchyCanvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../canvases/HierarchyCanvas */ "./src/admin/app/canvases/HierarchyCanvas.tsx");
+/* harmony import */ var _lists_HierarchyRegionList__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../lists/HierarchyRegionList */ "./src/admin/app/lists/HierarchyRegionList.tsx");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../areas */ "./src/admin/areas.ts");
+/* harmony import */ var _useMapResource__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../useMapResource */ "./src/admin/app/useMapResource.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+
+
+
+
+
+
+
+function HierarchyPanel({
+  mapId,
+  settings,
+  regions,
+  selectedRegionId,
+  parentMaps,
+  onRegionsLoaded,
+  onSelect,
+  onDeselect,
+  onNodesUpdate,
+  onDelete
+}) {
+  (0,_useMapResource__WEBPACK_IMPORTED_MODULE_5__.useMapResource)(mapId, 'hierarchy', onRegionsLoaded);
+  async function handleAddRegion() {
+    if (!mapId) return;
+    // Create a placeholder region with no child yet; user assigns it in the context panel.
+    // We use child_map_id=0 as a sentinel and immediately select it.
+    // The REST API requires a valid child_map_id, so we create with the map's own ID as
+    // a placeholder — but the API rejects self-links. Instead, just insert an empty polygon
+    // that the user fills in via the context form.
+    //
+    // Strategy: optimistically add a local-only "draft" region, select it for editing.
+    // It won't be persisted until the user saves from the context panel (which requires
+    // a valid child_map_id). We mark it with id=-1 as an unsaved sentinel.
+    const draft = {
+      id: -1,
+      parent_map_id: mapId,
+      child_map_id: 0,
+      nodes: (0,_areas__WEBPACK_IMPORTED_MODULE_4__.getDefaultNodes)('POLYGON'),
+      canvas_styles: {
+        fill: '#e8a020',
+        fillOpacity: 0.25,
+        stroke: '#e8a020',
+        strokeWidth: 2
+      },
+      title_override: null,
+      description_override: null,
+      child_map_title: '',
+      child_map_excerpt: '',
+      child_map_status: '',
+      child_map_thumbnail: '',
+      child_map_url: '',
+      created_at: '',
+      updated_at: ''
+    };
+    onRegionsLoaded([...regions, draft]);
+    onSelect(-1);
+  }
+  async function handleDelete(id) {
+    if (id === -1) {
+      // Unsaved draft — just remove locally.
+      onRegionsLoaded(regions.filter(r => r.id !== -1));
+      onDeselect();
+      return;
+    }
+    if (!confirm((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Delete this hierarchy region?', 'cns-map-suite'))) return;
+    await onDelete(id);
+  }
+  const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_3__.settingsToDrawState)(settings);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "hierarchy",
+    role: "tabpanel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+      className: "cns-objects-layout",
+      children: [parentMaps.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: "cns-hierarchy-parents",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          className: "cns-hierarchy-parents__label",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Parent maps:', 'cns-map-suite')
+        }), parentMaps.map(p => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("a", {
+          href: p.url,
+          className: "cns-hierarchy-parents__link",
+          children: [p.thumbnail && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("img", {
+            src: p.thumbnail,
+            alt: ""
+          }), p.title]
+        }, p.map_id))]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
+        className: "cns-objects-toolbar",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("button", {
+          type: "button",
+          className: "button button-primary",
+          onClick: handleAddRegion,
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Add Region', 'cns-map-suite')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("p", {
+          className: "description",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Draw a polygon region that links to a child map. Click a node to reposition it; click empty canvas on a selected region to add a node.', 'cns-map-suite')
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_canvases_HierarchyCanvas__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        drawState: drawState,
+        regions: regions,
+        selectedRegionId: selectedRegionId,
+        onSelect: onSelect,
+        onDeselect: onDeselect,
+        onNodesChange: onNodesUpdate
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_lists_HierarchyRegionList__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        regions: regions.filter(r => r.id !== -1),
+        onSelect: onSelect,
+        onDelete: handleDelete
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/LabelsPanel.tsx"
+/*!**********************************************!*\
+  !*** ./src/admin/app/panels/LabelsPanel.tsx ***!
+  \**********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ LabelsPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _canvases_LabelsCanvas__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../canvases/LabelsCanvas */ "./src/admin/app/canvases/LabelsCanvas.tsx");
+/* harmony import */ var _lists_LabelsList__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lists/LabelsList */ "./src/admin/app/lists/LabelsList.tsx");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _forms_LabelForm__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../forms/LabelForm */ "./src/admin/app/forms/LabelForm.tsx");
+/* harmony import */ var _useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../useCanvasKeyboard */ "./src/admin/app/useCanvasKeyboard.ts");
+/* harmony import */ var _useMapResource__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../useMapResource */ "./src/admin/app/useMapResource.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
+
+
+
+
+
+
+
+
+
+// Internal clipboard for ⌘/Ctrl+C/V. Module scope so it survives tab
+// switches within the editor page (not across page loads / other maps).
+let labelClipboard = null;
+function LabelsPanel({
+  mapId,
+  settings,
+  labels,
+  selectedLabelId,
+  repositioningLabelId,
+  onLabelsLoaded,
+  onSelect,
+  onDeselect,
+  onAdd,
+  onGeometryUpdate,
+  onLocalUpdate,
+  onDuplicate,
+  onRepositionComplete,
+  onDelete
+}) {
+  (0,_useMapResource__WEBPACK_IMPORTED_MODULE_7__.useMapResource)(mapId, 'labels', onLabelsLoaded);
+
+  // The nudge factory is created once; these refs feed it live values.
+  const stateRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    labels,
+    selectedLabelId
+  });
+  stateRef.current = {
+    labels,
+    selectedLabelId
+  };
+  const propsRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    onGeometryUpdate,
+    onLocalUpdate
+  });
+  propsRef.current = {
+    onGeometryUpdate,
+    onLocalUpdate
+  };
+
+  // ── Keyboard shortcuts (active while the Labels tab is mounted) ────────────
+
+  const selectedLabel = labels.find(l => l.id === selectedLabelId) || null;
+  const nudger = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)((0,_useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_6__.createDebouncedNudge)(() => {
+    const s = stateRef.current;
+    return s.labels.find(l => l.id === s.selectedLabelId) || null;
+  }, (id, x, y) => propsRef.current.onLocalUpdate(id, {
+    x,
+    y
+  }), (id, x, y) => void propsRef.current.onGeometryUpdate(id, {
+    x,
+    y
+  })));
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => nudger.current.flush(), []); // persist pending nudge on tab leave
+
+  async function pasteLabel() {
+    if (!labelClipboard) return;
+    // Cascade repeated pastes instead of stacking copies exactly on top
+    // of each other.
+    const payload = {
+      ...labelClipboard,
+      x: labelClipboard.x + 24,
+      y: labelClipboard.y + 24
+    };
+    labelClipboard = payload;
+    const created = await onAdd(payload);
+    onSelect(created.id);
+  }
+  (0,_useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_6__.useCanvasKeyboard)({
+    copy: () => {
+      if (!selectedLabel) return false;
+      labelClipboard = (0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_5__.collectLabelPayload)((0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_5__.defaultLabelFormData)(selectedLabel, null, null));
+      return true;
+    },
+    paste: () => {
+      if (!labelClipboard) return false;
+      void pasteLabel();
+      return true;
+    },
+    duplicate: () => {
+      if (!selectedLabel) return false;
+      void onDuplicate(selectedLabel.id);
+      return true;
+    },
+    remove: () => {
+      if (!selectedLabel) return false;
+      if (confirm((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Delete this label?', 'cns-map-suite'))) void onDelete(selectedLabel.id);
+      return true;
+    },
+    nudge: (dx, dy) => nudger.current.nudge(dx, dy)
+  });
+  async function handleAdd() {
+    const cx = Math.round(settings.width / 2);
+    const cy = Math.round(settings.width / settings.aspectRatio / 2);
+    const payload = (0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_5__.collectLabelPayload)({
+      ...(0,_forms_LabelForm__WEBPACK_IMPORTED_MODULE_5__.defaultLabelFormData)(null, cx, cy),
+      text: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('New Label', 'cns-map-suite')
+    });
+    const created = await onAdd(payload);
+    onSelect(created.id);
+  }
+  async function handleDelete(id) {
+    if (!confirm((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Delete this label?', 'cns-map-suite'))) return;
+    await onDelete(id);
+  }
+  const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_4__.settingsToDrawState)(settings);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "labels",
+    role: "tabpanel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      className: "cns-objects-layout",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+        className: "cns-objects-toolbar",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+          type: "button",
+          className: "button button-primary",
+          onClick: handleAdd,
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Add Label', 'cns-map-suite')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+          className: "description",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Click a label to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). In indicator mode the dot and the text box move independently. With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.', 'cns-map-suite')
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_canvases_LabelsCanvas__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        drawState: drawState,
+        labels: labels,
+        selectedLabelId: selectedLabelId,
+        repositioningLabelId: repositioningLabelId,
+        onSelect: onSelect,
+        onDeselect: onDeselect,
+        onGeometryUpdate: onGeometryUpdate,
+        onRepositionComplete: onRepositionComplete
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lists_LabelsList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        labels: labels,
+        onEdit: label => onSelect(label.id),
+        onDuplicate: id => void onDuplicate(id),
+        onDelete: handleDelete
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/ObjectsPanel.tsx"
+/*!***********************************************!*\
+  !*** ./src/admin/app/panels/ObjectsPanel.tsx ***!
+  \***********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ ObjectsPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _canvases_ObjectsCanvas__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../canvases/ObjectsCanvas */ "./src/admin/app/canvases/ObjectsCanvas.tsx");
+/* harmony import */ var _lists_ObjectsList__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../lists/ObjectsList */ "./src/admin/app/lists/ObjectsList.tsx");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _forms_ObjectForm__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../forms/ObjectForm */ "./src/admin/app/forms/ObjectForm.tsx");
+/* harmony import */ var _useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../useCanvasKeyboard */ "./src/admin/app/useCanvasKeyboard.ts");
+/* harmony import */ var _useMapResource__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../useMapResource */ "./src/admin/app/useMapResource.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
+
+
+
+
+
+
+
+
+
+// Internal clipboard for ⌘/Ctrl+C/V. Module scope so it survives tab
+// switches within the editor page (not across page loads / other maps).
+let objectClipboard = null;
+function ObjectsPanel({
+  mapId,
+  settings,
+  objects,
+  selectedObjectId,
+  repositioningObjectId,
+  onObjectsLoaded,
+  onSelect,
+  onDeselect,
+  onAdd,
+  onPositionUpdate,
+  onLocalUpdate,
+  onDuplicate,
+  onRepositionStart,
+  onRepositionComplete,
+  onDelete
+}) {
+  (0,_useMapResource__WEBPACK_IMPORTED_MODULE_7__.useMapResource)(mapId, 'objects', onObjectsLoaded);
+
+  // The nudge factory is created once; these refs feed it live values.
+  const stateRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    objects,
+    selectedObjectId
+  });
+  stateRef.current = {
+    objects,
+    selectedObjectId
+  };
+  const propsRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)({
+    onPositionUpdate,
+    onLocalUpdate
+  });
+  propsRef.current = {
+    onPositionUpdate,
+    onLocalUpdate
+  };
+
+  // ── Keyboard shortcuts (active while the Objects tab is mounted) ───────────
+
+  const selectedObject = objects.find(o => o.id === selectedObjectId) || null;
+  const nudger = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)((0,_useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_6__.createDebouncedNudge)(() => {
+    const s = stateRef.current;
+    return s.objects.find(o => o.id === s.selectedObjectId) || null;
+  }, (id, x, y) => propsRef.current.onLocalUpdate(id, {
+    x,
+    y
+  }), (id, x, y) => void propsRef.current.onPositionUpdate(id, x, y)));
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => nudger.current.flush(), []); // persist pending nudge on tab leave
+
+  async function pasteObject() {
+    if (!objectClipboard) return;
+    // Cascade repeated pastes instead of stacking copies exactly on top
+    // of each other.
+    const payload = {
+      ...objectClipboard,
+      x: objectClipboard.x + 24,
+      y: objectClipboard.y + 24
+    };
+    objectClipboard = payload;
+    const created = await onAdd(payload);
+    onSelect(created.id);
+  }
+  (0,_useCanvasKeyboard__WEBPACK_IMPORTED_MODULE_6__.useCanvasKeyboard)({
+    copy: () => {
+      if (!selectedObject) return false;
+      objectClipboard = (0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_5__.collectObjectPayload)((0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_5__.defaultObjectFormData)(selectedObject, null, null));
+      return true;
+    },
+    paste: () => {
+      if (!objectClipboard) return false;
+      void pasteObject();
+      return true;
+    },
+    duplicate: () => {
+      if (!selectedObject) return false;
+      void onDuplicate(selectedObject.id);
+      return true;
+    },
+    remove: () => {
+      if (!selectedObject) return false;
+      if (confirm((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Delete this object?', 'cns-map-suite'))) void onDelete(selectedObject.id);
+      return true;
+    },
+    nudge: (dx, dy) => nudger.current.nudge(dx, dy)
+  });
+
+  // New objects are created immediately and edited in the context panel —
+  // same flow as areas and labels (the modal is gone).
+  async function handleCreateAt(x, y) {
+    const payload = (0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_5__.collectObjectPayload)({
+      ...(0,_forms_ObjectForm__WEBPACK_IMPORTED_MODULE_5__.defaultObjectFormData)(null, x, y),
+      title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('New Object', 'cns-map-suite')
+    });
+    const created = await onAdd(payload);
+    onSelect(created.id);
+  }
+  function handleAdd() {
+    const cx = Math.round(settings.width / 2);
+    const cy = Math.round(settings.width / settings.aspectRatio / 2);
+    void handleCreateAt(cx, cy);
+  }
+  async function handleDelete(id) {
+    if (!confirm((0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Delete this object?', 'cns-map-suite'))) return;
+    await onDelete(id);
+  }
+  const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_4__.settingsToDrawState)(settings);
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "objects",
+    role: "tabpanel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+      className: "cns-objects-layout",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
+        className: "cns-objects-toolbar",
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("button", {
+          type: "button",
+          className: "button button-primary",
+          onClick: handleAdd,
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Add Object', 'cns-map-suite')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
+          className: "description",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Click an object to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty canvas to place a new object at that position, then edit it in the side panel. With an object selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.', 'cns-map-suite')
+        })]
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_canvases_ObjectsCanvas__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        drawState: drawState,
+        objects: objects,
+        selectedObjectId: selectedObjectId,
+        repositioningObjectId: repositioningObjectId,
+        onSelect: onSelect,
+        onDeselect: onDeselect,
+        onPositionUpdate: onPositionUpdate,
+        onRepositionComplete: onRepositionComplete,
+        onPlace: (x, y) => void handleCreateAt(x, y)
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lists_ObjectsList__WEBPACK_IMPORTED_MODULE_3__["default"], {
+        objects: objects,
+        onEdit: obj => onSelect(obj.id),
+        onDuplicate: id => void onDuplicate(id),
+        onDelete: handleDelete
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/PreviewPanel.tsx"
+/*!***********************************************!*\
+  !*** ./src/admin/app/panels/PreviewPanel.tsx ***!
+  \***********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ PreviewPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _canvases_PreviewCanvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../canvases/PreviewCanvas */ "./src/admin/app/canvases/PreviewCanvas.tsx");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+
+function PreviewPanel({
+  settings,
+  objects,
+  areas,
+  labels,
+  viewUrl
+}) {
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "preview",
+    role: "tabpanel",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_canvases_PreviewCanvas__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      drawState: (0,_canvas__WEBPACK_IMPORTED_MODULE_2__.settingsToDrawState)(settings),
+      objects: objects,
+      areas: areas,
+      labels: labels
+    }), settings.description.trim() !== '' &&
+    /*#__PURE__*/
+    // Mirrors the frontend: description renders beneath the map.
+    // Own admin input; the server sanitizes it (wp_kses_post) on save.
+    (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "cns-map-description cns-map-description--preview",
+      dangerouslySetInnerHTML: {
+        __html: settings.description
+      }
+    }), viewUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+      className: "cns-preview-actions",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("a", {
+        href: viewUrl,
+        className: "button",
+        target: "_blank",
+        rel: "noopener noreferrer",
+        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('View map page', 'cns-map-suite')
+      })
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/panels/SettingsPanel.tsx"
+/*!************************************************!*\
+  !*** ./src/admin/app/panels/SettingsPanel.tsx ***!
+  \************************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ SettingsPanel)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _canvases_SettingsCanvas__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../canvases/SettingsCanvas */ "./src/admin/app/canvases/SettingsCanvas.tsx");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__);
+
+
+
+// Custom elements
+
+
+
+function SettingsPanel({
+  settings,
+  onChange
+}) {
+  function set(key, val) {
+    onChange(prev => ({
+      ...prev,
+      [key]: val
+    }));
+  }
+  function openThumbnailPicker() {
+    const frame = window.wp?.media?.({
+      title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Select Map Thumbnail', 'cns-map-suite'),
+      button: {
+        text: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Use as thumbnail', 'cns-map-suite')
+      },
+      multiple: false,
+      library: {
+        type: 'image'
+      }
+    });
+    if (!frame) return;
+    frame.on('select', () => {
+      const att = frame.state().get('selection').first().toJSON();
+      onChange(prev => ({
+        ...prev,
+        thumbnailId: att.id,
+        thumbnailUrl: att.url
+      }));
+    });
+    frame.open();
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+    className: "cns-tab-panel cns-tab-panel--active",
+    "data-panel": "settings",
+    role: "tabpanel",
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+      className: "cns-settings-layout",
+      children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+        className: "cns-settings-form",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsxs)("div", {
+          className: "cns-grid cns-grid__24",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+            className: "cns-grid__group cns-grid__group-input cns-grid__span-2",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.TextControl, {
+              __next40pxDefaultSize: true,
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Map Title', 'cns-map-suite'),
+              value: settings.title,
+              placeholder: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Enter map title…', 'cns-map-suite'),
+              onChange: title => set('title', title)
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+            className: "cns-grid__group cns-grid__group-input cns-grid__span-1",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.TextControl, {
+              __next40pxDefaultSize: true,
+              type: "number",
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Max Width (px)', 'cns-map-suite'),
+              min: 100,
+              step: 10,
+              value: settings.width,
+              onChange: value => set('width', parseInt(value, 10) || 1000)
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+            className: "cns-grid__group cns-grid__group-input cns-grid__span-1",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.__experimentalNumberControl, {
+              __next40pxDefaultSize: true,
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Map Time', 'cns-map-suite'),
+              value: settings.time,
+              step: 1,
+              spinControls: "native",
+              isDragEnabled: true,
+              isShiftStepEnabled: true,
+              shiftStep: 10,
+              onChange: value => set('time', parseInt(value ?? '', 10) || 0),
+              help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('In-world timeline value.', 'cns-map-suite')
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)("div", {
+            className: "cns-grid__group cns-grid__group-input cns-grid__span-2",
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.RangeControl, {
+              __next40pxDefaultSize: true,
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Aspect Ratio', 'cns-map-suite'),
+              min: 0.25,
+              max: 4,
+              step: 0.01,
+              value: settings.aspectRatio,
+              onChange: v => set('aspectRatio', v ?? 1),
+              help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)', 'cns-map-suite')
+            })
+          })]
+        })
+      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_3__.jsx)(_canvases_SettingsCanvas__WEBPACK_IMPORTED_MODULE_2__["default"], {
+        settings: settings
+      })]
+    })
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/shared/IconPicker.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/shared/IconPicker.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ IconPicker)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+function IconPicker({
+  icons,
+  selectedIconId,
+  onSelect
+}) {
+  if (!icons || !icons.length) {
+    return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsxs)("p", {
+      className: "description",
+      children: ["No icons yet.", ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("a", {
+        href: window.cnsMapSuite.iconsUrl,
+        target: "_blank",
+        rel: "noreferrer",
+        children: "Add icons \u2192"
+      })]
+    });
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("div", {
+    className: "cns-icon-picker-grid",
+    children: icons.map(icon => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("button", {
+      type: "button",
+      className: `cns-icon-item${icon.id === selectedIconId ? ' cns-icon-item--active' : ''}`,
+      title: icon.title,
+      onClick: () => onSelect(icon.id),
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("img", {
+        src: icon.url,
+        alt: icon.title
+      })
+    }, icon.id))
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/shared/MediaPicker.tsx"
+/*!**********************************************!*\
+  !*** ./src/admin/app/shared/MediaPicker.tsx ***!
+  \**********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ MediaPicker)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+function MediaPicker({
+  imageId,
+  imageUrl,
+  title = 'Select Image',
+  onChange
+}) {
+  const frameRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  function openPicker(e) {
+    e.preventDefault();
+    if (frameRef.current) {
+      frameRef.current.open();
+      return;
+    }
+    frameRef.current = window.wp.media({
+      title,
+      button: {
+        text: 'Use this image'
+      },
+      multiple: false,
+      library: {
+        type: 'image'
+      }
+    });
+    frameRef.current.on('select', () => {
+      const att = frameRef.current.state().get('selection').first().toJSON();
+      onChange?.({
+        id: att.id,
+        url: att.url
+      });
+    });
+    frameRef.current.open();
+  }
+  function removePicker(e) {
+    e.preventDefault();
+    onChange?.(null);
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+    className: "cns-image-picker",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+      className: "cns-image-picker__preview",
+      children: imageUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("img", {
+        src: imageUrl,
+        alt: ""
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+        children: "No image selected"
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+      type: "button",
+      className: "button",
+      onClick: openPicker,
+      children: "Select Image"
+    }), imageId > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+      type: "button",
+      className: "button",
+      onClick: removePicker,
+      children: "Remove"
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/shared/PostSearch.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/shared/PostSearch.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ PostSearch)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+function PostSearch({
+  linkedPostId,
+  linkedPostLabel,
+  onChange
+}) {
+  const [query, setQuery] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)('');
+  const [results, setResults] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)([]);
+  const [open, setOpen] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const timer = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(null);
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => () => {
+    if (timer.current) clearTimeout(timer.current);
+  }, []);
+  function handleInput(e) {
+    const val = e.target.value;
+    setQuery(val);
+    if (timer.current) clearTimeout(timer.current);
+    if (val.length < 2) {
+      setOpen(false);
+      return;
+    }
+    timer.current = setTimeout(async () => {
+      try {
+        const url = window.cnsMapSuite.wpRestUrl + '/search?search=' + encodeURIComponent(val) + '&type=post&subtype=any&per_page=10';
+        const res = await fetch(url, {
+          headers: {
+            'X-WP-Nonce': window.cnsMapSuite.nonce
+          }
+        });
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setResults(data);
+          setOpen(true);
+        }
+      } catch {/* silent */}
+    }, 350);
+  }
+  function selectResult(item) {
+    onChange?.({
+      id: item.id,
+      title: item.title
+    });
+    setQuery('');
+    setResults([]);
+    setOpen(false);
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+    className: "cns-post-search-wrap",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("label", {
+      children: "Search for a post"
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+      type: "text",
+      className: "large-text",
+      placeholder: "Type to search\u2026",
+      autoComplete: "off",
+      value: query,
+      onChange: handleInput
+    }), open && results.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("div", {
+      className: "cns-post-results",
+      children: results.map(item => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("button", {
+        type: "button",
+        className: "cns-post-result",
+        onClick: () => selectResult(item),
+        children: [item.title, ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("span", {
+          className: "cns-post-result__type",
+          children: item.subtype
+        })]
+      }, item.id))
+    }), linkedPostId > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("p", {
+      className: "description",
+      children: [linkedPostLabel || `Post ID: ${linkedPostId}`, ' ', /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("button", {
+        type: "button",
+        className: "button button-small",
+        onClick: () => onChange?.({
+          id: 0,
+          title: ''
+        }),
+        children: "Clear"
+      })]
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/shared/RangeField.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/shared/RangeField.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ RangeField)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__);
+
+
+/**
+ * Slider + number-input pair — the one control used for every range value in
+ * the editor. The number input keeps a local draft while typing so
+ * intermediate states ("", "0.") don't snap back before they parse.
+ */
+function RangeField({
+  id,
+  min,
+  max,
+  step,
+  value,
+  onChange
+}) {
+  const [draft, setDraft] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(null);
+  const decimals = (String(step).split('.')[1] || '').length;
+  const display = draft ?? String(Number(value.toFixed(decimals)));
+  function commit(raw) {
+    const parsed = parseFloat(raw);
+    if (!Number.isNaN(parsed)) {
+      onChange(Math.min(max, Math.max(min, parsed)));
+    }
+  }
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsxs)("div", {
+    className: "cns-range-wrap",
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+      id: id,
+      type: "range",
+      min: min,
+      max: max,
+      step: step,
+      value: value,
+      onChange: e => {
+        setDraft(null);
+        onChange(parseFloat(e.target.value));
+      }
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)("input", {
+      type: "number",
+      className: "small-text cns-range-number",
+      min: min,
+      max: max,
+      step: step,
+      value: display,
+      "aria-label": "Exact value",
+      onChange: e => {
+        setDraft(e.target.value);
+        commit(e.target.value);
+      },
+      onBlur: () => setDraft(null)
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/shared/SaveStatus.tsx"
+/*!*********************************************!*\
+  !*** ./src/admin/app/shared/SaveStatus.tsx ***!
+  \*********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ SaveStatus)
+/* harmony export */ });
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__);
+
+function SaveStatus({
+  text,
+  type
+}) {
+  if (!text) return null;
+  const cls = 'cns-save-status' + (type ? ` cns-save-status--${type}` : '');
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx)("span", {
+    className: cls,
+    children: text
+  });
+}
+
+/***/ },
+
+/***/ "./src/admin/app/useCanvasKeyboard.ts"
+/*!********************************************!*\
+  !*** ./src/admin/app/useCanvasKeyboard.ts ***!
+  \********************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createDebouncedNudge: () => (/* binding */ createDebouncedNudge),
+/* harmony export */   useCanvasKeyboard: () => (/* binding */ useCanvasKeyboard)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils */ "./src/admin/utils.ts");
+
+
+
+/**
+ * Shared keyboard layer for the entity canvas tabs (objects / areas /
+ * labels), modeled on the Labels tab behavior:
+ *
+ *   Ctrl/⌘+C / V      copy & paste (each panel keeps its own clipboard)
+ *   Ctrl/⌘+D          duplicate the selected item
+ *   Delete/Backspace  delete the selected item (panels confirm first)
+ *   Arrow keys        nudge (Shift = 10 px)
+ *   Tab / Shift+Tab   cycle sub-parts of the selection (e.g. area nodes);
+ *                     falls through to normal focus traversal when unhandled
+ *
+ * Enter/Escape stay in the canvas components, where the drag state lives.
+ *
+ * The listener binds once per mount (panels unmount with their tab, which
+ * scopes the shortcuts); handlers are read through a ref so they always see
+ * the current render's props. Each handler returns true when it acted —
+ * only then is the browser default suppressed, so e.g. arrow keys still
+ * scroll the page while nothing is selected. Shortcuts never fire while
+ * typing in a form field.
+ */
+
+const ARROWS = {
+  ArrowUp: [0, -1],
+  ArrowDown: [0, 1],
+  ArrowLeft: [-1, 0],
+  ArrowRight: [1, 0]
+};
+function useCanvasKeyboard(handlers) {
+  const ref = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(handlers);
+  ref.current = handlers;
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    function onKeyDown(e) {
+      if ((0,_utils__WEBPACK_IMPORTED_MODULE_1__.isTypingTarget)(e)) return;
+      const h = ref.current;
+      const mod = e.metaKey || e.ctrlKey;
+      const key = e.key.toLowerCase();
+      if (mod && key === 'c') {
+        // Leave real text-selection copies alone.
+        if (!window.getSelection()?.toString()) h.copy?.();
+        return;
+      }
+      if (mod && key === 'v') {
+        h.paste?.();
+        return;
+      }
+      if (mod && key === 'd') {
+        if (h.duplicate?.()) e.preventDefault(); // browser "bookmark page"
+        return;
+      }
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (h.remove?.()) e.preventDefault();
+        return;
+      }
+      if (e.key === 'Tab' && !mod && !e.altKey) {
+        if (h.tab?.(e.shiftKey)) e.preventDefault();
+        return;
+      }
+      if (ARROWS[e.key] && h.nudge) {
+        const step = e.shiftKey ? 10 : 1;
+        if (h.nudge(ARROWS[e.key][0] * step, ARROWS[e.key][1] * step)) {
+          e.preventDefault(); // page scroll
+        }
+      }
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, []);
+}
+
+/**
+ * Debounced arrow-key nudging for point-positioned entities (objects,
+ * labels): the canvas updates immediately via applyLocal, and persist fires
+ * once the keys go quiet so holding an arrow doesn't PATCH per pixel.
+ * Create once per mount (closures must read live state, e.g. via refs) and
+ * call flush() on unmount so a pending nudge isn't lost.
+ */
+
+function createDebouncedNudge(getSelected, applyLocal, persist, delay = 500) {
+  let timer = null;
+  let pending = null;
+  function flush() {
+    if (timer) {
+      window.clearTimeout(timer);
+      timer = null;
+    }
+    const p = pending;
+    pending = null;
+    if (p) persist(p.id, p.x, p.y);
+  }
+  function nudge(dx, dy) {
+    const item = getSelected();
+    if (!item) return false;
+    // Switching selection mid-debounce: persist the previous item first.
+    if (pending && pending.id !== item.id) flush();
+    const base = pending ?? {
+      id: item.id,
+      x: item.x,
+      y: item.y
+    };
+    const x = Math.max(0, base.x + dx);
+    const y = Math.max(0, base.y + dy);
+    pending = {
+      id: item.id,
+      x,
+      y
+    };
+    applyLocal(item.id, x, y);
+    if (timer) window.clearTimeout(timer);
+    timer = window.setTimeout(flush, delay);
+    return true;
+  }
+  return {
+    nudge,
+    flush
+  };
+}
+
+/***/ },
+
+/***/ "./src/admin/app/useMapResource.ts"
+/*!*****************************************!*\
+  !*** ./src/admin/app/useMapResource.ts ***!
+  \*****************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   useMapResource: () => (/* binding */ useMapResource)
+/* harmony export */ });
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils */ "./src/admin/utils.ts");
+
+
+
+/**
+ * Loads a map-scoped REST collection (objects / areas / labels / hierarchy)
+ * once per panel mount and hands the rows to the parent-owned list state.
+ * Errors are swallowed — the panel simply starts empty, matching the
+ * previous inline behavior in every panel.
+ */
+function useMapResource(mapId, resource, onLoaded) {
+  const [initialized, setInitialized] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useState)(false);
+  const onLoadedRef = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useRef)(onLoaded);
+  onLoadedRef.current = onLoaded;
+  (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.useEffect)(() => {
+    if (initialized || !mapId) return;
+    (0,_utils__WEBPACK_IMPORTED_MODULE_1__.apiFetch)('GET', `/maps/${mapId}/${resource}`).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) onLoadedRef.current(data);
+    }).catch(() => {}).finally(() => setInitialized(true));
+  }, [mapId]);
+}
+
+/***/ },
+
+/***/ "./src/admin/areas.ts"
+/*!****************************!*\
+  !*** ./src/admin/areas.ts ***!
+  \****************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   applyRectangleConstraint: () => (/* binding */ applyRectangleConstraint),
+/* harmony export */   canRemoveAreaNode: () => (/* binding */ canRemoveAreaNode),
+/* harmony export */   drawAreaShape: () => (/* binding */ drawAreaShape),
+/* harmony export */   drawAreasOnCanvas: () => (/* binding */ drawAreasOnCanvas),
+/* harmony export */   findAreaAtPoint: () => (/* reexport safe */ _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.findAreaAtPoint),
+/* harmony export */   findNodeAtPoint: () => (/* binding */ findNodeAtPoint),
+/* harmony export */   getDefaultNodes: () => (/* binding */ getDefaultNodes),
+/* harmony export */   moveAreaNode: () => (/* binding */ moveAreaNode),
+/* harmony export */   normalizeNodesForShapeType: () => (/* binding */ normalizeNodesForShapeType)
+/* harmony export */ });
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/map-geometry */ "./src/shared/map-geometry.ts");
+
+
+// Path building and area hit-testing live in src/shared/map-geometry.ts so
+// the editor and the frontend map block trace identical shapes.
+
+const NODE_HALF = 5;
+
+// ── Shape helpers ─────────────────────────────────────────────────────────────
+
+// Nodes are TL(0) TR(1) BR(2) BL(3); adjacent pairs share one axis.
+function applyRectangleConstraint(nodes, movedIdx, newX, newY) {
+  if (nodes.length !== 4) return null;
+  const n = nodes.map(nd => ({
+    ...nd
+  }));
+  n[movedIdx] = {
+    x: newX,
+    y: newY
+  };
+  switch (movedIdx) {
+    case 0:
+      n[1].y = newY;
+      n[3].x = newX;
+      break;
+    case 1:
+      n[0].y = newY;
+      n[2].x = newX;
+      break;
+    case 2:
+      n[3].y = newY;
+      n[1].x = newX;
+      break;
+    case 3:
+      n[2].y = newY;
+      n[0].x = newX;
+      break;
+  }
+  return n;
+}
+function getDefaultNodes(shapeType) {
+  if (shapeType === 'CIRCLE') {
+    return [{
+      x: 0.5,
+      y: 0.5
+    }, {
+      x: 0.7,
+      y: 0.65
+    }];
+  }
+  return [{
+    x: 0.25,
+    y: 0.25
+  }, {
+    x: 0.75,
+    y: 0.25
+  }, {
+    x: 0.75,
+    y: 0.75
+  }, {
+    x: 0.25,
+    y: 0.75
+  }];
+}
+
+/**
+ * Moves one node of an area to new normalized (0–1) coordinates, honoring
+ * the shape's constraints: rectangles keep their corners axis-aligned, and
+ * moving a circle's center drags the radius node along. Returns a new array.
+ */
+function moveAreaNode(area, idx, newX, newY) {
+  const st = area.shape_type || 'POLYGON';
+  let updated = (area.nodes || []).map(n => ({
+    ...n
+  }));
+  if (st === 'RECTANGLE') {
+    updated = applyRectangleConstraint(updated, idx, newX, newY) || updated;
+  } else if (st === 'CIRCLE' && idx === 0) {
+    const dx = newX - updated[0].x;
+    const dy = newY - updated[0].y;
+    updated[0] = {
+      x: newX,
+      y: newY
+    };
+    if (updated[1]) updated[1] = {
+      x: updated[1].x + dx,
+      y: updated[1].y + dy
+    };
+  } else {
+    updated[idx] = {
+      x: newX,
+      y: newY
+    };
+  }
+  return updated;
+}
+
+/** Whether a node can be removed from the shape (fixed-node shapes can't shrink). */
+function canRemoveAreaNode(area) {
+  const st = area.shape_type || 'POLYGON';
+  return (st === 'POLYGON' || st === 'BEZIER') && (area.nodes || []).length > 3;
+}
+function normalizeNodesForShapeType(nodes, shapeType) {
+  if (shapeType === 'RECTANGLE') {
+    return nodes.length === 4 ? nodes : getDefaultNodes('RECTANGLE');
+  }
+  if (shapeType === 'CIRCLE') {
+    if (nodes.length >= 2) return nodes.slice(0, 2);
+    if (nodes.length === 1) return [nodes[0], {
+      x: nodes[0].x + 0.2,
+      y: nodes[0].y + 0.15
+    }];
+    return getDefaultNodes('CIRCLE');
+  }
+  return nodes;
+}
+function getLiveNodes(nodes, shapeType, movingIdx, cursor, W, H) {
+  if (movingIdx === null || !cursor) return nodes;
+  const newX = cursor.x / W;
+  const newY = cursor.y / H;
+  if (shapeType === 'RECTANGLE') {
+    return applyRectangleConstraint(nodes, movingIdx, newX, newY) || nodes;
+  }
+  const live = nodes.map(n => ({
+    ...n
+  }));
+  if (shapeType === 'CIRCLE' && movingIdx === 0) {
+    const dx = newX - nodes[0].x;
+    const dy = newY - nodes[0].y;
+    live[0] = {
+      x: newX,
+      y: newY
+    };
+    if (live[1]) live[1] = {
+      x: nodes[1].x + dx,
+      y: nodes[1].y + dy
+    };
+  } else {
+    live[movingIdx] = {
+      x: newX,
+      y: newY
+    };
+  }
+  return live;
+}
+
+// ── Canvas rendering ──────────────────────────────────────────────────────────
+
+// repoNodeIdx / repoCursor / focusedNodeIdx are only meaningful when
+// isSelected === true. focusedNodeIdx marks the keyboard-focused node
+// (Tab cycling); a node being repositioned takes visual precedence.
+function drawAreaShape(ctx, area, W, H, isSelected, repoNodeIdx, repoCursor, focusedNodeIdx = null) {
+  const rawNodes = area.nodes || [];
+  if (!rawNodes.length) return;
+  const shapeType = area.shape_type || 'POLYGON';
+  const liveNodes = isSelected ? getLiveNodes(rawNodes, shapeType, repoNodeIdx, repoCursor, W, H) : rawNodes;
+  const minNodes = shapeType === 'CIRCLE' ? 2 : 3;
+  if (liveNodes.length >= minNodes) {
+    const styles = area.canvas_styles || {};
+    const fill = styles.fill || '#2271b1';
+    const fillOpacity = styles.fillOpacity ?? 0.3;
+    const stroke = styles.stroke || '#2271b1';
+    const strokeWidth = styles.strokeWidth || 2;
+    (0,_shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.buildAreaPathFromNodes)(ctx, liveNodes, shapeType, W, H);
+    ctx.save();
+    ctx.globalAlpha = fillOpacity;
+    ctx.fillStyle = fill;
+    ctx.fill();
+    ctx.restore();
+    ctx.strokeStyle = stroke;
+    ctx.lineWidth = isSelected ? Math.max(strokeWidth, 2) : strokeWidth;
+    ctx.stroke();
+  }
+  if (!isSelected) return;
+  liveNodes.forEach((node, idx) => {
+    const isRepoNode = repoNodeIdx === idx;
+    const isFocusedNode = !isRepoNode && repoNodeIdx === null && focusedNodeIdx === idx;
+    ctx.beginPath();
+    ctx.rect(node.x * W - NODE_HALF, node.y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2);
+    if (isFocusedNode) {
+      ctx.fillStyle = '#2271b1';
+      ctx.fill();
+    }
+    ctx.strokeStyle = isRepoNode ? '#e75252' : '#2271b1';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  });
+}
+async function drawAreasOnCanvas(canvas, drawState, areas, selectedAreaId, repoNodeIdx, repoCursor, focusedNodeIdx = null) {
+  await (0,_canvas__WEBPACK_IMPORTED_MODULE_0__.drawMapCanvas)(canvas, drawState);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width;
+  const H = canvas.height;
+  for (const area of areas) {
+    const isSel = area.id === selectedAreaId;
+    drawAreaShape(ctx, area, W, H, isSel, isSel ? repoNodeIdx : null, isSel ? repoCursor : null, isSel ? focusedNodeIdx : null);
+  }
+}
+
+// ── Hit detection (editor-only: node handles) ─────────────────────────────────
+
+function findNodeAtPoint(ctx, x, y, nodes, W, H) {
+  for (let i = nodes.length - 1; i >= 0; i--) {
+    ctx.beginPath();
+    ctx.rect(nodes[i].x * W - NODE_HALF, nodes[i].y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2);
+    if (ctx.isPointInPath(x, y)) return i;
+  }
+  return -1;
+}
+
+/***/ },
+
+/***/ "./src/admin/canvas.ts"
+/*!*****************************!*\
+  !*** ./src/admin/canvas.ts ***!
+  \*****************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   drawFullCanvas: () => (/* binding */ drawFullCanvas),
+/* harmony export */   drawMapCanvas: () => (/* binding */ drawMapCanvas),
+/* harmony export */   getCanvasCoords: () => (/* binding */ getCanvasCoords),
+/* harmony export */   settingsToDrawState: () => (/* binding */ settingsToDrawState)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/admin/utils.ts");
+
+async function drawMapCanvas(canvasEl, state) {
+  const ctx = canvasEl.getContext('2d');
+  const width = state.width;
+  const height = Math.round(width / state.aspectRatio);
+  canvasEl.width = width;
+  canvasEl.height = height;
+  ctx.clearRect(0, 0, width, height);
+  if (state.bgType === 'image') {
+    const bgImg = await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.loadImage)(state.bgImageUrl);
+    if (bgImg) {
+      const scale = Math.max(width / bgImg.naturalWidth, height / bgImg.naturalHeight);
+      const drawW = bgImg.naturalWidth * scale;
+      const drawH = bgImg.naturalHeight * scale;
+      ctx.drawImage(bgImg, (width - drawW) / 2, (height - drawH) / 2, drawW, drawH);
+    } else {
+      ctx.fillStyle = '#888';
+      ctx.fillRect(0, 0, width, height);
+    }
+  } else {
+    ctx.fillStyle = state.bgColor;
+    ctx.fillRect(0, 0, width, height);
+  }
+  const mapImg = await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.loadImage)(state.imgUrl);
+  if (mapImg) {
+    const drawW = width * state.imageW;
+    const drawH = drawW * (mapImg.naturalHeight / mapImg.naturalWidth);
+    ctx.drawImage(mapImg, width * state.imageX, height * state.imageY, drawW, drawH);
+  }
+}
+function getCanvasCoords(canvas, event) {
+  const rect = canvas.getBoundingClientRect();
+  return {
+    x: Math.round((event.clientX - rect.left) * (canvas.width / rect.width)),
+    y: Math.round((event.clientY - rect.top) * (canvas.height / rect.height))
+  };
+}
+function settingsToDrawState(s) {
+  return {
+    width: s.width,
+    aspectRatio: s.aspectRatio,
+    bgType: s.bgType,
+    bgColor: s.bgColor,
+    bgImageUrl: s.bgImageUrl,
+    imgUrl: s.imageUrl,
+    imageX: s.imageX,
+    imageY: s.imageY,
+    imageW: s.imageW
+  };
+}
+
+// drawAreaFn / drawObjectFn are passed in to avoid circular imports.
+async function drawFullCanvas(canvas, objects, areas, state, drawAreaFn, drawObjectFn) {
+  await drawMapCanvas(canvas, state);
+  const ctx = canvas.getContext('2d');
+  for (const area of areas) drawAreaFn(ctx, area, canvas.width, canvas.height, false, null, null);
+  for (const obj of objects) await drawObjectFn(ctx, obj, false);
+}
+
+/***/ },
+
+/***/ "./src/admin/icons.ts"
+/*!****************************!*\
+  !*** ./src/admin/icons.ts ***!
+  \****************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   iconLibraryCache: () => (/* binding */ iconLibraryCache),
+/* harmony export */   loadIconLibraryIntoCache: () => (/* binding */ loadIconLibraryIntoCache)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/admin/utils.ts");
+
+let iconLibraryCache = null;
+async function loadIconLibraryIntoCache() {
+  try {
+    const res = await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.apiFetch)('GET', '/icons');
+    const data = await res.json();
+    if (res.ok) iconLibraryCache = data;
+  } catch {
+    iconLibraryCache = [];
+  }
+}
+
+/***/ },
+
+/***/ "./src/admin/labels.ts"
+/*!*****************************!*\
+  !*** ./src/admin/labels.ts ***!
+  \*****************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   drawLabelShape: () => (/* reexport safe */ _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.drawLabelShape),
+/* harmony export */   drawLabelsOnCanvas: () => (/* binding */ drawLabelsOnCanvas),
+/* harmony export */   findLabelPartAtPoint: () => (/* reexport safe */ _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.findLabelPartAtPoint),
+/* harmony export */   measureLabelBox: () => (/* reexport safe */ _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.measureLabelBox),
+/* harmony export */   traceRoundedRect: () => (/* reexport safe */ _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.traceRoundedRect)
+/* harmony export */ });
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../shared/map-geometry */ "./src/shared/map-geometry.ts");
+
+
+// Geometry, drawing, and hit-testing live in src/shared/map-geometry.ts so
+// the editor and the frontend map block render labels identically. This
+// module only adds the editor-specific composition (map background + all
+// labels + selection ring / empty placeholder).
+
+async function drawLabelsOnCanvas(canvas, drawState, labels, selectedLabelId) {
+  await (0,_canvas__WEBPACK_IMPORTED_MODULE_0__.drawMapCanvas)(canvas, drawState);
+  const ctx = canvas.getContext('2d');
+  for (const label of labels) {
+    (0,_shared_map_geometry__WEBPACK_IMPORTED_MODULE_1__.drawLabelShape)(ctx, label, {
+      selected: selectedLabelId === label.id,
+      showEmptyPlaceholder: true
+    });
+  }
+}
+
+/***/ },
+
+/***/ "./src/admin/objects.ts"
+/*!******************************!*\
+  !*** ./src/admin/objects.ts ***!
+  \******************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   drawObjectMarker: () => (/* binding */ drawObjectMarker),
+/* harmony export */   drawObjectsOnCanvas: () => (/* binding */ drawObjectsOnCanvas),
+/* harmony export */   findObjectAtPoint: () => (/* reexport safe */ _shared_map_geometry__WEBPACK_IMPORTED_MODULE_2__.findObjectAtPoint)
+/* harmony export */ });
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./utils */ "./src/admin/utils.ts");
+/* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./canvas */ "./src/admin/canvas.ts");
+/* harmony import */ var _shared_map_geometry__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../shared/map-geometry */ "./src/shared/map-geometry.ts");
+
+
+// Marker hit-testing lives in src/shared/map-geometry.ts so the editor and
+// the frontend map block agree on the clickable region.
+
+
+// ── Canvas rendering ──────────────────────────────────────────────────────────
+
+function drawFallbackMarker(ctx, x, y, size, fill, stroke) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(x, y, size / 2, 0, Math.PI * 2);
+  ctx.fillStyle = fill || '#2271b1';
+  ctx.strokeStyle = stroke || '#fff';
+  ctx.lineWidth = 2;
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+}
+async function drawObjectMarker(ctx, obj, isSelected) {
+  const size = obj.canvas_styles?.size ?? 32;
+  const fill = obj.canvas_styles?.fillStyle ?? '#ffffff';
+  const stroke = obj.canvas_styles?.strokeStyle ?? '#2271b1';
+  if (obj.icon_url) {
+    const img = obj.icon_mime === 'image/svg+xml' ? await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.loadSvgWithColors)(obj.icon_url, fill, stroke) : await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.loadImage)(obj.icon_url);
+    if (img) {
+      ctx.drawImage(img, obj.x - size / 2, obj.y - size / 2, size, size);
+    } else {
+      drawFallbackMarker(ctx, obj.x, obj.y, size, fill, stroke);
+    }
+  } else {
+    drawFallbackMarker(ctx, obj.x, obj.y, size, fill, stroke);
+  }
+  if (isSelected) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(obj.x, obj.y, size / 2 + 4, 0, Math.PI * 2);
+    ctx.strokeStyle = '#2271b1';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+async function drawObjectsOnCanvas(canvas, drawState, objects, selectedObjectId, repositioningId, repositionCursor) {
+  await (0,_canvas__WEBPACK_IMPORTED_MODULE_1__.drawMapCanvas)(canvas, drawState);
+  const ctx = canvas.getContext('2d');
+  for (const obj of objects) {
+    if (repositioningId === obj.id && repositionCursor) {
+      await drawObjectMarker(ctx, {
+        ...obj,
+        ...repositionCursor
+      }, true);
+    } else {
+      await drawObjectMarker(ctx, obj, selectedObjectId === obj.id);
+    }
+  }
+}
+
+/***/ },
+
+/***/ "./src/admin/utils.ts"
+/*!****************************!*\
+  !*** ./src/admin/utils.ts ***!
+  \****************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   apiFetch: () => (/* binding */ apiFetch),
+/* harmony export */   isTypingTarget: () => (/* binding */ isTypingTarget),
+/* harmony export */   loadImage: () => (/* binding */ loadImage),
+/* harmony export */   loadSvgWithColors: () => (/* binding */ loadSvgWithColors)
+/* harmony export */ });
+function apiFetch(method, path, body) {
+  const headers = {
+    'X-WP-Nonce': window.cnsMapSuite.nonce
+  };
+  const opts = {
+    method,
+    headers
+  };
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+    opts.body = JSON.stringify(body);
+  }
+  return fetch(window.cnsMapSuite.restUrl + path, opts);
+}
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+
+/**
+ * True when the event originates from a form field, so canvas keyboard
+ * shortcuts don't hijack typing (Enter in a text input, Backspace while
+ * editing, arrow keys in number fields, …).
+ */
+function isTypingTarget(e) {
+  const t = e.target;
+  return !!t && typeof t.closest === 'function' && !!t.closest('input, textarea, select, [contenteditable="true"]');
+}
+
+// ── Image cache ───────────────────────────────────────────────────────────────
+
+const imageCache = {};
+function loadImage(url) {
+  if (!url) return Promise.resolve(null);
+  if (imageCache[url]) return Promise.resolve(imageCache[url]);
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      imageCache[url] = img;
+      resolve(img);
+    };
+    img.onerror = () => {
+      resolve(null);
+    };
+    img.src = url;
+  });
+}
+async function loadSvgWithColors(url, fill, stroke) {
+  const key = `${url}|${fill ?? ''}|${stroke ?? ''}`;
+  if (imageCache[key]) return imageCache[key];
+  try {
+    const resp = await fetch(url, {
+      credentials: 'same-origin'
+    });
+    const text = await resp.text();
+    const doc = new DOMParser().parseFromString(text, 'image/svg+xml');
+    const svg = doc.documentElement;
+    if (fill) svg.setAttribute('fill', fill);
+    if (stroke) svg.setAttribute('stroke', stroke);
+    const blob = new Blob([new XMLSerializer().serializeToString(doc)], {
+      type: 'image/svg+xml'
+    });
+    const blobUrl = URL.createObjectURL(blob);
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(blobUrl);
+        imageCache[key] = img;
+        resolve(img);
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(blobUrl);
+        resolve(null);
+      };
+      img.src = blobUrl;
+    });
+  } catch {
+    return null;
+  }
+}
+
+/***/ },
+
+/***/ "./src/shared/map-geometry.ts"
+/*!************************************!*\
+  !*** ./src/shared/map-geometry.ts ***!
+  \************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   buildAreaPathFromNodes: () => (/* binding */ buildAreaPathFromNodes),
+/* harmony export */   buildPolygonPath: () => (/* binding */ buildPolygonPath),
+/* harmony export */   drawLabelShape: () => (/* binding */ drawLabelShape),
+/* harmony export */   findAreaAtPoint: () => (/* binding */ findAreaAtPoint),
+/* harmony export */   findLabelPartAtPoint: () => (/* binding */ findLabelPartAtPoint),
+/* harmony export */   findObjectAtPoint: () => (/* binding */ findObjectAtPoint),
+/* harmony export */   measureLabelBox: () => (/* binding */ measureLabelBox),
+/* harmony export */   traceRoundedRect: () => (/* binding */ traceRoundedRect)
+/* harmony export */ });
+/**
+ * Canvas geometry shared between the admin editor (src/admin) and the
+ * frontend map block (src/blocks/map/view.js). Both bundles come out of the
+ * same webpack build, so keeping the math here makes editor and frontend
+ * pixel-identical by construction — any change to hit areas, label boxes, or
+ * shape paths lands in both automatically.
+ */
+
+// ── Area / region paths ───────────────────────────────────────────────────────
+
+function buildPolygonPath(ctx, nodes, W, H) {
+  ctx.moveTo(nodes[0].x * W, nodes[0].y * H);
+  for (let i = 1; i < nodes.length; i++) {
+    ctx.lineTo(nodes[i].x * W, nodes[i].y * H);
+  }
+  ctx.closePath();
+}
+function buildBezierPath(ctx, nodes, W, H) {
+  const n = nodes.length;
+  const startX = (nodes[n - 1].x + nodes[0].x) / 2 * W;
+  const startY = (nodes[n - 1].y + nodes[0].y) / 2 * H;
+  ctx.moveTo(startX, startY);
+  for (let i = 0; i < n; i++) {
+    const cp = nodes[i];
+    const next = nodes[(i + 1) % n];
+    ctx.quadraticCurveTo(cp.x * W, cp.y * H, (cp.x + next.x) / 2 * W, (cp.y + next.y) / 2 * H);
+  }
+  ctx.closePath();
+}
+function buildCirclePath(ctx, nodes, W, H) {
+  const cx = nodes[0].x * W;
+  const cy = nodes[0].y * H;
+  const rx = Math.max(Math.abs(nodes[1].x - nodes[0].x) * W, 1);
+  const ry = Math.max(Math.abs(nodes[1].y - nodes[0].y) * H, 1);
+  ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+}
+function buildAreaPathFromNodes(ctx, nodes, shapeType, W, H) {
+  ctx.beginPath();
+  if (!nodes.length) return;
+  switch (shapeType) {
+    case 'BEZIER':
+      if (nodes.length >= 3) buildBezierPath(ctx, nodes, W, H);
+      break;
+    case 'CIRCLE':
+      if (nodes.length >= 2) buildCirclePath(ctx, nodes, W, H);
+      break;
+    case 'RECTANGLE':
+    default:
+      if (nodes.length >= 3) buildPolygonPath(ctx, nodes, W, H);
+      break;
+  }
+}
+
+// ── Hit detection ─────────────────────────────────────────────────────────────
+
+function findObjectAtPoint(ctx, x, y, objects) {
+  for (let i = objects.length - 1; i >= 0; i--) {
+    const obj = objects[i];
+    const size = obj.canvas_styles?.size ?? 32;
+    const half = size / 2;
+    ctx.beginPath();
+    ctx.rect(obj.x - half, obj.y - half, size, size);
+    if (ctx.isPointInPath(x, y)) return obj;
+  }
+  return null;
+}
+function findAreaAtPoint(ctx, x, y, areas, W, H) {
+  for (let i = areas.length - 1; i >= 0; i--) {
+    const area = areas[i];
+    const nodes = area.nodes || [];
+    const shapeType = area.shape_type || 'POLYGON';
+    const minNodes = shapeType === 'CIRCLE' ? 2 : 3;
+    if (nodes.length < minNodes) continue;
+    buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
+    if (ctx.isPointInPath(x, y)) return area;
+  }
+  return null;
+}
+
+// ── Labels ────────────────────────────────────────────────────────────────────
+// 'centered'  — label box centered on (x, y).
+// 'indicator' — dot at (x, y) with a leader line to the label box at
+//               (x + offset_x, y + offset_y); the line is drawn first so the
+//               box covers the segment that would cross it.
+
+const PAD_X = 8;
+const PAD_Y = 5;
+
+/** Computes the label box in canvas pixels (sets ctx.font as a side effect). */
+function measureLabelBox(ctx, label) {
+  const fontSize = label.canvas_styles?.fontSize || 14;
+  ctx.font = `bold ${fontSize}px sans-serif`;
+  const textW = ctx.measureText(label.text || '').width;
+  const w = textW + PAD_X * 2;
+  const h = fontSize + PAD_Y * 2;
+  const cx = label.placement === 'indicator' ? label.x + (label.offset_x ?? 40) : label.x;
+  const cy = label.placement === 'indicator' ? label.y + (label.offset_y ?? -40) : label.y;
+  return {
+    left: cx - w / 2,
+    top: cy - h / 2,
+    w,
+    h,
+    cx,
+    cy,
+    fontSize
+  };
+}
+function traceRoundedRect(ctx, x, y, w, h, r) {
+  if (typeof ctx.roundRect === 'function') {
+    ctx.roundRect(x, y, w, h, r);
+  } else {
+    ctx.rect(x, y, w, h);
+  }
+}
+function drawLabelShape(ctx, label, opts = {}) {
+  const bg = label.canvas_styles?.bgColor || '#ffffff';
+  const border = label.canvas_styles?.borderColor || '#1e1e1e';
+  const textColor = label.canvas_styles?.textColor || '#1e1e1e';
+  const box = measureLabelBox(ctx, label);
+  ctx.save();
+
+  // Leader line + anchor dot first, so the box covers the inner segment.
+  if (label.placement === 'indicator') {
+    ctx.beginPath();
+    ctx.moveTo(label.x, label.y);
+    ctx.lineTo(box.cx, box.cy);
+    ctx.strokeStyle = border;
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(label.x, label.y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = border;
+    ctx.fill();
+  }
+  ctx.beginPath();
+  traceRoundedRect(ctx, box.left, box.top, box.w, box.h, 4);
+  ctx.fillStyle = bg;
+  ctx.fill();
+  ctx.strokeStyle = border;
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.font = `bold ${box.fontSize}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = textColor;
+  ctx.fillText(label.text || (opts.showEmptyPlaceholder ? '(empty label)' : ''), box.cx, box.cy);
+  if (opts.selected) {
+    ctx.beginPath();
+    traceRoundedRect(ctx, box.left - 4, box.top - 4, box.w + 8, box.h + 8, 6);
+    ctx.strokeStyle = '#2271b1';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 3]);
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Which part of a label was hit: the anchor dot or the text box. */
+
+/**
+ * Hit test that distinguishes the anchor dot (indicator mode) from the text
+ * box. The dot is checked first with a generous radius so it stays grabbable
+ * next to the box. Reverse order so the top-most drawn label wins.
+ */
+function findLabelPartAtPoint(ctx, x, y, labels) {
+  for (let i = labels.length - 1; i >= 0; i--) {
+    const label = labels[i];
+    if (label.placement === 'indicator') {
+      ctx.beginPath();
+      ctx.arc(label.x, label.y, 8, 0, Math.PI * 2);
+      if (ctx.isPointInPath(x, y)) return {
+        label,
+        part: 'anchor'
+      };
+    }
+    const box = measureLabelBox(ctx, label);
+    ctx.beginPath();
+    ctx.rect(box.left, box.top, box.w, box.h);
+    if (ctx.isPointInPath(x, y)) return {
+      label,
+      part: 'box'
+    };
+  }
+  return null;
+}
+
+/***/ },
+
+/***/ "./src/admin/admin.scss"
+/*!******************************!*\
+  !*** ./src/admin/admin.scss ***!
+  \******************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "react/jsx-runtime"
+/*!**********************************!*\
+  !*** external "ReactJSXRuntime" ***!
+  \**********************************/
+(module) {
+
+module.exports = window["ReactJSXRuntime"];
+
+/***/ },
+
+/***/ "@wordpress/components"
+/*!************************************!*\
+  !*** external ["wp","components"] ***!
+  \************************************/
+(module) {
+
+module.exports = window["wp"]["components"];
+
+/***/ },
+
+/***/ "@wordpress/element"
+/*!*********************************!*\
+  !*** external ["wp","element"] ***!
+  \*********************************/
+(module) {
+
+module.exports = window["wp"]["element"];
+
+/***/ },
+
+/***/ "@wordpress/i18n"
+/*!******************************!*\
+  !*** external ["wp","i18n"] ***!
+  \******************************/
+(module) {
+
+module.exports = window["wp"]["i18n"];
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	var __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		var cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		if (!(moduleId in __webpack_modules__)) {
+/******/ 			delete __webpack_module_cache__[moduleId];
+/******/ 			var e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			for(var key in definition) {
+/******/ 				if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.prototype.hasOwnProperty.call(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+var __webpack_exports__ = {};
+// This entry needs to be wrapped in an IIFE because it needs to be isolated against other modules in the chunk.
+(() => {
+/*!*****************************!*\
+  !*** ./src/admin/index.tsx ***!
+  \*****************************/
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _app_MapEditorApp__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./app/MapEditorApp */ "./src/admin/app/MapEditorApp.tsx");
+/* harmony import */ var _app_IconLibraryApp__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./app/IconLibraryApp */ "./src/admin/app/IconLibraryApp.tsx");
+/* harmony import */ var _admin_scss__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./admin.scss */ "./src/admin/admin.scss");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__);
+
+
+
+
+
+document.addEventListener('DOMContentLoaded', () => {
+  const editorEl = document.getElementById('cns-admin-root');
+  if (editorEl) (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createRoot)(editorEl).render(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_app_MapEditorApp__WEBPACK_IMPORTED_MODULE_1__["default"], {}));
+  const iconsEl = document.getElementById('cns-icons-root');
+  if (iconsEl) (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_0__.createRoot)(iconsEl).render(/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_app_IconLibraryApp__WEBPACK_IMPORTED_MODULE_2__["default"], {}));
+  document.body.addEventListener('click', e => {
+    const link = e.target.closest('a[data-confirm]');
+    if (link && !window.confirm(link.dataset.confirm)) {
+      e.preventDefault();
+    }
+  });
+});
+})();
+
+/******/ })()
+;
+//# sourceMappingURL=index.js.map

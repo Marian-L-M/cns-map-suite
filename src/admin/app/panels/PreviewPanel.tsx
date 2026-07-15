@@ -1,3 +1,4 @@
+import { __ } from '@wordpress/i18n';
 import PreviewCanvas from '../canvases/PreviewCanvas';
 import { settingsToDrawState } from '../../canvas';
 import type { MapSettings, MapObject, MapArea, MapLabel } from '../../../types';
@@ -19,10 +20,18 @@ export default function PreviewPanel( { settings, objects, areas, labels, viewUr
 				areas={ areas }
 				labels={ labels }
 			/>
+			{ settings.description.trim() !== '' && (
+				// Mirrors the frontend: description renders beneath the map.
+				// Own admin input; the server sanitizes it (wp_kses_post) on save.
+				<div
+					className="cns-map-description cns-map-description--preview"
+					dangerouslySetInnerHTML={ { __html: settings.description } }
+				/>
+			) }
 			{ viewUrl && (
 				<div className="cns-preview-actions">
 					<a href={ viewUrl } className="button" target="_blank" rel="noopener noreferrer">
-						View map page
+						{ __( 'View map page', 'cns-map-suite' ) }
 					</a>
 				</div>
 			) }

@@ -84,7 +84,7 @@
 	min-height: calc(100vh - 120px);
 }
 
-.cns-editor-main {
+.cns-map-editor__main {
 	min-width: 0; /* prevent grid blowout */
 }
 

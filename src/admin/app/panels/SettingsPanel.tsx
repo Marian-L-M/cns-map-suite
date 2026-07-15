@@ -1,4 +1,14 @@
-import MediaPicker   from '../shared/MediaPicker';
+import { __ } from '@wordpress/i18n';
+import {
+	RangeControl,
+	TextControl,
+	Tooltip,
+	__experimentalNumberControl as NumberControl,
+} from '@wordpress/components';
+
+// Custom elements
+import MediaPicker from '../shared/MediaPicker';
+import RangeField from '../shared/RangeField';
 import SettingsCanvas from '../canvases/SettingsCanvas';
 import type { MapSettings } from '../../../types';
 
@@ -8,147 +18,206 @@ interface Props {
 }
 
 export default function SettingsPanel( { settings, onChange }: Props ) {
-	function set<K extends keyof MapSettings>( key: K, val: MapSettings[ K ] ) {
+	function set< K extends keyof MapSettings >(
+		key: K,
+		val: MapSettings[ K ]
+	) {
 		onChange( ( prev ) => ( { ...prev, [ key ]: val } ) );
 	}
 
 	function openThumbnailPicker() {
 		const frame = window.wp?.media?.( {
-			title:    'Select Map Thumbnail',
-			button:   { text: 'Use as thumbnail' },
+			title: __( 'Select Map Thumbnail', 'cns-map-suite' ),
+			button: { text: __( 'Use as thumbnail', 'cns-map-suite' ) },
 			multiple: false,
-			library:  { type: 'image' },
+			library: { type: 'image' },
 		} );
 		if ( ! frame ) return;
 		frame.on( 'select', () => {
 			const att = frame.state().get( 'selection' ).first().toJSON();
-			onChange( ( prev ) => ( { ...prev, thumbnailId: att.id, thumbnailUrl: att.url } ) );
+			onChange( ( prev ) => ( {
+				...prev,
+				thumbnailId: att.id,
+				thumbnailUrl: att.url,
+			} ) );
 		} );
 		frame.open();
 	}
 
 	return (
-		<div className="cns-tab-panel cns-tab-panel--active" data-panel="settings" role="tabpanel">
+		<div
+			className="cns-tab-panel cns-tab-panel--active"
+			data-panel="settings"
+			role="tabpanel"
+		>
 			<div className="cns-settings-layout">
 				<div className="cns-settings-form">
-					<div className="cns-form-grid">
-
-						<div className="cns-form-row cns-form-row--full">
-							<label htmlFor="cns-map-title">Map Title</label>
-							<input
-								id="cns-map-title"
-								type="text"
-								className="large-text"
+					<div className="cns-grid cns-grid__24">
+						{ /* Title Input */ }
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-2">
+							<TextControl
+								__next40pxDefaultSize
+								label={ __( 'Map Title', 'cns-map-suite' ) }
 								value={ settings.title }
-								placeholder="Enter map title…"
-								onChange={ ( e ) => set( 'title', e.target.value ) }
+								placeholder={ __(
+									'Enter map title…',
+									'cns-map-suite'
+								) }
+								onChange={ ( title ) => set( 'title', title ) }
 							/>
 						</div>
-
-						<div className="cns-form-row">
-							<label htmlFor="cns-map-width">Max Width (px)</label>
-							<input
-								id="cns-map-width"
+						{ /*  Canvas width input */ }
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-1">
+							<TextControl
+								__next40pxDefaultSize
 								type="number"
-								className="small-text"
-								min="100"
-								step="10"
+								label={ __(
+									'Max Width (px)',
+									'cns-map-suite'
+								) }
+								min={ 100 }
+								step={ 10 }
 								value={ settings.width }
-								onChange={ ( e ) => set( 'width', parseInt( e.target.value, 10 ) || 1000 ) }
+								onChange={ ( value ) =>
+									set(
+										'width',
+										parseInt( value, 10 ) || 1000
+									)
+								}
 							/>
 						</div>
-
-						<div className="cns-form-row">
-							<label htmlFor="cns-map-aspect-ratio">Aspect Ratio</label>
-							<div className="cns-range-wrap">
-								<input
-									id="cns-map-aspect-ratio"
-									type="range"
-									min="0.25" max="4" step="0.01"
-									value={ settings.aspectRatio }
-									onChange={ ( e ) => set( 'aspectRatio', parseFloat( e.target.value ) ) }
-								/>
-								<output className="cns-range-value">{ settings.aspectRatio.toFixed( 2 ) }</output>
-							</div>
-							<p className="description">Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)</p>
-						</div>
-
-						<div className="cns-form-row">
-							<label htmlFor="cns-map-time">Map Time</label>
-							<input
-								id="cns-map-time"
-								type="number"
-								className="small-text"
+						{ /*  Map Time Value */ }
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-1">
+							<NumberControl
+								__next40pxDefaultSize
+								label={ __( 'Map Time', 'cns-map-suite' ) }
 								value={ settings.time }
-								onChange={ ( e ) => set( 'time', parseInt( e.target.value, 10 ) || 0 ) }
+								step={ 1 }
+								spinControls="native"
+								isDragEnabled
+								isShiftStepEnabled
+								shiftStep={ 10 }
+								onChange={ ( value ) =>
+									set(
+										'time',
+										parseInt( value ?? '', 10 ) || 0
+									)
+								}
+								help={ __(
+									'In-world timeline value.',
+									'cns-map-suite'
+								) }
 							/>
-							<p className="description">In-world timeline value.</p>
 						</div>
+						{ /* Aspect Ratio */ }
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-2">
+							<RangeControl
+								__next40pxDefaultSize
+								label={ __( 'Aspect Ratio', 'cns-map-suite' ) }
+								min={ 0.25 }
+								max={ 4 }
+								step={ 0.01 }
+								value={ settings.aspectRatio }
+								onChange={ ( v ) =>
+									set( 'aspectRatio', v ?? 1 )
+								}
+								help={ __(
+									'Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)',
+									'cns-map-suite'
+								) }
+							/>
+						</div>
+						{ /*
+						
 
-						<div className="cns-form-row cns-form-row--full">
+						<div className="cns-grid__row cns-grid__row__full">
 							<label>Base Map Image</label>
 							<MediaPicker
 								imageId={ settings.imageId }
 								imageUrl={ settings.imageUrl }
 								title="Select Base Map Image"
-								onChange={ ( att ) => onChange( ( prev ) => ( {
-									...prev,
-									imageId:  att ? att.id  : 0,
-									imageUrl: att ? att.url : '',
-								} ) ) }
+								onChange={ ( att ) =>
+									onChange( ( prev ) => ( {
+										...prev,
+										imageId: att ? att.id : 0,
+										imageUrl: att ? att.url : '',
+									} ) )
+								}
 							/>
 						</div>
 
-						<div className="cns-form-row">
-							<label htmlFor="cns-map-image-x">Image X offset</label>
-							<div className="cns-range-wrap">
-								<input id="cns-map-image-x" type="range" min="0" max="1" step="0.01"
-									value={ settings.imageX }
-									onChange={ ( e ) => set( 'imageX', parseFloat( e.target.value ) ) }
-								/>
-								<output className="cns-range-value">{ settings.imageX.toFixed( 2 ) }</output>
-							</div>
+						<div className="cns-grid__row">
+							<label htmlFor="cns-map-image-x">
+								Image X offset
+							</label>
+							<RangeField
+								id="cns-map-image-x"
+								min={ 0 }
+								max={ 1 }
+								step={ 0.01 }
+								value={ settings.imageX }
+								onChange={ ( v ) => set( 'imageX', v ) }
+							/>
 						</div>
 
-						<div className="cns-form-row">
-							<label htmlFor="cns-map-image-y">Image Y offset</label>
-							<div className="cns-range-wrap">
-								<input id="cns-map-image-y" type="range" min="0" max="1" step="0.01"
-									value={ settings.imageY }
-									onChange={ ( e ) => set( 'imageY', parseFloat( e.target.value ) ) }
-								/>
-								<output className="cns-range-value">{ settings.imageY.toFixed( 2 ) }</output>
-							</div>
+						<div className="cns-grid__row">
+							<label htmlFor="cns-map-image-y">
+								Image Y offset
+							</label>
+							<RangeField
+								id="cns-map-image-y"
+								min={ 0 }
+								max={ 1 }
+								step={ 0.01 }
+								value={ settings.imageY }
+								onChange={ ( v ) => set( 'imageY', v ) }
+							/>
 						</div>
 
-						<div className="cns-form-row">
-							<label htmlFor="cns-map-image-width">Image Width</label>
-							<div className="cns-range-wrap">
-								<input id="cns-map-image-width" type="range" min="0.1" max="2" step="0.01"
-									value={ settings.imageW }
-									onChange={ ( e ) => set( 'imageW', parseFloat( e.target.value ) ) }
-								/>
-								<output className="cns-range-value">{ settings.imageW.toFixed( 2 ) }</output>
-							</div>
-							<p className="description">1.0 = full canvas width. Height follows image ratio.</p>
+						<div className="cns-grid__row">
+							<label htmlFor="cns-map-image-width">
+								Image Width
+							</label>
+							<RangeField
+								id="cns-map-image-width"
+								min={ 0.1 }
+								max={ 2 }
+								step={ 0.01 }
+								value={ settings.imageW }
+								onChange={ ( v ) => set( 'imageW', v ) }
+							/>
+							<p className="description">
+								1.0 = full canvas width. Height follows image
+								ratio.
+							</p>
 						</div>
 
-						<div className="cns-form-row cns-form-row--full">
+						<div className="cns-grid__row cns-grid__row__full">
 							<label>Background</label>
 							<div className="cns-bg-type-toggle">
 								<label>
-									<input type="radio" name="cns-map-bg-type" value="color"
+									<input
+										type="radio"
+										name="cns-map-bg-type"
+										value="color"
 										checked={ settings.bgType === 'color' }
-										onChange={ () => set( 'bgType', 'color' ) }
-									/>
-									{ ' ' }Color
+										onChange={ () =>
+											set( 'bgType', 'color' )
+										}
+									/>{ ' ' }
+									Color
 								</label>
 								<label>
-									<input type="radio" name="cns-map-bg-type" value="image"
+									<input
+										type="radio"
+										name="cns-map-bg-type"
+										value="image"
 										checked={ settings.bgType === 'image' }
-										onChange={ () => set( 'bgType', 'image' ) }
-									/>
-									{ ' ' }Image
+										onChange={ () =>
+											set( 'bgType', 'image' )
+										}
+									/>{ ' ' }
+									Image
 								</label>
 							</div>
 							{ settings.bgType === 'color' && (
@@ -157,7 +226,9 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 										type="color"
 										className="cns-color-picker"
 										value={ settings.bgColor }
-										onChange={ ( e ) => set( 'bgColor', e.target.value ) }
+										onChange={ ( e ) =>
+											set( 'bgColor', e.target.value )
+										}
 									/>
 								</div>
 							) }
@@ -167,63 +238,97 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 										imageId={ settings.bgImageId }
 										imageUrl={ settings.bgImageUrl }
 										title="Select Background Image"
-										onChange={ ( att ) => onChange( ( prev ) => ( {
-											...prev,
-											bgImageId:  att ? att.id  : 0,
-											bgImageUrl: att ? att.url : '',
-										} ) ) }
+										onChange={ ( att ) =>
+											onChange( ( prev ) => ( {
+												...prev,
+												bgImageId: att ? att.id : 0,
+												bgImageUrl: att ? att.url : '',
+											} ) )
+										}
 									/>
 								</div>
 							) }
 						</div>
 
-						<div className="cns-form-row">
+						<div className="cns-grid__row">
 							<label>
 								<input
 									type="checkbox"
 									checked={ settings.isMaster }
-									onChange={ ( e ) => set( 'isMaster', e.target.checked ) }
-								/>
-								{ ' ' }MasterMap mode
+									onChange={ ( e ) =>
+										set( 'isMaster', e.target.checked )
+									}
+								/>{ ' ' }
+								MasterMap mode
 							</label>
-							<p className="description">Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy.</p>
+							<p className="description">
+								Links to child maps instead of posts. Switches
+								Objects/Areas tabs to Hierarchy.
+							</p>
 						</div>
 
-						<div className="cns-form-row cns-form-row--full">
+						<div className="cns-grid__row cns-grid__row__full">
 							<label>Thumbnail</label>
 							{ settings.thumbnailUrl && (
 								<div style={ { marginBottom: 8 } }>
 									<img
 										src={ settings.thumbnailUrl }
 										alt=""
-										style={ { maxWidth: 120, maxHeight: 80, display: 'block', borderRadius: 4, border: '1px solid #ddd' } }
+										style={ {
+											maxWidth: 120,
+											maxHeight: 80,
+											display: 'block',
+											borderRadius: 4,
+											border: '1px solid #ddd',
+										} }
 									/>
 								</div>
 							) }
 							<div style={ { display: 'flex', gap: 8 } }>
-								<button type="button" className="button" onClick={ openThumbnailPicker }>
-									{ settings.thumbnailId ? 'Change thumbnail' : 'Set thumbnail' }
+								<button
+									type="button"
+									className="button"
+									onClick={ openThumbnailPicker }
+								>
+									{ settings.thumbnailId
+										? 'Change thumbnail'
+										: 'Set thumbnail' }
 								</button>
 								{ settings.thumbnailId && (
-									<button type="button" className="button" onClick={ () => onChange( ( p ) => ( { ...p, thumbnailId: null, thumbnailUrl: '' } ) ) }>
+									<button
+										type="button"
+										className="button"
+										onClick={ () =>
+											onChange( ( p ) => ( {
+												...p,
+												thumbnailId: null,
+												thumbnailUrl: '',
+											} ) )
+										}
+									>
 										Remove
 									</button>
 								) }
 							</div>
-							<p className="description">Used as the map&rsquo;s featured image in listings.</p>
+							<p className="description">
+								Used as the map&rsquo;s featured image in
+								listings.
+							</p>
 						</div>
 
-						<div className="cns-form-row">
+						<div className="cns-grid__row">
 							<label>
 								<input
 									type="checkbox"
 									checked={ settings.featured }
-									onChange={ ( e ) => set( 'featured', e.target.checked ) }
-								/>
-								{ ' ' }Featured
+									onChange={ ( e ) =>
+										set( 'featured', e.target.checked )
+									}
+								/>{ ' ' }
+								Featured
 							</label>
 						</div>
-
+ */ }
 					</div>
 				</div>
 

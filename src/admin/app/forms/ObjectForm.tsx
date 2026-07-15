@@ -1,6 +1,7 @@
 import { useRef } from '@wordpress/element';
 import MediaPicker from '../shared/MediaPicker';
 import IconPicker  from '../shared/IconPicker';
+import RangeField  from '../shared/RangeField';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
 import type { ObjectFormData, ObjectSavePayload, ObjectType, LibraryIcon, MapObject } from '../../../types';
 
@@ -115,11 +116,11 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 				<div className="cns-form-grid">
 					<div className="cns-form-row cns-form-row--full">
 						<label>Icon Size (px)</label>
-						<div className="cns-range-wrap">
-							<input type="range" min="8" max="128" step="1" value={ formData.style_size }
-								onChange={ ( e ) => set( 'style_size', parseInt( e.target.value, 10 ) ) } />
-							<output className="cns-range-value">{ formData.style_size }</output>
-						</div>
+						<RangeField
+							min={ 8 } max={ 128 } step={ 1 }
+							value={ formData.style_size }
+							onChange={ ( v ) => set( 'style_size', v ) }
+						/>
 					</div>
 					<div className="cns-form-row">
 						<label>Fill Color</label>

@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from '@wordpress/element';
+import RangeField from '../shared/RangeField';
 import type { HierarchyFormData, HierarchyRegion, PostSearchResult } from '../../../types';
 
 // ── Map search (filters to 'maps' CPT only) ───────────────────────────────────
@@ -130,15 +131,11 @@ export default function HierarchyRegionForm( { formData, onChange }: Props ) {
 					</div>
 					<div className="cns-form-row">
 						<label>Fill Opacity</label>
-						<div className="cns-range-wrap">
-							<input type="range" min="0" max="1" step="0.05"
-								value={ formData.style_fill_opacity }
-								onChange={ ( e ) => set( 'style_fill_opacity', parseFloat( e.target.value ) ) }
-							/>
-							<output className="cns-range-value">
-								{ parseFloat( String( formData.style_fill_opacity ) ).toFixed( 2 ) }
-							</output>
-						</div>
+						<RangeField
+							min={ 0 } max={ 1 } step={ 0.05 }
+							value={ parseFloat( String( formData.style_fill_opacity ) ) }
+							onChange={ ( v ) => set( 'style_fill_opacity', v ) }
+						/>
 					</div>
 					<div className="cns-form-row">
 						<label>Stroke Color</label>

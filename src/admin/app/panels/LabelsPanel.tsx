@@ -1,4 +1,5 @@
 import { useEffect, useRef } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 import LabelsCanvas from '../canvases/LabelsCanvas';
 import type { LabelGeometry } from '../canvases/LabelsCanvas';
 import LabelsList   from '../lists/LabelsList';
@@ -91,7 +92,7 @@ export default function LabelsPanel( {
 		},
 		remove: () => {
 			if ( ! selectedLabel ) return false;
-			if ( confirm( 'Delete this label?' ) ) void onDelete( selectedLabel.id );
+			if ( confirm( __( 'Delete this label?', 'cns-map-suite' ) ) ) void onDelete( selectedLabel.id );
 			return true;
 		},
 		nudge: ( dx, dy ) => nudger.current.nudge( dx, dy ),
@@ -102,14 +103,14 @@ export default function LabelsPanel( {
 		const cy = Math.round( settings.width / settings.aspectRatio / 2 );
 		const payload = collectLabelPayload( {
 			...defaultLabelFormData( null, cx, cy ),
-			text: 'New Label',
+			text: __( 'New Label', 'cns-map-suite' ),
 		} );
 		const created = await onAdd( payload );
 		onSelect( created.id );
 	}
 
 	async function handleDelete( id: number ) {
-		if ( ! confirm( 'Delete this label?' ) ) return;
+		if ( ! confirm( __( 'Delete this label?', 'cns-map-suite' ) ) ) return;
 		await onDelete( id );
 	}
 
@@ -120,13 +121,13 @@ export default function LabelsPanel( {
 			<div className="cns-objects-layout">
 				<div className="cns-objects-toolbar">
 					<button type="button" className="button button-primary" onClick={ handleAdd }>
-						Add Label
+						{ __( 'Add Label', 'cns-map-suite' ) }
 					</button>
 					<p className="description">
-						Click a label to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels).
-						In indicator mode the dot and the text box move independently.
-						With a label selected: Enter picks it up, arrow keys nudge (Shift&nbsp;=&nbsp;10&nbsp;px),
-						Ctrl/⌘+C&nbsp;&amp;&nbsp;V copy &amp; paste, Ctrl/⌘+D duplicates, Delete removes.
+						{ __(
+							'Click a label to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). In indicator mode the dot and the text box move independently. With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
+							'cns-map-suite'
+						) }
 					</p>
 				</div>
 

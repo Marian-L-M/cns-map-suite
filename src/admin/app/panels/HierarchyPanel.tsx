@@ -1,3 +1,4 @@
+import { __ }               from '@wordpress/i18n';
 import HierarchyCanvas      from '../canvases/HierarchyCanvas';
 import HierarchyRegionList  from '../lists/HierarchyRegionList';
 import { settingsToDrawState } from '../../canvas';
@@ -62,7 +63,7 @@ export default function HierarchyPanel( {
 			onDeselect();
 			return;
 		}
-		if ( ! confirm( 'Delete this hierarchy region?' ) ) return;
+		if ( ! confirm( __( 'Delete this hierarchy region?', 'cns-map-suite' ) ) ) return;
 		await onDelete( id );
 	}
 
@@ -75,7 +76,7 @@ export default function HierarchyPanel( {
 				{ /* ── Parent maps breadcrumb scaffold ── */ }
 				{ parentMaps.length > 0 && (
 					<div className="cns-hierarchy-parents">
-						<span className="cns-hierarchy-parents__label">Parent maps:</span>
+						<span className="cns-hierarchy-parents__label">{ __( 'Parent maps:', 'cns-map-suite' ) }</span>
 						{ parentMaps.map( ( p ) => (
 							<a key={ p.map_id } href={ p.url } className="cns-hierarchy-parents__link">
 								{ p.thumbnail && <img src={ p.thumbnail } alt="" /> }
@@ -87,10 +88,13 @@ export default function HierarchyPanel( {
 
 				<div className="cns-objects-toolbar">
 					<button type="button" className="button button-primary" onClick={ handleAddRegion }>
-						Add Region
+						{ __( 'Add Region', 'cns-map-suite' ) }
 					</button>
 					<p className="description">
-						Draw a polygon region that links to a child map. Click a node to reposition it; click empty canvas on a selected region to add a node.
+						{ __(
+							'Draw a polygon region that links to a child map. Click a node to reposition it; click empty canvas on a selected region to add a node.',
+							'cns-map-suite'
+						) }
 					</p>
 				</div>
 

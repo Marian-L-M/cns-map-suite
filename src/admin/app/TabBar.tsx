@@ -9,7 +9,8 @@ interface TabDef {
 }
 
 const TABS: TabDef[] = [
-	{ id: 'settings',  label: 'Settings',  masterHide: false, masterShow: false },
+	{ id: 'settings',    label: 'Settings',    masterHide: false, masterShow: false },
+	{ id: 'description', label: 'Description', masterHide: false, masterShow: false },
 	{ id: 'objects',   label: 'Objects',   masterHide: true,  masterShow: false },
 	{ id: 'areas',     label: 'Areas',     masterHide: true,  masterShow: false },
 	{ id: 'labels',    label: 'Labels',    masterHide: true,  masterShow: false },

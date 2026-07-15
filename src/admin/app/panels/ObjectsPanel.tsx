@@ -1,4 +1,5 @@
 import { useRef, useEffect } from '@wordpress/element';
+import { __ } from '@wordpress/i18n';
 import ObjectsCanvas from '../canvases/ObjectsCanvas';
 import ObjectsList   from '../lists/ObjectsList';
 import { settingsToDrawState } from '../../canvas';
@@ -91,7 +92,7 @@ export default function ObjectsPanel( {
 		},
 		remove: () => {
 			if ( ! selectedObject ) return false;
-			if ( confirm( 'Delete this object?' ) ) void onDelete( selectedObject.id );
+			if ( confirm( __( 'Delete this object?', 'cns-map-suite' ) ) ) void onDelete( selectedObject.id );
 			return true;
 		},
 		nudge: ( dx, dy ) => nudger.current.nudge( dx, dy ),
@@ -102,7 +103,7 @@ export default function ObjectsPanel( {
 	async function handleCreateAt( x: number, y: number ) {
 		const payload = collectObjectPayload( {
 			...defaultObjectFormData( null, x, y ),
-			title: 'New Object',
+			title: __( 'New Object', 'cns-map-suite' ),
 		} );
 		const created = await onAdd( payload );
 		onSelect( created.id );
@@ -115,7 +116,7 @@ export default function ObjectsPanel( {
 	}
 
 	async function handleDelete( id: number ) {
-		if ( ! confirm( 'Delete this object?' ) ) return;
+		if ( ! confirm( __( 'Delete this object?', 'cns-map-suite' ) ) ) return;
 		await onDelete( id );
 	}
 
@@ -126,13 +127,13 @@ export default function ObjectsPanel( {
 			<div className="cns-objects-layout">
 				<div className="cns-objects-toolbar">
 					<button type="button" className="button button-primary" onClick={ handleAdd }>
-						Add Object
+						{ __( 'Add Object', 'cns-map-suite' ) }
 					</button>
 					<p className="description">
-						Click an object to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels).
-						Click empty canvas to place a new object at that position, then edit it in the side panel.
-						With an object selected: Enter picks it up, arrow keys nudge (Shift&nbsp;=&nbsp;10&nbsp;px),
-						Ctrl/⌘+C&nbsp;&amp;&nbsp;V copy &amp; paste, Ctrl/⌘+D duplicates, Delete removes.
+						{ __(
+							'Click an object to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty canvas to place a new object at that position, then edit it in the side panel. With an object selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
+							'cns-map-suite'
+						) }
 					</p>
 				</div>
 

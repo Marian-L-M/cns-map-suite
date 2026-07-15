@@ -1,30 +1,148 @@
 // CNS Map Suite — Admin styles
+$border-color: #e0e0e0;
+$space-05: 0.5rem;
+$space-10: 1rem;
+$space-15: 1.5rem;
+$space-20: 2rem;
 
+$bp-sm: 576px;
+$bp-tab: 768px;
+$bp-md: 992px;
+$bp-spc: 1200px;
+$bp-lpc: 1400px;
+
+// L1000 Editor Layout
 .cns-map-editor {
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
-}
-
-.cns-editor-main {
-	display: flex;
-	gap: 2rem;
-	width: 100%;
-	.cns-map-editor__body {
-		flex: 3;
-	}
-	.cns-editor-context {
-		flex: 1;
-	}
-}
-
-.cns-map-editor {
+	// Header area
 	&__header {
-		padding: 2rem 2rem 0;
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+		gap: 16px;
+		margin: 0;
+		border-bottom: 1px solid $border-color;
+
+		h1 {
+			margin: 0;
+			flex: 1;
+		}
+	}
+	&__header-actions {
+		display: flex;
+		align-items: center;
+		gap: 10px;
+	}
+	// Body area
+	&__main {
+		display: flex;
+		gap: 2rem;
+		width: 100%;
 	}
 	&__body {
+		flex: 3;
+	}
+	&__context,
+	.cns-editor-context {
+		// To do refactor to common namespace
+		flex: 1;
+	}
+	&__tabs {
+		display: flex;
+		gap: 0;
+		border-bottom: 1px solid $border-color;
+		margin: 0;
+	}
+
+	&__content {
+		background: #fff;
+		border: 1px solid $border-color;
+		border-top: none;
 	}
 }
+
+// L1100 Panel Layout
+// ── Tab panels ────────────────────────────────────────────────────────────────
+
+.cns-tab-panel {
+	display: none;
+	padding: 1rem;
+	&--active {
+		display: block;
+	}
+}
+
+// L1110 Individual Panel Layout
+.cns-settings-layout {
+	display: flex;
+	flex-direction: column;
+	// align-items: start;
+	@media screen and (min-width: $bp-spc) {
+		display: grid;
+		grid-template-columns: minmax(320px, 1fr) minmax(320px, 1fr);
+		gap: 32px;
+	}
+}
+
+// L1110 Form & Grid Elements
+
+.cns-grid {
+	width: 100%;
+	display: grid;
+	gap: $space-10;
+	// Layout
+	&__24 {
+		grid-template-columns: 1fr 1fr;
+	}
+	// Elements
+	&__row,
+	&__group {
+		display: flex;
+		gap: $space-05;
+		width: 100%;
+	}
+	&__row {
+		grid-column: 1 / -1;
+
+		flex-wrap: wrap;
+	}
+	&__span-1 {
+		grid-column: span 1;
+	}
+	&__span-2 {
+		grid-column: span 2;
+	}
+	&__span-3 {
+		grid-column: span 3;
+	}
+	&__span-4 {
+		grid-column: span 4;
+	}
+	&__group {
+		flex-direction: column;
+	}
+	@media screen and (min-width: $bp-spc) {
+		&__24 {
+			grid-template-columns: 1fr 1fr 1fr 1fr;
+		}
+	}
+}
+// .cns-form {
+// 	&__row {
+// 		label {
+// 			font-weight: 600;
+// 			font-size: 13px;
+// 		}
+
+// 		.description {
+// 			font-size: 12px;
+// 			color: #646970;
+// 			margin: 0;
+// 		}
+// 	}
+// }
 
 // ── Overview ──────────────────────────────────────────────────────────────────
 .cns-maps-overview {
@@ -135,10 +253,6 @@ $thumb-size: 3em;
 	min-height: calc(100vh - 120px);
 }
 
-// .cns-editor-main {
-// 	min-width: 0;
-// }
-
 // ── Context panel ─────────────────────────────────────────────────────────────
 
 // .cns-editor-context {
@@ -232,42 +346,6 @@ $thumb-size: 3em;
 
 // ── Map editor header ─────────────────────────────────────────────────────────
 
-.cns-map-editor {
-	&__header {
-		display: flex;
-		align-items: center;
-		gap: 16px;
-		margin-bottom: 0;
-		padding-bottom: 12px;
-		border-bottom: 1px solid #e0e0e0;
-
-		h1 {
-			margin: 0;
-			flex: 1;
-		}
-	}
-
-	&__header-actions {
-		display: flex;
-		align-items: center;
-		gap: 10px;
-	}
-
-	&__tabs {
-		display: flex;
-		gap: 0;
-		border-bottom: 1px solid #e0e0e0;
-		margin-top: 16px;
-		margin-bottom: 0;
-	}
-
-	&__content {
-		background: #fff;
-		border: 1px solid #e0e0e0;
-		border-top: none;
-	}
-}
-
 .cns-back-link {
 	font-size: 13px;
 	text-decoration: none;
@@ -318,25 +396,7 @@ $thumb-size: 3em;
 	}
 }
 
-// ── Tab panels ────────────────────────────────────────────────────────────────
-
-.cns-tab-panel {
-	display: none;
-	padding: 24px;
-
-	&--active {
-		display: block;
-	}
-}
-
 // ── Settings two-column layout ────────────────────────────────────────────────
-
-.cns-settings-layout {
-	display: grid;
-	grid-template-columns: minmax(380px, 1fr) minmax(260px, 1fr);
-	gap: 32px;
-	align-items: start;
-}
 
 .cns-settings-canvas {
 	position: sticky;
@@ -363,33 +423,6 @@ $thumb-size: 3em;
 }
 
 // ── Settings form ─────────────────────────────────────────────────────────────
-
-.cns-form-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 20px 32px;
-}
-
-.cns-form-row {
-	display: flex;
-	flex-direction: column;
-	gap: 6px;
-
-	&--full {
-		grid-column: 1 / -1;
-	}
-
-	label {
-		font-weight: 600;
-		font-size: 13px;
-	}
-
-	.description {
-		font-size: 12px;
-		color: #646970;
-		margin: 0;
-	}
-}
 
 // ── Image picker ──────────────────────────────────────────────────────────────
 
@@ -432,14 +465,13 @@ $thumb-size: 3em;
 		flex: 1;
 		cursor: pointer;
 	}
-}
 
-.cns-range-value {
-	font-size: 12px;
-	color: #1d2327;
-	font-variant-numeric: tabular-nums;
-	min-width: 3ch;
-	text-align: right;
+	input[type="number"].cns-range-number {
+		flex: none;
+		width: 5.5em;
+		font-variant-numeric: tabular-nums;
+		text-align: right;
+	}
 }
 
 // ── Background controls ───────────────────────────────────────────────────────
@@ -1006,7 +1038,9 @@ body.cns-modal-open {
 		text-decoration: none;
 		font-weight: 500;
 
-		&:hover { text-decoration: underline; }
+		&:hover {
+			text-decoration: underline;
+		}
 
 		img {
 			width: 24px;
@@ -1032,7 +1066,9 @@ body.cns-modal-open {
 		border-bottom: 1px solid #dcdcde;
 		font-size: 0.85rem;
 
-		&:last-child { border-bottom: none; }
+		&:last-child {
+			border-bottom: none;
+		}
 	}
 
 	&__thumb {
@@ -1168,4 +1204,24 @@ body.cns-modal-open {
 
 body.cns-canvas-fullscreen-open {
 	overflow: hidden;
+}
+
+// ── Description tab ───────────────────────────────────────────────────────────
+
+.cns-desc-editor {
+	max-width: 900px;
+
+	> .description {
+		margin-bottom: 12px;
+	}
+
+	textarea {
+		width: 100%;
+	}
+}
+
+// Preview tab: mirrors the frontend description placement beneath the map.
+.cns-map-description--preview {
+	max-width: 900px;
+	margin-top: 16px;
 }

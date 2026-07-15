@@ -198,7 +198,10 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 			$image_id = $child ? (int) get_post_meta($child->ID, '_cns_map_image_id', true) : 0;
 			$row['child_map_title']     = $child ? ($child->post_title ?: '') : '';
 			$row['child_map_status']    = $child ? $child->post_status : '';
-			$row['child_map_excerpt']   = $child ? (get_the_excerpt($child) ?: '') : '';
+			// Raw excerpt only — get_the_excerpt() would fall back to trimming
+			// post_content, which holds the map description. The description
+			// must not surface where a map is merely used as a base.
+			$row['child_map_excerpt']   = $child ? $child->post_excerpt : '';
 			$row['child_map_thumbnail'] = $image_id ? (wp_get_attachment_image_url($image_id, 'medium') ?: '') : '';
 			$row['child_map_url']       = $child ? (get_permalink($child) ?: '') : '';
 

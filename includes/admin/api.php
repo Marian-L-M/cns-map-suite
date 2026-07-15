@@ -34,6 +34,11 @@ function cns_map_suite_register_rest_routes(): void {
 				'default'           => '',
 				'sanitize_callback' => 'sanitize_text_field',
 			],
+			'description' => [
+				'type'              => 'string',
+				'default'           => '',
+				'sanitize_callback' => 'wp_kses_post',
+			],
 			'status' => [
 				'type'    => 'string',
 				'default' => 'draft',
@@ -307,9 +312,10 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 	$title  = $request->get_param('title') ?: __('(no title)', 'cns-map-suite');
 
 	$post_data = [
-		'post_type'   => 'maps',
-		'post_title'  => $title,
-		'post_status' => $request->get_param('status'),
+		'post_type'    => 'maps',
+		'post_title'   => $title,
+		'post_content' => (string) $request->get_param('description'),
+		'post_status'  => $request->get_param('status'),
 	];
 
 	if ($map_id > 0) {
@@ -318,9 +324,10 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 			return new WP_Error('invalid_map', __('Map not found.', 'cns-map-suite'), ['status' => 404]);
 		}
 		$post_data['ID'] = $map_id;
-		$result = wp_update_post($post_data, true);
+		// wp_update_post/wp_insert_post expect slashed data; REST params are unslashed.
+		$result = wp_update_post(wp_slash($post_data), true);
 	} else {
-		$result = wp_insert_post($post_data, true);
+		$result = wp_insert_post(wp_slash($post_data), true);
 	}
 
 	if (is_wp_error($result)) {
@@ -1271,7 +1278,10 @@ function cns_map_suite_normalize_hierarchy_row(array $row): array {
 	// Attach child map preview data for the admin UI.
 	$child = get_post((int) $row['child_map_id']);
 	$row['child_map_title']     = $child ? ($child->post_title ?: __('(no title)', 'cns-map-suite')) : '';
-	$row['child_map_excerpt']   = $child ? (get_the_excerpt($child) ?: '') : '';
+	// Raw excerpt only — get_the_excerpt() would fall back to trimming
+	// post_content, which now holds the map description. The description must
+	// not surface where a map is merely used as a base (region previews).
+	$row['child_map_excerpt']   = $child ? $child->post_excerpt : '';
 	$row['child_map_status']    = $child ? $child->post_status : '';
 	$image_id = $child ? (int) get_post_meta($child->ID, '_cns_map_image_id', true) : 0;
 	$row['child_map_thumbnail'] = $image_id ? (wp_get_attachment_image_url($image_id, 'thumbnail') ?: '') : '';

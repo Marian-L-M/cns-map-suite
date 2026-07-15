@@ -138,6 +138,12 @@ function cns_map_suite_enqueue_admin_assets(): void {
 		true
 	);
 
+	wp_set_script_translations(
+		'cns-map-admin',
+		'cns-map-suite',
+		CNS_MAP_SUITE_DIR . 'languages'
+	);
+
 	$icons_page = get_template() === 'clouds-and-spaceships' ? CNS_MAP_PAGE_SETTINGS_ICONS : CNS_MAP_PAGE_ICONS;
 
 	wp_localize_script('cns-map-admin', 'cnsMapSuite', [
@@ -153,6 +159,8 @@ function cns_map_suite_enqueue_admin_assets(): void {
 	}
 
 	if ($page === CNS_MAP_PAGE_EDITOR) {
+		// Classic TinyMCE editor for the Description tab (wp.editor / wp.oldEditor).
+		wp_enqueue_editor();
 		do_action('cns_map_suite_editor_enqueue_assets');
 	}
 }
