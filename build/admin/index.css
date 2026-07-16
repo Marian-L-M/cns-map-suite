@@ -244,32 +244,6 @@
   margin: 0;
   text-align: center;
 }
-.cns-image-picker {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.cns-image-picker__preview {
-  width: 120px;
-  height: 80px;
-  border: 1px solid #e0e0e0;
-  border-radius: 3px;
-  background: #f6f7f7;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  font-size: 12px;
-  color: #646970;
-  flex-shrink: 0;
-}
-.cns-image-picker__preview img {
-  width: 100%;
-  height: 100%;
-  -o-object-fit: cover;
-     object-fit: cover;
-}
 .cns-range-wrap {
   display: flex;
   align-items: center;

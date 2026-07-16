@@ -5,6 +5,7 @@ import {
 	Tooltip,
 	__experimentalNumberControl as NumberControl,
 } from '@wordpress/components';
+import { chevronRightSmall, chevronLeftSmall } from '@wordpress/icons';
 
 // Custom elements
 import MediaPicker from '../shared/MediaPicker';
@@ -54,7 +55,7 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 				<div className="cns-settings-form">
 					<div className="cns-grid cns-grid__24">
 						{ /* Title Input */ }
-						<div className="cns-grid__group cns-grid__group-input cns-grid__span-2">
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-3">
 							<TextControl
 								__next40pxDefaultSize
 								label={ __( 'Map Title', 'cns-map-suite' ) }
@@ -66,26 +67,7 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 								onChange={ ( title ) => set( 'title', title ) }
 							/>
 						</div>
-						{ /*  Canvas width input */ }
-						<div className="cns-grid__group cns-grid__group-input cns-grid__span-1">
-							<TextControl
-								__next40pxDefaultSize
-								type="number"
-								label={ __(
-									'Max Width (px)',
-									'cns-map-suite'
-								) }
-								min={ 100 }
-								step={ 10 }
-								value={ settings.width }
-								onChange={ ( value ) =>
-									set(
-										'width',
-										parseInt( value, 10 ) || 1000
-									)
-								}
-							/>
-						</div>
+
 						{ /*  Map Time Value */ }
 						<div className="cns-grid__group cns-grid__group-input cns-grid__span-1">
 							<NumberControl
@@ -109,32 +91,82 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 								) }
 							/>
 						</div>
+
 						{ /* Aspect Ratio */ }
-						<div className="cns-grid__group cns-grid__group-input cns-grid__span-2">
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-3">
 							<RangeControl
 								__next40pxDefaultSize
 								label={ __( 'Aspect Ratio', 'cns-map-suite' ) }
-								min={ 0.25 }
-								max={ 4 }
-								step={ 0.01 }
-								value={ settings.aspectRatio }
-								onChange={ ( v ) =>
-									set( 'aspectRatio', v ?? 1 )
-								}
 								help={ __(
 									'Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)',
 									'cns-map-suite'
 								) }
+								beforeIcon={ chevronLeftSmall }
+								afterIcon={ chevronRightSmall }
+								withInputField={ true }
+								separatorType="none"
+								trackColor="green"
+								isShiftStepEnabled
+								marks={ [
+									{
+										value: 0,
+										label: '0',
+									},
+									{
+										value: 1,
+										label: '1',
+									},
+									{
+										value: 2,
+										label: '2',
+									},
+									{
+										value: 3,
+										label: '3',
+									},
+									{
+										value: 4,
+										label: '4',
+									},
+								] }
+								railColor="red"
+								value={ settings.aspectRatio }
+								onChange={ ( v ) =>
+									set( 'aspectRatio', v ?? 1 )
+								}
+								allowReset
+								resetFallbackValue={ 1.0 }
+								min={ 0.25 }
+								max={ 4 }
+								step={ 0.01 }
 							/>
 						</div>
-						{ /*
-						
+						{ /*  Canvas max width input */ }
+						<div className="cns-grid__group cns-grid__group-input cns-grid__span-1">
+							<TextControl
+								__next40pxDefaultSize
+								type="number"
+								label={ __(
+									'Max Width (px)',
+									'cns-map-suite'
+								) }
+								min={ 100 }
+								step={ 10 }
+								value={ settings.width }
+								onChange={ ( value ) =>
+									set(
+										'width',
+										parseInt( value, 10 ) || 1000
+									)
+								}
+							/>
+						</div>
 
-						<div className="cns-grid__row cns-grid__row__full">
-							<label>Base Map Image</label>
+						<div className="cns-grid__group  cns-grid__span-2">
 							<MediaPicker
 								imageId={ settings.imageId }
 								imageUrl={ settings.imageUrl }
+								label="Base Map Image2"
 								title="Select Base Map Image"
 								onChange={ ( att ) =>
 									onChange( ( prev ) => ( {
@@ -145,6 +177,7 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 								}
 							/>
 						</div>
+						{ /*
 
 						<div className="cns-grid__row">
 							<label htmlFor="cns-map-image-x">

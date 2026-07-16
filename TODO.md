@@ -95,6 +95,19 @@
 -   [ ] `buildAreaFormHTML()` → PHP template instead of hard-coded string; type labels should come from custom taxonomy or `wp_options`
 -   [ ] `drawEditorCanvas()` / `drawPreviewCanvas()` — consolidate around the shared `drawFullCanvas()` pipeline
 
+## UI Chrome Icons — zoom / fullscreen (shared editor + frontend)
+
+Goal: replace the unicode glyphs in the map's zoom/fullscreen controls (`+`, `−`, `⛶`, `✕`) with real SVG icons, using the **same** icons in the React editor and the vanilla-JS frontend.
+
+Chosen approach: **A — shared raw-SVG-string module** (not `@wordpress/icons` live on the frontend). Rationale: the frontend `view.js` is vanilla canvas/DOM with **zero** `@wordpress/*` imports; rendering `@wordpress/icons` there would require `renderToString`, which pulls React (`wp-element`) onto every public map page just to stringify a few icons. A shared SVG-string module keeps the frontend React-free, guarantees byte-identical icons in both contexts, and decouples from `@wordpress/icons` version churn.
+
+-   [ ] Create `src/shared/ui-icons.ts` exporting raw SVG strings: `ICON_FULLSCREEN`, `ICON_FULLSCREEN_EXIT` (close), `ICON_ZOOM_IN` (plus), `ICON_ZOOM_OUT` (minus). Seed the `<path>` data from `@wordpress/icons` (`fullscreen`, `close`, `plus`, `reset`/minus) — GPL-2.0-or-later, compatible with this plugin's license. Add a header comment: `// SVG paths adapted from @wordpress/icons (GPL-2.0-or-later).`
+-   [ ] Frontend `src/blocks/map/view.js` (~lines 337–364, `setupZoomControls` / `renderFsBtn`): replace `zoomIn.textContent = '+'`, `zoomOut.textContent = '−'`, and the `fsBtn.textContent = fullscreen ? '✕' : '⛶'` lines with `el.innerHTML = ICON_*`. Keep the existing `aria-label` attributes (icons are decorative; labels carry the accessible name).
+-   [ ] Editor: wherever the editor grows equivalent zoom/fullscreen chrome, import the **same** `ui-icons.ts` module and render via `dangerouslySetInnerHTML={ { __html: ICON_* } }` (or a tiny wrapper). Do **not** use `@wordpress/icons` directly here if the goal is guaranteed parity — the shared module is the single source of truth.
+-   [ ] CSS: add `.cns-map-zoom__btn svg { width: 1em; height: 1em; fill: currentColor; display: block; }` so icons inherit button color/size; drop any glyph `font-size` assumptions.
+-   [ ] Verify: `npm run build`, then confirm `build/blocks/map/view.asset.php` still lists **no** `wp-element`/React dependency (proves the frontend stayed React-free). Load `http://cns-theme.local/` map page and check icons render + fullscreen toggle swaps the icon.
+-   [ ] (Optional) If any editor code ends up importing `@wordpress/icons` directly, run `npm install @wordpress/icons` to declare it as a direct dependency (currently only present transitively via `@wordpress/components`).
+
 ## Bug List
 
 -   [ ] Object/area change detection for global save is iffy. Just always submit the active form on save
