@@ -1,7 +1,16 @@
-import { useRef } from '@wordpress/element';
+import {
+	RadioControl,
+	TextControl,
+	TextareaControl,
+} from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import MediaPicker from '../../shared/MediaPicker';
-import PostSearch  from '../../shared/PostSearch';
-import type { InfoboxFormFields, InfoboxSource, InfoboxData } from '../../../../types';
+import PostSearch from '../../shared/PostSearch';
+import type {
+	InfoboxFormFields,
+	InfoboxSource,
+	InfoboxData,
+} from '../../../../types';
 
 /**
  * The Infobox form section shared by the object, area, and label forms.
@@ -9,80 +18,120 @@ import type { InfoboxFormFields, InfoboxSource, InfoboxData } from '../../../../
  * to the frontend drawer regardless of source) and a radio that only picks
  * where the content comes from — written manually or pulled from that post.
  */
-interface Props<T extends InfoboxFormFields> {
+interface Props< T extends InfoboxFormFields > {
 	formData: T;
 	onChange: ( formData: T ) => void;
 }
 
-export default function InfoboxSection<T extends InfoboxFormFields>( { formData, onChange }: Props<T> ) {
-	const uid = useRef( Math.random().toString( 36 ).slice( 2 ) );
-	const n   = uid.current;
-
+export default function InfoboxSection< T extends InfoboxFormFields >( {
+	formData,
+	onChange,
+}: Props< T > ) {
 	const isManualIb = formData.infobox_source !== 'post';
 
-	function set<K extends keyof InfoboxFormFields>( key: K, val: InfoboxFormFields[ K ] ) {
+	function set< K extends keyof InfoboxFormFields >(
+		key: K,
+		val: InfoboxFormFields[ K ]
+	) {
 		onChange( { ...formData, [ key ]: val } );
 	}
 
 	return (
 		<section className="cns-modal-section">
-			<h3>Infobox</h3>
-			<PostSearch
-				linkedPostId={ formData.linked_post_id }
-				linkedPostLabel={ formData.linked_post_label }
-				onChange={ ( item ) => onChange( {
-					...formData,
-					linked_post_id:    item ? item.id : 0,
-					linked_post_label: item ? item.title : '',
-				} ) }
-			/>
-			<p className="description">
-				Optional — a connected post adds a &ldquo;Read more&rdquo; link to the infobox.
-			</p>
-			<div className="cns-radio-toggle">
-				<label>
-					<input type="radio" name={ `ib-src-${ n }` } value="manual" checked={ isManualIb }
-						onChange={ () => set( 'infobox_source', 'manual' as InfoboxSource ) } />
-					{ ' ' }Write content manually
-				</label>
-				<label>
-					<input type="radio" name={ `ib-src-${ n }` } value="post" checked={ ! isManualIb }
-						onChange={ () => set( 'infobox_source', 'post' as InfoboxSource ) } />
-					{ ' ' }Use the connected post&rsquo;s content
-				</label>
-			</div>
-			{ isManualIb && (
-				<div className="cns-form-grid">
-					<div className="cns-form-row cns-form-row--full">
-						<label>Infobox Title</label>
-						<input type="text" className="large-text" value={ formData.infobox_title }
-							onChange={ ( e ) => set( 'infobox_title', e.target.value ) } />
-					</div>
-					<div className="cns-form-row cns-form-row--full">
-						<label>Description</label>
-						<textarea rows={ 4 } className="large-text" value={ formData.infobox_description }
-							onChange={ ( e ) => set( 'infobox_description', e.target.value ) } />
-					</div>
-					<div className="cns-form-row cns-form-row--full">
-						<label>Infobox Image</label>
-						<MediaPicker
-							imageId={ formData.infobox_image_id }
-							imageUrl={ formData.infobox_image_url }
-							title="Select Infobox Image"
-							onChange={ ( att ) => onChange( {
+			<h3>{ __( 'Infobox', 'cns-map-suite' ) }</h3>
+			<div className="cns-grid cns-grid__12">
+				<div className="cns-grid__group cns-grid__span-full">
+					<PostSearch
+						selectedId={ formData.linked_post_id }
+						selectedLabel={ formData.linked_post_label }
+						help={ __(
+							'Optional — a connected post adds a “Read more” link to the infobox.',
+							'cns-map-suite'
+						) }
+						onChange={ ( item ) =>
+							onChange( {
 								...formData,
-								infobox_image_id:  att ? att.id : 0,
-								infobox_image_url: att ? att.url : '',
-							} ) }
-						/>
-					</div>
+								linked_post_id: item ? item.id : 0,
+								linked_post_label: item ? item.title : '',
+							} )
+						}
+					/>
 				</div>
-			) }
-			{ ! isManualIb && (
-				<p className="description">
-					Title, description and image are pulled from the connected post.
-				</p>
-			) }
+				<div className="cns-grid__group cns-grid__span-full">
+					<RadioControl
+						label={ __( 'Content source', 'cns-map-suite' ) }
+						selected={ isManualIb ? 'manual' : 'post' }
+						options={ [
+							{
+								label: __(
+									'Write content manually',
+									'cns-map-suite'
+								),
+								value: 'manual',
+							},
+							{
+								label: __(
+									'Use the connected post’s content',
+									'cns-map-suite'
+								),
+								value: 'post',
+							},
+						] }
+						onChange={ ( value ) =>
+							set( 'infobox_source', value as InfoboxSource )
+						}
+					/>
+				</div>
+				{ isManualIb ? (
+					<>
+						<div className="cns-grid__group cns-grid__span-full">
+							<TextControl
+								__next40pxDefaultSize
+								__nextHasNoMarginBottom
+								label={ __( 'Infobox Title', 'cns-map-suite' ) }
+								value={ formData.infobox_title }
+								onChange={ ( v ) => set( 'infobox_title', v ) }
+							/>
+						</div>
+						<div className="cns-grid__group cns-grid__span-full">
+							<TextareaControl
+								__nextHasNoMarginBottom
+								label={ __( 'Description', 'cns-map-suite' ) }
+								rows={ 4 }
+								value={ formData.infobox_description }
+								onChange={ ( v ) =>
+									set( 'infobox_description', v )
+								}
+							/>
+						</div>
+						<div className="cns-grid__group cns-grid__span-full">
+							<MediaPicker
+								imageId={ formData.infobox_image_id }
+								imageUrl={ formData.infobox_image_url }
+								label={ __( 'Infobox Image', 'cns-map-suite' ) }
+								title={ __(
+									'Select Infobox Image',
+									'cns-map-suite'
+								) }
+								onChange={ ( att ) =>
+									onChange( {
+										...formData,
+										infobox_image_id: att ? att.id : 0,
+										infobox_image_url: att ? att.url : '',
+									} )
+								}
+							/>
+						</div>
+					</>
+				) : (
+					<p className="description">
+						{ __(
+							'Title, description and image are pulled from the connected post.',
+							'cns-map-suite'
+						) }
+					</p>
+				) }
+			</div>
 		</section>
 	);
 }

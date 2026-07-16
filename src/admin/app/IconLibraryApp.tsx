@@ -1,4 +1,7 @@
 import { useState, useEffect } from '@wordpress/element';
+import { Button, Notice } from '@wordpress/components';
+import { closeSmall, plus } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import { apiFetch } from '../utils';
 import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
 import type { LibraryIcon } from '../../types';
@@ -13,8 +16,8 @@ export default function IconLibraryApp() {
 
 	function handleAdd() {
 		const frame = window.wp.media( {
-			title:    'Select or Upload SVG Icon',
-			button:   { text: 'Add to library' },
+			title:    __( 'Select or Upload SVG Icon', 'cns-map-suite' ),
+			button:   { text: __( 'Add to library', 'cns-map-suite' ) },
 			multiple: false,
 			library:  { type: 'image/svg+xml' },
 		} );
@@ -22,44 +25,45 @@ export default function IconLibraryApp() {
 			const att = frame.state().get( 'selection' ).first().toJSON();
 			setError( '' );
 			try {
-				const res  = await apiFetch( 'POST', '/icons', { attachment_id: att.id } );
-				const data = await res.json() as LibraryIcon;
-				if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || 'Failed to add icon.' );
+				const data = await apiFetch< LibraryIcon >( 'POST', '/icons', { attachment_id: att.id } );
 				setIcons( ( prev ) => [ ...prev, data ] );
-			} catch ( err ) { setError( ( err as Error ).message ); }
+			} catch ( err ) {
+				setError( ( err as Error ).message || __( 'Failed to add icon.', 'cns-map-suite' ) );
+			}
 		} );
 		frame.open();
 	}
 
 	async function handleRemove( id: number ) {
-		if ( ! confirm( 'Remove this icon from the library? (The attachment itself is kept.)' ) ) return;
+		if ( ! confirm( __( 'Remove this icon from the library? (The attachment itself is kept.)', 'cns-map-suite' ) ) ) return;
 		setError( '' );
 		try {
-			const res = await apiFetch( 'DELETE', `/icons/${ id }` );
-			if ( ! res.ok ) throw new Error( 'Remove failed.' );
+			await apiFetch( 'DELETE', `/icons/${ id }` );
 			setIcons( ( prev ) => prev.filter( ( i ) => i.id !== id ) );
-		} catch ( err ) { setError( ( err as Error ).message ); }
+		} catch ( err ) {
+			setError( ( err as Error ).message || __( 'Remove failed.', 'cns-map-suite' ) );
+		}
 	}
 
 	return (
 		<div>
 			{ error && (
-				<div className="notice notice-error is-dismissible" style={ { margin: '0 0 12px' } }>
-					<p>{ error }</p>
-					<button type="button" className="notice-dismiss" onClick={ () => setError( '' ) }>
-						<span className="screen-reader-text">Dismiss</span>
-					</button>
-				</div>
+				<Notice
+					status="error"
+					onRemove={ () => setError( '' ) }
+				>
+					{ error }
+				</Notice>
 			) }
 			<div className="cns-icon-library-toolbar">
-				<button type="button" id="cns-add-icon-btn" className="button button-primary" onClick={ handleAdd }>
-					Add Icon
-				</button>
+				<Button variant="primary" icon={ plus } onClick={ handleAdd }>
+					{ __( 'Add Icon', 'cns-map-suite' ) }
+				</Button>
 			</div>
 			<div id="cns-icon-library-grid" className="cns-icon-library-grid">
 				{ icons.length === 0 ? (
 					<p className="cns-icon-library-grid__empty">
-						No icons yet. Click &ldquo;Add Icon&rdquo; to upload an SVG.
+						{ __( 'No icons yet. Click “Add Icon” to upload an SVG.', 'cns-map-suite' ) }
 					</p>
 				) : (
 					icons.map( ( icon ) => (
@@ -68,12 +72,14 @@ export default function IconLibraryApp() {
 								<img src={ icon.url } alt={ icon.title } />
 							</div>
 							<span className="cns-icon-library-item__name">{ icon.title }</span>
-							<button
-								type="button"
+							<Button
 								className="cns-icon-library-item__remove"
-								aria-label="Remove"
+								size="small"
+								icon={ closeSmall }
+								isDestructive
+								label={ __( 'Remove from library', 'cns-map-suite' ) }
 								onClick={ () => handleRemove( icon.id ) }
-							>&times;</button>
+							/>
 						</div>
 					) )
 				) }

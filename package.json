@@ -16,6 +16,7 @@
 		"lint:ts": "tsc --noEmit"
 	},
 	"dependencies": {
+		"@wordpress/api-fetch": "latest",
 		"@wordpress/block-editor": "latest",
 		"@wordpress/blocks": "latest",
 		"@wordpress/components": "latest",
@@ -23,7 +24,9 @@
 		"@wordpress/data": "latest",
 		"@wordpress/element": "latest",
 		"@wordpress/i18n": "latest",
-		"@wordpress/media-utils": "^5.51.0"
+		"@wordpress/icons": "latest",
+		"@wordpress/media-utils": "^5.51.0",
+		"@wordpress/notices": "latest"
 	},
 	"devDependencies": {
 		"@types/react": "^19.2.15",

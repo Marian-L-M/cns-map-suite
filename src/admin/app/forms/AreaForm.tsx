@@ -1,5 +1,11 @@
-import { useRef } from '@wordpress/element';
-import RangeField from '../shared/RangeField';
+import {
+	RangeControl,
+	SelectControl,
+	TextControl,
+	__experimentalNumberControl as NumberControl,
+} from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import ColorField from '../shared/ColorField';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
 import type { AreaFormData, AreaType, ShapeType, MapArea } from '../../../types';
 
@@ -25,15 +31,12 @@ interface Props {
 }
 
 export default function AreaForm( { formData, onChange, onShapeTypeChange }: Props ) {
-	const uid = useRef( Math.random().toString( 36 ).slice( 2 ) );
-	const n   = uid.current;
-
 	function set<K extends keyof AreaFormData>( key: K, val: AreaFormData[ K ] ) {
 		onChange( { ...formData, [ key ]: val } );
 	}
 
-	function handleShapeChange( e: React.ChangeEvent<HTMLSelectElement> ) {
-		const st = e.target.value as ShapeType;
+	function handleShapeChange( value: string ) {
+		const st = value as ShapeType;
 		set( 'shape_type', st );
 		onShapeTypeChange?.( st );
 	}
@@ -41,29 +44,47 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 	return (
 		<>
 			<section className="cns-modal-section">
-				<h3>Details</h3>
-				<div className="cns-form-grid">
-					<div className="cns-form-row cns-form-row--full">
-						<label>Title</label>
-						<input type="text" className="large-text" value={ formData.title }
-							onChange={ ( e ) => set( 'title', e.target.value ) } />
+				<h3>{ __( 'Details', 'cns-map-suite' ) }</h3>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<TextControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Title', 'cns-map-suite' ) }
+							value={ formData.title }
+							onChange={ ( v ) => set( 'title', v ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Type</label>
-						<select value={ formData.type } onChange={ ( e ) => set( 'type', e.target.value as AreaType ) }>
-							{ TYPES.map( ( t ) => <option key={ t.value } value={ t.value }>{ t.label }</option> ) }
-						</select>
+					<div className="cns-grid__group">
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Type', 'cns-map-suite' ) }
+							value={ formData.type }
+							options={ TYPES }
+							onChange={ ( v ) => set( 'type', v as AreaType ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Shape</label>
-						<select value={ formData.shape_type } onChange={ handleShapeChange }>
-							{ SHAPES.map( ( s ) => <option key={ s.value } value={ s.value }>{ s.label }</option> ) }
-						</select>
+					<div className="cns-grid__group">
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Shape', 'cns-map-suite' ) }
+							value={ formData.shape_type }
+							options={ SHAPES }
+							onChange={ handleShapeChange }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Object Time</label>
-						<input type="number" className="small-text" value={ formData.object_time }
-							onChange={ ( e ) => set( 'object_time', parseInt( e.target.value, 10 ) || 0 ) } />
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Object Time', 'cns-map-suite' ) }
+							value={ formData.object_time }
+							step={ 1 }
+							onChange={ ( v ) =>
+								set( 'object_time', parseInt( v ?? '', 10 ) || 0 )
+							}
+						/>
 					</div>
 				</div>
 			</section>
@@ -71,31 +92,43 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 			<InfoboxSection formData={ formData } onChange={ onChange } />
 
 			<section className="cns-modal-section">
-				<h3>Design</h3>
-				<div className="cns-form-grid">
-					<div className="cns-form-row">
-						<label>Fill Color</label>
-						<input type="color" value={ formData.style_fill }
-							onChange={ ( e ) => set( 'style_fill', e.target.value ) } />
-					</div>
-					<div className="cns-form-row">
-						<label>Fill Opacity</label>
-						<RangeField
-							min={ 0 } max={ 1 } step={ 0.05 }
-							value={ parseFloat( String( formData.style_fill_opacity ) ) }
-							onChange={ ( v ) => set( 'style_fill_opacity', v ) }
+				<h3>{ __( 'Design', 'cns-map-suite' ) }</h3>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Fill Color', 'cns-map-suite' ) }
+							value={ formData.style_fill }
+							onChange={ ( v ) => set( 'style_fill', v ) }
 						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Stroke Color</label>
-						<input type="color" value={ formData.style_stroke }
-							onChange={ ( e ) => set( 'style_stroke', e.target.value ) } />
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Stroke Color', 'cns-map-suite' ) }
+							value={ formData.style_stroke }
+							onChange={ ( v ) => set( 'style_stroke', v ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Stroke Width (px)</label>
-						<input type="number" className="small-text" min="1" max="10"
+					<div className="cns-grid__group cns-grid__span-full">
+						<RangeControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Fill Opacity', 'cns-map-suite' ) }
+							min={ 0 } max={ 1 } step={ 0.05 }
+							value={ parseFloat( String( formData.style_fill_opacity ) ) }
+							onChange={ ( v ) => set( 'style_fill_opacity', v ?? 0.3 ) }
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Stroke Width (px)', 'cns-map-suite' ) }
+							min={ 1 }
+							max={ 10 }
+							step={ 1 }
 							value={ formData.style_stroke_width }
-							onChange={ ( e ) => set( 'style_stroke_width', parseInt( e.target.value, 10 ) || 2 ) }
+							onChange={ ( v ) =>
+								set( 'style_stroke_width', parseInt( v ?? '', 10 ) || 2 )
+							}
 						/>
 					</div>
 				</div>

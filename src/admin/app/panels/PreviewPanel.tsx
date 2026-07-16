@@ -1,3 +1,5 @@
+import { Button } from '@wordpress/components';
+import { external } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import PreviewCanvas from '../canvases/PreviewCanvas';
 import { settingsToDrawState } from '../../canvas';
@@ -30,9 +32,14 @@ export default function PreviewPanel( { settings, objects, areas, labels, viewUr
 			) }
 			{ viewUrl && (
 				<div className="cns-preview-actions">
-					<a href={ viewUrl } className="button" target="_blank" rel="noopener noreferrer">
+					<Button
+						href={ viewUrl }
+						variant="secondary"
+						icon={ external }
+						target="_blank"
+					>
 						{ __( 'View map page', 'cns-map-suite' ) }
-					</a>
+					</Button>
 				</div>
 			) }
 		</div>

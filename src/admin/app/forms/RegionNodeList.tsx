@@ -1,3 +1,6 @@
+import { Button, __experimentalNumberControl as NumberControl } from '@wordpress/components';
+import { plus, closeSmall } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import type { HierarchyRegion, Node } from '../../../types';
 
 interface Props {
@@ -26,13 +29,20 @@ export default function RegionNodeList( { region, onNodesChange }: Props ) {
 	return (
 		<section className="cns-modal-section cns-nodes-section">
 			<h3>
-				Nodes
-				<button type="button" className="button button-small cns-nodes-add-btn" onClick={ addNode }>
-					+ Add Node
-				</button>
+				{ __( 'Nodes', 'cns-map-suite' ) }
+				<Button
+					variant="secondary"
+					size="small"
+					icon={ plus }
+					onClick={ addNode }
+				>
+					{ __( 'Add Node', 'cns-map-suite' ) }
+				</Button>
 			</h3>
 			{ nodes.length === 0 ? (
-				<p className="description">No nodes yet. Click the canvas to add nodes.</p>
+				<p className="description">
+					{ __( 'No nodes yet. Click the canvas to add nodes.', 'cns-map-suite' ) }
+				</p>
 			) : (
 				<table className="cns-nodes-table">
 					<thead><tr><th>#</th><th>X&nbsp;%</th><th>Y&nbsp;%</th><th></th></tr></thead>
@@ -41,29 +51,32 @@ export default function RegionNodeList( { region, onNodesChange }: Props ) {
 							<tr key={ idx }>
 								<td className="cns-node-num">{ idx + 1 }</td>
 								<td>
-									<input
-										type="number"
-										className="small-text cns-node-x"
+									<NumberControl
+										size="small"
+										label={ __( 'X %', 'cns-map-suite' ) }
+										hideLabelFromVision
 										value={ ( node.x * 100 ).toFixed( 1 ) }
-										min="0" max="100" step="0.1"
-										onChange={ ( e ) => updateNode( idx, 'x', e.target.value ) }
+										min={ 0 } max={ 100 } step={ 0.1 }
+										onChange={ ( v ) => updateNode( idx, 'x', v ?? '' ) }
 									/>
 								</td>
 								<td>
-									<input
-										type="number"
-										className="small-text cns-node-y"
+									<NumberControl
+										size="small"
+										label={ __( 'Y %', 'cns-map-suite' ) }
+										hideLabelFromVision
 										value={ ( node.y * 100 ).toFixed( 1 ) }
-										min="0" max="100" step="0.1"
-										onChange={ ( e ) => updateNode( idx, 'y', e.target.value ) }
+										min={ 0 } max={ 100 } step={ 0.1 }
+										onChange={ ( v ) => updateNode( idx, 'y', v ?? '' ) }
 									/>
 								</td>
 								<td>
-									<button
-										type="button"
-										className="button button-small cns-node-del"
+									<Button
+										size="small"
+										icon={ closeSmall }
+										label={ __( 'Remove node', 'cns-map-suite' ) }
 										onClick={ () => deleteNode( idx ) }
-									>&times;</button>
+									/>
 								</td>
 							</tr>
 						) ) }

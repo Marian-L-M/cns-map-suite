@@ -1,3 +1,5 @@
+import { Button }           from '@wordpress/components';
+import { plus }             from '@wordpress/icons';
 import { __ }               from '@wordpress/i18n';
 import HierarchyCanvas      from '../canvases/HierarchyCanvas';
 import HierarchyRegionList  from '../lists/HierarchyRegionList';
@@ -87,9 +89,9 @@ export default function HierarchyPanel( {
 				) }
 
 				<div className="cns-objects-toolbar">
-					<button type="button" className="button button-primary" onClick={ handleAddRegion }>
+					<Button variant="primary" icon={ plus } onClick={ handleAddRegion }>
 						{ __( 'Add Region', 'cns-map-suite' ) }
-					</button>
+					</Button>
 					<p className="description">
 						{ __(
 							'Draw a polygon region that links to a child map. Click a node to reposition it; click empty canvas on a selected region to add a node.',

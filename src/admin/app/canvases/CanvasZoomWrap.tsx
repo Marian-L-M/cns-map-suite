@@ -1,4 +1,7 @@
 import { useState, useRef, useEffect } from '@wordpress/element';
+import { Button } from '@wordpress/components';
+import { fullscreen as fullscreenIcon, close, plus, reset } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import type { ReactNode } from 'react';
 
 /**
@@ -72,25 +75,32 @@ export default function CanvasZoomWrap( { children, allowFullscreen = false }: P
 		<div className={ rootClass }>
 			<div className="cns-canvas-zoom__controls">
 				{ allowFullscreen && (
-					<button
-						type="button" className="button"
+					<Button
+						variant="secondary"
+						icon={ fullscreen ? close : fullscreenIcon }
+						label={
+							fullscreen
+								? __( 'Exit fullscreen', 'cns-map-suite' )
+								: __( 'View fullscreen', 'cns-map-suite' )
+						}
 						onClick={ () => setFullscreen( ( f ) => ! f ) }
-						aria-label={ fullscreen ? 'Exit fullscreen' : 'View fullscreen' }
-					>{ fullscreen ? '✕' : '⛶' }</button>
+					/>
 				) }
-				<button
-					type="button" className="button"
+				<Button
+					variant="secondary"
+					icon={ plus }
+					label={ __( 'Zoom in', 'cns-map-suite' ) }
 					onClick={ () => changeZoom( ZOOM_STEP ) }
 					disabled={ zoom >= MAX_ZOOM }
-					aria-label="Zoom in"
-				>+</button>
+				/>
 				<span className="cns-canvas-zoom__value">{ Math.round( zoom * 100 ) }%</span>
-				<button
-					type="button" className="button"
+				<Button
+					variant="secondary"
+					icon={ reset }
+					label={ __( 'Zoom out', 'cns-map-suite' ) }
 					onClick={ () => changeZoom( -ZOOM_STEP ) }
 					disabled={ zoom <= MIN_ZOOM }
-					aria-label="Zoom out"
-				>&minus;</button>
+				/>
 			</div>
 			<div className="cns-canvas-zoom__scroll" ref={ scrollRef }>
 				{ /* Inline width only when zoomed, so fullscreen fit-to-screen

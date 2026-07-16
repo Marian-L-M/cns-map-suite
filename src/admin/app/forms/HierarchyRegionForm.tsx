@@ -1,81 +1,13 @@
-import { useState, useRef, useEffect } from '@wordpress/element';
-import RangeField from '../shared/RangeField';
-import type { HierarchyFormData, HierarchyRegion, PostSearchResult } from '../../../types';
-
-// ── Map search (filters to 'maps' CPT only) ───────────────────────────────────
-
-interface MapSearchProps {
-	childMapId: number;
-	childMapLabel: string;
-	onChange: ( item: { id: number; title: string } | null ) => void;
-}
-
-function MapSearch( { childMapId, childMapLabel, onChange }: MapSearchProps ) {
-	const [ query,   setQuery   ] = useState( '' );
-	const [ results, setResults ] = useState<PostSearchResult[]>( [] );
-	const [ open,    setOpen    ] = useState( false );
-	const timer = useRef<ReturnType<typeof setTimeout> | null>( null );
-
-	useEffect( () => () => { if ( timer.current ) clearTimeout( timer.current ); }, [] );
-
-	function handleInput( e: React.ChangeEvent<HTMLInputElement> ) {
-		const val = e.target.value;
-		setQuery( val );
-		if ( timer.current ) clearTimeout( timer.current );
-		if ( val.length < 2 ) { setOpen( false ); return; }
-		timer.current = setTimeout( async () => {
-			try {
-				const url = window.cnsMapSuite.wpRestUrl +
-					'/search?search=' + encodeURIComponent( val ) +
-					'&type=post&subtype=maps&per_page=10';
-				const res  = await fetch( url, { headers: { 'X-WP-Nonce': window.cnsMapSuite.nonce } } );
-				const data = await res.json() as PostSearchResult[];
-				if ( Array.isArray( data ) ) { setResults( data ); setOpen( true ); }
-			} catch { /* silent */ }
-		}, 350 );
-	}
-
-	function selectResult( item: PostSearchResult ) {
-		onChange( { id: item.id, title: item.title } );
-		setQuery( '' );
-		setResults( [] );
-		setOpen( false );
-	}
-
-	return (
-		<div className="cns-post-search-wrap">
-			<label>Child Map</label>
-			<input
-				type="text"
-				className="large-text"
-				placeholder="Search maps…"
-				autoComplete="off"
-				value={ query }
-				onChange={ handleInput }
-			/>
-			{ open && results.length > 0 && (
-				<div className="cns-post-results">
-					{ results.map( ( item ) => (
-						<button key={ item.id } type="button" className="cns-post-result"
-							onClick={ () => selectResult( item ) }>
-							{ item.title }
-						</button>
-					) ) }
-				</div>
-			) }
-			{ childMapId > 0 && (
-				<p className="description">
-					{ childMapLabel || `Map ID: ${ childMapId }` }
-					{ ' ' }
-					<button type="button" className="button button-small"
-						onClick={ () => onChange( { id: 0, title: '' } ) }>Clear</button>
-				</p>
-			) }
-		</div>
-	);
-}
-
-// ── Form ──────────────────────────────────────────────────────────────────────
+import {
+	RangeControl,
+	TextControl,
+	TextareaControl,
+	__experimentalNumberControl as NumberControl,
+} from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
+import ColorField from '../shared/ColorField';
+import PostSearch from '../shared/PostSearch';
+import type { HierarchyFormData, HierarchyRegion } from '../../../types';
 
 interface Props {
 	formData: HierarchyFormData;
@@ -90,10 +22,12 @@ export default function HierarchyRegionForm( { formData, onChange }: Props ) {
 	return (
 		<>
 			<section className="cns-modal-section">
-				<h3>Child Map</h3>
-				<MapSearch
-					childMapId={ formData.child_map_id }
-					childMapLabel={ formData.child_map_label }
+				<h3>{ __( 'Child Map', 'cns-map-suite' ) }</h3>
+				<PostSearch
+					label={ __( 'Child Map', 'cns-map-suite' ) }
+					subtype="maps"
+					selectedId={ formData.child_map_id }
+					selectedLabel={ formData.child_map_label }
 					onChange={ ( item ) => onChange( {
 						...formData,
 						child_map_id:    item ? item.id   : 0,
@@ -103,50 +37,78 @@ export default function HierarchyRegionForm( { formData, onChange }: Props ) {
 			</section>
 
 			<section className="cns-modal-section">
-				<h3>Infobox Override</h3>
-				<p className="description">Leave blank to use the child map's title and excerpt.</p>
-				<div className="cns-form-grid">
-					<div className="cns-form-row cns-form-row--full">
-						<label>Title</label>
-						<input type="text" className="large-text" value={ formData.title_override }
-							placeholder={ formData.child_map_label || 'Child map title' }
-							onChange={ ( e ) => set( 'title_override', e.target.value ) } />
+				<h3>{ __( 'Infobox Override', 'cns-map-suite' ) }</h3>
+				<p className="description">
+					{ __(
+						"Leave blank to use the child map's title and excerpt.",
+						'cns-map-suite'
+					) }
+				</p>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<TextControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Title', 'cns-map-suite' ) }
+							value={ formData.title_override }
+							placeholder={
+								formData.child_map_label ||
+								__( 'Child map title', 'cns-map-suite' )
+							}
+							onChange={ ( v ) => set( 'title_override', v ) }
+						/>
 					</div>
-					<div className="cns-form-row cns-form-row--full">
-						<label>Description</label>
-						<textarea rows={ 3 } className="large-text" value={ formData.description_override }
-							placeholder="Child map excerpt"
-							onChange={ ( e ) => set( 'description_override', e.target.value ) } />
+					<div className="cns-grid__group cns-grid__span-full">
+						<TextareaControl
+							__nextHasNoMarginBottom
+							label={ __( 'Description', 'cns-map-suite' ) }
+							rows={ 3 }
+							value={ formData.description_override }
+							placeholder={ __( 'Child map excerpt', 'cns-map-suite' ) }
+							onChange={ ( v ) => set( 'description_override', v ) }
+						/>
 					</div>
 				</div>
 			</section>
 
 			<section className="cns-modal-section">
-				<h3>Region Style</h3>
-				<div className="cns-form-grid">
-					<div className="cns-form-row">
-						<label>Fill Color</label>
-						<input type="color" value={ formData.style_fill }
-							onChange={ ( e ) => set( 'style_fill', e.target.value ) } />
-					</div>
-					<div className="cns-form-row">
-						<label>Fill Opacity</label>
-						<RangeField
-							min={ 0 } max={ 1 } step={ 0.05 }
-							value={ parseFloat( String( formData.style_fill_opacity ) ) }
-							onChange={ ( v ) => set( 'style_fill_opacity', v ) }
+				<h3>{ __( 'Region Style', 'cns-map-suite' ) }</h3>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Fill Color', 'cns-map-suite' ) }
+							value={ formData.style_fill }
+							onChange={ ( v ) => set( 'style_fill', v ) }
 						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Stroke Color</label>
-						<input type="color" value={ formData.style_stroke }
-							onChange={ ( e ) => set( 'style_stroke', e.target.value ) } />
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Stroke Color', 'cns-map-suite' ) }
+							value={ formData.style_stroke }
+							onChange={ ( v ) => set( 'style_stroke', v ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Stroke Width (px)</label>
-						<input type="number" className="small-text" min="1" max="10"
+					<div className="cns-grid__group cns-grid__span-full">
+						<RangeControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Fill Opacity', 'cns-map-suite' ) }
+							min={ 0 } max={ 1 } step={ 0.05 }
+							value={ parseFloat( String( formData.style_fill_opacity ) ) }
+							onChange={ ( v ) => set( 'style_fill_opacity', v ?? 0.25 ) }
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Stroke Width (px)', 'cns-map-suite' ) }
+							min={ 1 }
+							max={ 10 }
+							step={ 1 }
 							value={ formData.style_stroke_width }
-							onChange={ ( e ) => set( 'style_stroke_width', parseInt( e.target.value, 10 ) || 2 ) }
+							onChange={ ( v ) =>
+								set( 'style_stroke_width', parseInt( v ?? '', 10 ) || 2 )
+							}
 						/>
 					</div>
 				</div>

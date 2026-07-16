@@ -1,4 +1,8 @@
 import { useEffect, useRef, useState } from '@wordpress/element';
+import { useDispatch } from '@wordpress/data';
+import { store as noticesStore } from '@wordpress/notices';
+import { __ } from '@wordpress/i18n';
+import Notices from './shared/Notices';
 import EditorHeader from './EditorHeader';
 import TabBar from './TabBar';
 import ContextPanel from './ContextPanel';
@@ -31,7 +35,6 @@ import type {
 	PostStatus,
 	ShapeType,
 	Tab,
-	SaveStatus,
 	ParentMapRef,
 } from '../../types';
 
@@ -93,10 +96,9 @@ export default function MapEditorApp() {
 	const [ repositioningObjId, setRepositioningObjId ] = useState<
 		number | null
 	>( null );
-	const [ saveStatus, setSaveStatus ] = useState< SaveStatus >( {
-		text: '',
-		type: '',
-	} );
+	const [ isSaving, setIsSaving ] = useState( false );
+	const { createSuccessNotice, createErrorNotice } =
+		useDispatch( noticesStore );
 
 	const selectedObject =
 		objectsList.find( ( o ) => o.id === selectedObjectId ) || null;
@@ -146,7 +148,7 @@ export default function MapEditorApp() {
 	// ── Map settings save ─────────────────────────────────────────────────────
 
 	async function handleSave() {
-		setSaveStatus( { text: 'Saving…', type: '' } );
+		setIsSaving( true );
 		const payload = {
 			map_id: mapId,
 			title: settings.title,
@@ -167,14 +169,11 @@ export default function MapEditorApp() {
 			thumbnail_id: settings.thumbnailId ?? 0,
 		};
 		try {
-			const res = await apiFetch( 'POST', '/maps', payload );
-			const data = ( await res.json() ) as {
+			const data = await apiFetch< {
 				created?: boolean;
 				edit_url?: string;
 				view_url?: string;
-				message?: string;
-			};
-			if ( ! res.ok ) throw new Error( data.message || 'Save failed.' );
+			} >( 'POST', '/maps', payload );
 			savedSettingsRef.current = JSON.stringify( settings );
 			if ( data.created && data.edit_url ) {
 				window.location.href = data.edit_url;
@@ -182,14 +181,18 @@ export default function MapEditorApp() {
 				if ( data.view_url !== undefined ) {
 					setViewUrl( data.view_url );
 				}
-				setSaveStatus( { text: 'Saved.', type: 'ok' } );
-				setTimeout(
-					() => setSaveStatus( { text: '', type: '' } ),
-					2000
-				);
+				createSuccessNotice( __( 'Map saved.', 'cns-map-suite' ), {
+					type: 'snackbar',
+				} );
 			}
 		} catch ( err ) {
-			setSaveStatus( { text: ( err as Error ).message, type: 'error' } );
+			createErrorNotice(
+				( err as Error ).message ||
+					__( 'Save failed.', 'cns-map-suite' ),
+				{ type: 'snackbar' }
+			);
+		} finally {
+			setIsSaving( false );
 		}
 	}
 
@@ -199,17 +202,11 @@ export default function MapEditorApp() {
 		formPayload: ObjectSavePayload
 	): Promise< MapObject | undefined > {
 		if ( ! selectedObjectId ) return;
-		const res = await apiFetch(
+		const data = await apiFetch< MapObject >(
 			'POST',
 			`/objects/${ selectedObjectId }`,
 			formPayload
 		);
-		const data = ( await res.json() ) as MapObject;
-		if ( ! res.ok )
-			throw new Error(
-				( data as unknown as { message?: string } ).message ||
-					'Save failed.'
-			);
 		setObjectsList( ( prev ) =>
 			prev.map( ( o ) => ( o.id === selectedObjectId ? data : o ) )
 		);
@@ -221,15 +218,17 @@ export default function MapEditorApp() {
 		x: number,
 		y: number
 	): Promise< void > {
-		const res = await apiFetch( 'PATCH', `/objects/${ id }/position`, {
-			x,
-			y,
-		} );
-		const data = ( await res.json() ) as MapObject;
-		if ( res.ok ) {
+		try {
+			const data = await apiFetch< MapObject >(
+				'PATCH',
+				`/objects/${ id }/position`,
+				{ x, y }
+			);
 			setObjectsList( ( prev ) =>
 				prev.map( ( o ) => ( o.id === id ? data : o ) )
 			);
+		} catch {
+			/* position patches fail silently, as before */
 		}
 	}
 
@@ -261,16 +260,11 @@ export default function MapEditorApp() {
 	async function handleLabelAdd(
 		payload: LabelSavePayload
 	): Promise< MapLabel > {
-		const res = await apiFetch(
+		const data = await apiFetch< MapLabel >(
 			'POST',
 			`/maps/${ mapId }/labels`,
 			payload
 		);
-		const data = ( await res.json() ) as MapLabel;
-		if ( ! res.ok )
-			throw new Error(
-				( data as unknown as { message?: string } ).message || 'Failed.'
-			);
 		setLabelsList( ( prev ) => [ ...prev, data ] );
 		return data;
 	}
@@ -279,17 +273,11 @@ export default function MapEditorApp() {
 		payload: LabelSavePayload
 	): Promise< MapLabel | undefined > {
 		if ( ! selectedLabelId ) return;
-		const res = await apiFetch(
+		const data = await apiFetch< MapLabel >(
 			'POST',
 			`/labels/${ selectedLabelId }`,
 			payload
 		);
-		const data = ( await res.json() ) as MapLabel;
-		if ( ! res.ok )
-			throw new Error(
-				( data as unknown as { message?: string } ).message ||
-					'Save failed.'
-			);
 		setLabelsList( ( prev ) =>
 			prev.map( ( l ) => ( l.id === selectedLabelId ? data : l ) )
 		);
@@ -305,16 +293,17 @@ export default function MapEditorApp() {
 			offset_y: number;
 		} >
 	): Promise< void > {
-		const res = await apiFetch(
-			'PATCH',
-			`/labels/${ id }/position`,
-			geometry
-		);
-		const data = ( await res.json() ) as MapLabel;
-		if ( res.ok ) {
+		try {
+			const data = await apiFetch< MapLabel >(
+				'PATCH',
+				`/labels/${ id }/position`,
+				geometry
+			);
 			setLabelsList( ( prev ) =>
 				prev.map( ( l ) => ( l.id === id ? data : l ) )
 			);
+		} catch {
+			/* position patches fail silently, as before */
 		}
 	}
 
@@ -339,8 +328,7 @@ export default function MapEditorApp() {
 	}
 
 	async function handleLabelDeleteById( id: number ) {
-		const res = await apiFetch( 'DELETE', `/labels/${ id }` );
-		if ( ! res.ok ) throw new Error( 'Delete failed.' );
+		await apiFetch( 'DELETE', `/labels/${ id }` );
 		setLabelsList( ( prev ) => prev.filter( ( l ) => l.id !== id ) );
 		if ( selectedLabelId === id ) setSelectedLabelId( null );
 	}
@@ -365,10 +353,14 @@ export default function MapEditorApp() {
 	async function commitAreaGeometry( areaId: number ) {
 		const area = areasRef.current.find( ( a ) => a.id === areaId );
 		if ( ! area ) return;
-		await apiFetch( 'PATCH', `/areas/${ areaId }/nodes`, {
-			nodes: JSON.stringify( area.nodes || [] ),
-			shape_type: area.shape_type || 'POLYGON',
-		} );
+		try {
+			await apiFetch( 'PATCH', `/areas/${ areaId }/nodes`, {
+				nodes: JSON.stringify( area.nodes || [] ),
+				shape_type: area.shape_type || 'POLYGON',
+			} );
+		} catch {
+			/* geometry patches fail silently, as before */
+		}
 	}
 
 	function scheduleAreaGeometrySave( areaId: number ) {
@@ -395,17 +387,11 @@ export default function MapEditorApp() {
 		const area = areasList.find( ( a ) => a.id === selectedAreaId );
 		if ( ! area ) return;
 		const payload = { ...formData, nodes: JSON.stringify( area.nodes ) };
-		const res = await apiFetch(
+		const data = await apiFetch< MapArea >(
 			'POST',
 			`/areas/${ selectedAreaId }`,
 			payload
 		);
-		const data = ( await res.json() ) as MapArea;
-		if ( ! res.ok )
-			throw new Error(
-				( data as unknown as { message?: string } ).message ||
-					'Save failed.'
-			);
 		setAreasList( ( prev ) =>
 			prev.map( ( a ) => ( a.id === selectedAreaId ? data : a ) )
 		);
@@ -441,23 +427,17 @@ export default function MapEditorApp() {
 	async function handleObjectAdd(
 		payload: ObjectSavePayload
 	): Promise< MapObject > {
-		const res = await apiFetch(
+		const data = await apiFetch< MapObject >(
 			'POST',
 			`/maps/${ mapId }/objects`,
 			payload
 		);
-		const data = ( await res.json() ) as MapObject;
-		if ( ! res.ok )
-			throw new Error(
-				( data as unknown as { message?: string } ).message || 'Failed.'
-			);
 		setObjectsList( ( prev ) => [ ...prev, data ] );
 		return data;
 	}
 
 	async function handleObjectDeleteById( id: number ) {
-		const res = await apiFetch( 'DELETE', `/objects/${ id }` );
-		if ( ! res.ok ) throw new Error( 'Delete failed.' );
+		await apiFetch( 'DELETE', `/objects/${ id }` );
 		setObjectsList( ( prev ) => prev.filter( ( o ) => o.id !== id ) );
 		if ( selectedObjectId === id ) setSelectedObjectId( null );
 	}
@@ -477,20 +457,17 @@ export default function MapEditorApp() {
 			...defaultAreaFormData( area ),
 			nodes: JSON.stringify( nodes ),
 		};
-		const res = await apiFetch( 'POST', `/maps/${ mapId }/areas`, payload );
-		const data = ( await res.json() ) as MapArea;
-		if ( ! res.ok ) {
-			throw new Error(
-				( data as unknown as { message?: string } ).message || 'Failed.'
-			);
-		}
+		const data = await apiFetch< MapArea >(
+			'POST',
+			`/maps/${ mapId }/areas`,
+			payload
+		);
 		setAreasList( ( prev ) => [ ...prev, data ] );
 		setSelectedAreaId( data.id );
 	}
 
 	async function handleAreaDeleteById( id: number ) {
-		const res = await apiFetch( 'DELETE', `/areas/${ id }` );
-		if ( ! res.ok ) throw new Error( 'Delete failed.' );
+		await apiFetch( 'DELETE', `/areas/${ id }` );
 		setAreasList( ( prev ) => prev.filter( ( a ) => a.id !== id ) );
 		if ( selectedAreaId === id ) setSelectedAreaId( null );
 	}
@@ -524,28 +501,19 @@ export default function MapEditorApp() {
 			description_override: formData.description_override,
 		};
 
-		let res: Response;
-		if ( selectedRegionId === -1 ) {
-			// Unsaved draft — create.
-			res = await apiFetch(
-				'POST',
-				`/maps/${ mapId }/hierarchy`,
-				payload
-			);
-		} else {
-			res = await apiFetch(
-				'POST',
-				`/hierarchy/${ selectedRegionId }`,
-				payload
-			);
-		}
-
-		const data = ( await res.json() ) as HierarchyRegion;
-		if ( ! res.ok )
-			throw new Error(
-				( data as unknown as { message?: string } ).message ||
-					'Save failed.'
-			);
+		const data =
+			selectedRegionId === -1
+				? // Unsaved draft — create.
+				  await apiFetch< HierarchyRegion >(
+						'POST',
+						`/maps/${ mapId }/hierarchy`,
+						payload
+				  )
+				: await apiFetch< HierarchyRegion >(
+						'POST',
+						`/hierarchy/${ selectedRegionId }`,
+						payload
+				  );
 
 		setRegionsList( ( prev ) =>
 			prev.map( ( r ) => ( r.id === selectedRegionId ? data : r ) )
@@ -561,8 +529,7 @@ export default function MapEditorApp() {
 			setSelectedRegionId( null );
 			return;
 		}
-		const res = await apiFetch( 'DELETE', `/hierarchy/${ id }` );
-		if ( ! res.ok ) throw new Error( 'Delete failed.' );
+		await apiFetch( 'DELETE', `/hierarchy/${ id }` );
 		setRegionsList( ( prev ) => prev.filter( ( r ) => r.id !== id ) );
 		if ( selectedRegionId === id ) setSelectedRegionId( null );
 	}
@@ -583,7 +550,7 @@ export default function MapEditorApp() {
 				onStatusChange={ ( s: PostStatus ) =>
 					setSettings( ( prev ) => ( { ...prev, status: s } ) )
 				}
-				saveStatus={ saveStatus }
+				isSaving={ isSaving }
 				onSave={ handleSave }
 			/>
 			<div className="cns-map-editor__main">
@@ -751,6 +718,7 @@ export default function MapEditorApp() {
 					onRegionNodesUpdate={ handleRegionNodesUpdate }
 				/>
 			</div>
+			<Notices />
 		</div>
 	);
 }

@@ -18,8 +18,7 @@ export function useMapResource<T>(
 
 	useEffect( () => {
 		if ( initialized || ! mapId ) return;
-		apiFetch( 'GET', `/maps/${ mapId }/${ resource }` )
-			.then( ( r ) => r.json() as Promise<T[]> )
+		apiFetch< T[] >( 'GET', `/maps/${ mapId }/${ resource }` )
 			.then( ( data ) => { if ( Array.isArray( data ) ) onLoadedRef.current( data ); } )
 			.catch( () => {} )
 			.finally( () => setInitialized( true ) );

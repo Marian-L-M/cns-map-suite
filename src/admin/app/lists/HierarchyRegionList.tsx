@@ -1,3 +1,6 @@
+import { Button } from '@wordpress/components';
+import { pencil, trash } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import type { HierarchyRegion } from '../../../types';
 
 interface Props {
@@ -8,7 +11,11 @@ interface Props {
 
 export default function HierarchyRegionList( { regions, onSelect, onDelete }: Props ) {
 	if ( ! regions.length ) {
-		return <p className="description">No child-map regions yet. Click "Add Region" to draw one.</p>;
+		return (
+			<p className="description">
+				{ __( 'No child-map regions yet. Click "Add Region" to draw one.', 'cns-map-suite' ) }
+			</p>
+		);
 	}
 
 	return (
@@ -25,13 +32,19 @@ export default function HierarchyRegionList( { regions, onSelect, onDelete }: Pr
 						) }
 					</span>
 					<span className="cns-items-list__actions">
-						<button type="button" className="button button-small" onClick={ () => onSelect( r.id ) }>
-							Edit
-						</button>
-						{ ' ' }
-						<button type="button" className="button button-small" onClick={ () => onDelete( r.id ) }>
-							Delete
-						</button>
+						<Button
+							size="small"
+							icon={ pencil }
+							label={ __( 'Edit', 'cns-map-suite' ) }
+							onClick={ () => onSelect( r.id ) }
+						/>
+						<Button
+							size="small"
+							icon={ trash }
+							isDestructive
+							label={ __( 'Delete', 'cns-map-suite' ) }
+							onClick={ () => onDelete( r.id ) }
+						/>
 					</span>
 				</li>
 			) ) }

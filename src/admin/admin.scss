@@ -92,7 +92,10 @@ $bp-lpc: 1400px;
 	width: 100%;
 	display: grid;
 	gap: $space-10;
-	// Layout
+	// Layout variants: __12 = 1 column → 2 at $bp-spc, __24 = 2 → 4.
+	&__12 {
+		grid-template-columns: 1fr;
+	}
 	&__24 {
 		grid-template-columns: 1fr 1fr;
 	}
@@ -120,13 +123,68 @@ $bp-lpc: 1400px;
 	&__span-4 {
 		grid-column: span 4;
 	}
+	// Full-width cell that is safe in any column count (unlike span-N,
+	// which can create implicit columns on narrow grids).
+	&__span-full {
+		grid-column: 1 / -1;
+	}
 	&__group {
 		flex-direction: column;
 	}
+	// WP components fill their grid cell.
+	&__group > .components-base-control,
+	&__group > .components-card {
+		width: 100%;
+	}
 	@media screen and (min-width: $bp-spc) {
+		&__12 {
+			grid-template-columns: 1fr 1fr;
+		}
 		&__24 {
 			grid-template-columns: 1fr 1fr 1fr 1fr;
 		}
+	}
+}
+
+// Action-button rows inside tables / list items.
+.cns-actions-row {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+}
+
+// Snackbar notices (wp/notices store) — pinned bottom-left like the editor.
+.cns-snackbar-list {
+	position: fixed;
+	bottom: 24px;
+	left: 200px;
+	z-index: 100010;
+
+	@media screen and (max-width: 782px) {
+		left: 16px;
+		right: 16px;
+	}
+}
+
+// Compact swatch-button color control (ColorField).
+.cns-color-field {
+	&__toggle.components-button {
+		display: inline-flex;
+		align-items: center;
+		gap: 8px;
+		height: 40px;
+		padding: 0 12px;
+		border: 1px solid #949494;
+		border-radius: 2px;
+		background: #fff;
+		width: 100%;
+		justify-content: flex-start;
+	}
+
+	&__value {
+		font-size: 12px;
+		font-variant-numeric: tabular-nums;
+		color: #50575e;
 	}
 }
 
@@ -343,18 +401,7 @@ $thumb-size: 3em;
 	}
 }
 
-.cns-save-status {
-	font-size: 12px;
-	color: #646970;
-
-	&--ok {
-		color: #00a32a;
-	}
-
-	&--error {
-		color: #b32d2e;
-	}
-}
+// (Save feedback now uses snackbar notices from the wp/notices store.)
 
 // ── Tabs ──────────────────────────────────────────────────────────────────────
 
@@ -412,45 +459,8 @@ $thumb-size: 3em;
 
 // ── Image picker ──────────────────────────────────────────────────────────────
 
-// ── Range sliders ─────────────────────────────────────────────────────────────
-
-.cns-range-wrap {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-
-	input[type="range"] {
-		flex: 1;
-		cursor: pointer;
-	}
-
-	input[type="number"].cns-range-number {
-		flex: none;
-		width: 5.5em;
-		font-variant-numeric: tabular-nums;
-		text-align: right;
-	}
-}
-
-// ── Background controls ───────────────────────────────────────────────────────
-
-.cns-bg-type-toggle {
-	display: flex;
-	gap: 16px;
-	margin-bottom: 8px;
-
-	label {
-		font-weight: normal;
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		cursor: pointer;
-	}
-}
-
-.cns-bg-section {
-	margin-top: 4px;
-}
+// (Range sliders and background toggles now use RangeControl / RadioControl
+// from @wordpress/components — no custom styles needed.)
 
 // ── Placeholder panels ────────────────────────────────────────────────────────
 
@@ -590,95 +600,7 @@ $thumb-size: 3em;
 	font-style: italic;
 }
 
-// ── Modal ─────────────────────────────────────────────────────────────────────
-
-body.cns-modal-open {
-	overflow: hidden;
-}
-
-.cns-modal {
-	&[hidden] {
-		display: none !important;
-	}
-
-	position: fixed;
-	inset: 0;
-	z-index: 100000;
-
-	&:not([hidden]) {
-		display: flex;
-		align-items: flex-start;
-		justify-content: center;
-		padding: 40px 20px;
-	}
-
-	&__backdrop {
-		position: absolute;
-		inset: 0;
-		background: rgba(0, 0, 0, 0.6);
-	}
-
-	&__dialog {
-		position: relative;
-		background: #fff;
-		border-radius: 4px;
-		width: 100%;
-		max-width: 640px;
-		max-height: calc(100vh - 80px);
-		display: flex;
-		flex-direction: column;
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.24);
-	}
-
-	&__header {
-		display: flex;
-		align-items: center;
-		padding: 16px 20px;
-		border-bottom: 1px solid #e0e0e0;
-		flex-shrink: 0;
-	}
-
-	&__title {
-		margin: 0;
-		flex: 1;
-		font-size: 16px;
-		font-weight: 600;
-	}
-
-	&__close {
-		background: none;
-		border: none;
-		cursor: pointer;
-		padding: 4px;
-		color: #646970;
-		font-size: 20px;
-		line-height: 1;
-		border-radius: 3px;
-
-		&:hover {
-			color: #1d2327;
-			background: #f0f0f1;
-		}
-	}
-
-	&__body {
-		flex: 1;
-		overflow-y: auto;
-		padding: 0;
-	}
-
-	&__footer {
-		display: flex;
-		align-items: center;
-		justify-content: flex-end;
-		gap: 10px;
-		padding: 14px 20px;
-		border-top: 1px solid #e0e0e0;
-		flex-shrink: 0;
-	}
-}
-
-// ── Modal sections ────────────────────────────────────────────────────────────
+// ── Form sections (context panel) ─────────────────────────────────────────────
 
 .cns-modal-section {
 	padding: 20px;
@@ -699,22 +621,6 @@ body.cns-modal-open {
 
 	.cns-form-grid {
 		grid-template-columns: 1fr 1fr;
-	}
-}
-
-// ── Radio toggle ──────────────────────────────────────────────────────────────
-
-.cns-radio-toggle {
-	display: flex;
-	gap: 16px;
-	margin-bottom: 12px;
-
-	label {
-		font-weight: normal;
-		display: flex;
-		align-items: center;
-		gap: 5px;
-		cursor: pointer;
 	}
 }
 
@@ -890,22 +796,12 @@ body.cns-modal-open {
 		max-width: 100%;
 	}
 
-	&__remove {
+	// Positions the components Button; its own destructive styling applies.
+	&__remove.components-button {
 		position: absolute;
 		top: 4px;
 		right: 4px;
-		background: #b32d2e;
-		color: #fff;
-		border: none;
-		border-radius: 50%;
-		width: 20px;
-		height: 20px;
-		font-size: 12px;
-		line-height: 1;
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-		justify-content: center;
+		background: #fff;
 		opacity: 0;
 		transition: opacity 0.15s;
 	}

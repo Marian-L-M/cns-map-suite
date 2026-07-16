@@ -1,17 +1,21 @@
-export function apiFetch(
+import wpApiFetch from '@wordpress/api-fetch';
+
+/**
+ * Thin wrapper over @wordpress/api-fetch pinned to the plugin namespace.
+ * Nonce and REST root come from core's api-fetch middleware. Resolves with
+ * the parsed JSON body; rejects with the REST error object ({ code, message,
+ * data }) on any non-2xx response — callers read `.message` off it.
+ */
+export function apiFetch< T = unknown >(
 	method: string,
 	path: string,
-	body?: unknown,
-): Promise<Response> {
-	const headers: Record<string, string> = {
-		'X-WP-Nonce': window.cnsMapSuite.nonce,
-	};
-	const opts: RequestInit = { method, headers };
-	if ( body !== undefined ) {
-		headers[ 'Content-Type' ] = 'application/json';
-		opts.body = JSON.stringify( body );
-	}
-	return fetch( window.cnsMapSuite.restUrl + path, opts );
+	data?: unknown,
+): Promise< T > {
+	return wpApiFetch< T >( {
+		path: '/cns-map-suite/v1' + path,
+		method,
+		data,
+	} );
 }
 
 // ── Keyboard ──────────────────────────────────────────────────────────────────

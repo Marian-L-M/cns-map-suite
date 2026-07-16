@@ -1,11 +1,13 @@
-import SaveStatus from './shared/SaveStatus';
-import type { SaveStatus as SaveStatusType, PostStatus } from '../../types';
+import { Button, SelectControl } from '@wordpress/components';
+import { arrowLeft, external } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
+import type { PostStatus } from '../../types';
 
-const STATUS_LABELS: Record< PostStatus, string > = {
-	draft:   'Draft',
-	publish: 'Published',
-	private: 'Private',
-};
+const STATUS_OPTIONS: { value: PostStatus; label: string }[] = [
+	{ value: 'draft',   label: 'Draft' },
+	{ value: 'publish', label: 'Published' },
+	{ value: 'private', label: 'Private' },
+];
 
 interface Props {
 	pageTitle: string;
@@ -13,33 +15,49 @@ interface Props {
 	viewUrl: string;
 	status: PostStatus;
 	onStatusChange: ( status: PostStatus ) => void;
-	saveStatus: SaveStatusType;
+	isSaving: boolean;
 	onSave: () => void;
 }
 
-export default function EditorHeader( { pageTitle, overviewUrl, viewUrl, status, onStatusChange, saveStatus, onSave }: Props ) {
+export default function EditorHeader( { pageTitle, overviewUrl, viewUrl, status, onStatusChange, isSaving, onSave }: Props ) {
 	return (
 		<div className="cns-map-editor__header">
-			<a href={ overviewUrl } className="cns-back-link">&larr; All Maps</a>
+			<Button
+				href={ overviewUrl }
+				variant="tertiary"
+				icon={ arrowLeft }
+			>
+				{ __( 'All Maps', 'cns-map-suite' ) }
+			</Button>
 			<h1>{ pageTitle }</h1>
 			<div className="cns-map-editor__header-actions">
-				<SaveStatus text={ saveStatus.text } type={ saveStatus.type } />
 				{ viewUrl && (
-					<a href={ viewUrl } className="button" target="_blank" rel="noopener noreferrer">
-						View Map
-					</a>
+					<Button
+						href={ viewUrl }
+						variant="secondary"
+						icon={ external }
+						target="_blank"
+					>
+						{ __( 'View Map', 'cns-map-suite' ) }
+					</Button>
 				) }
-				<select
-					className="cns-status-select"
+				<SelectControl
+					__next40pxDefaultSize
+					__nextHasNoMarginBottom
+					label={ __( 'Post status', 'cns-map-suite' ) }
+					hideLabelFromVision
 					value={ status }
-					onChange={ ( e ) => onStatusChange( e.target.value as PostStatus ) }
-					aria-label="Post status"
+					options={ STATUS_OPTIONS }
+					onChange={ ( v ) => onStatusChange( v as PostStatus ) }
+				/>
+				<Button
+					variant="primary"
+					isBusy={ isSaving }
+					disabled={ isSaving }
+					onClick={ onSave }
 				>
-					{ ( Object.keys( STATUS_LABELS ) as PostStatus[] ).map( ( s ) => (
-						<option key={ s } value={ s }>{ STATUS_LABELS[ s ] }</option>
-					) ) }
-				</select>
-				<button className="button button-primary" onClick={ onSave }>Save Map</button>
+					{ __( 'Save Map', 'cns-map-suite' ) }
+				</Button>
 			</div>
 		</div>
 	);

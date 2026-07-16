@@ -1,18 +1,20 @@
 import { useState, useEffect } from '@wordpress/element';
+import { Button } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
+import { store as noticesStore } from '@wordpress/notices';
+import { close, copy } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import ObjectForm,         { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
 import LabelForm,          { defaultLabelFormData, collectLabelPayload } from './forms/LabelForm';
 import AreaForm,           { defaultAreaFormData }   from './forms/AreaForm';
 import HierarchyRegionForm, { defaultHierarchyFormData } from './forms/HierarchyRegionForm';
 import NodeList            from './forms/NodeList';
 import RegionNodeList      from './forms/RegionNodeList';
-import SaveStatus          from './shared/SaveStatus';
 import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
-import { normalizeNodesForShapeType } from '../areas';
 import type {
 	Tab, MapObject, MapArea, MapLabel, HierarchyRegion, HierarchyFormData,
 	ObjectFormData, AreaFormData, LabelFormData,
 	ObjectSavePayload, LabelSavePayload, ShapeType, Node, LibraryIcon,
-	SaveStatus as SaveStatusType,
 } from '../../types';
 
 interface Props {
@@ -60,13 +62,12 @@ export default function ContextPanel( {
 	const [ labelFormData,  setLabelFormData  ] = useState<LabelFormData | null>( null );
 	const [ regionFormData, setRegionFormData ] = useState<HierarchyFormData | null>( null );
 	const [ icons,          setIcons          ] = useState<LibraryIcon[]>( iconLibraryCache || [] );
-	const [ status,         setStatus         ] = useState<SaveStatusType>( { text: '', type: '' } );
 	const [ saving,         setSaving         ] = useState( false );
+	const { createSuccessNotice, createErrorNotice } = useDispatch( noticesStore );
 
 	useEffect( () => {
 		if ( selectedObject ) {
 			setObjFormData( defaultObjectFormData( selectedObject, null, null ) );
-			setStatus( { text: '', type: '' } );
 			if ( ! iconLibraryCache ) {
 				loadIconLibraryIntoCache().then( () => setIcons( iconLibraryCache || [] ) );
 			}
@@ -76,7 +77,6 @@ export default function ContextPanel( {
 	useEffect( () => {
 		if ( selectedArea ) {
 			setAreaFormData( defaultAreaFormData( selectedArea ) );
-			setStatus( { text: '', type: '' } );
 		}
 	}, [ selectedArea?.id ] );
 
@@ -90,15 +90,8 @@ export default function ContextPanel( {
 	}, [ selectedLabel?.id, selectedLabel?.x, selectedLabel?.y, selectedLabel?.offset_x, selectedLabel?.offset_y ] );
 
 	useEffect( () => {
-		if ( selectedLabel ) {
-			setStatus( { text: '', type: '' } );
-		}
-	}, [ selectedLabel?.id ] );
-
-	useEffect( () => {
 		if ( selectedRegion ) {
 			setRegionFormData( defaultHierarchyFormData( selectedRegion ) );
-			setStatus( { text: '', type: '' } );
 		}
 	}, [ selectedRegion?.id ] );
 
@@ -134,7 +127,6 @@ export default function ContextPanel( {
 
 	async function handleSave() {
 		setSaving( true );
-		setStatus( { text: 'Saving…', type: '' } );
 		try {
 			if ( isObject && objFormData ) {
 				const data = await onObjectSave( collectObjectPayload( objFormData ) );
@@ -148,10 +140,15 @@ export default function ContextPanel( {
 			} else if ( areaFormData ) {
 				await onAreaSave( areaFormData );
 			}
-			setStatus( { text: 'Saved.', type: 'ok' } );
-			setTimeout( () => setStatus( { text: '', type: '' } ), 2000 );
+			createSuccessNotice( __( 'Saved.', 'cns-map-suite' ), {
+				type: 'snackbar',
+			} );
 		} catch ( err ) {
-			setStatus( { text: ( err as Error ).message, type: 'error' } );
+			createErrorNotice(
+				( err as Error ).message ||
+					__( 'Save failed.', 'cns-map-suite' ),
+				{ type: 'snackbar' }
+			);
 		} finally {
 			setSaving( false );
 		}
@@ -187,35 +184,44 @@ export default function ContextPanel( {
 					<span className="cns-editor-context__title">{ title }</span>
 					{ isObject && (
 						<>
-							<button type="button" className="button button-small" onClick={ onObjectReposition }>
-								Reposition
-							</button>
-							<button type="button" className="button button-small" onClick={ onObjectDuplicate }>
-								Duplicate
-							</button>
+							<Button variant="secondary" size="small" onClick={ onObjectReposition }>
+								{ __( 'Reposition', 'cns-map-suite' ) }
+							</Button>
+							<Button
+								size="small"
+								icon={ copy }
+								label={ __( 'Duplicate', 'cns-map-suite' ) }
+								onClick={ onObjectDuplicate }
+							/>
 						</>
 					) }
 					{ ! isObject && ! isLabel && ! isRegion && (
-						<button type="button" className="button button-small" onClick={ onAreaDuplicate }>
-							Duplicate
-						</button>
+						<Button
+							size="small"
+							icon={ copy }
+							label={ __( 'Duplicate', 'cns-map-suite' ) }
+							onClick={ onAreaDuplicate }
+						/>
 					) }
 					{ isLabel && (
 						<>
-							<button type="button" className="button button-small" onClick={ onLabelReposition }>
-								Reposition
-							</button>
-							<button type="button" className="button button-small" onClick={ onLabelDuplicate }>
-								Duplicate
-							</button>
+							<Button variant="secondary" size="small" onClick={ onLabelReposition }>
+								{ __( 'Reposition', 'cns-map-suite' ) }
+							</Button>
+							<Button
+								size="small"
+								icon={ copy }
+								label={ __( 'Duplicate', 'cns-map-suite' ) }
+								onClick={ onLabelDuplicate }
+							/>
 						</>
 					) }
-					<button
-						type="button"
-						className="cns-editor-context__close"
-						aria-label="Close"
+					<Button
+						size="small"
+						icon={ close }
+						label={ __( 'Close', 'cns-map-suite' ) }
 						onClick={ handleClose }
-					>&times;</button>
+					/>
 				</div>
 
 				<div className="cns-editor-context__body">
@@ -295,13 +301,23 @@ export default function ContextPanel( {
 				</div>
 
 				<div className="cns-editor-context__footer">
-					<SaveStatus text={ status.text } type={ status.type } />
-					<button type="button" className="button button-small button-primary" disabled={ saving } onClick={ handleSave }>
-						Save
-					</button>
-					<button type="button" className="button button-small" onClick={ handleDelete }>
-						Delete
-					</button>
+					<Button
+						variant="primary"
+						size="small"
+						isBusy={ saving }
+						disabled={ saving }
+						onClick={ handleSave }
+					>
+						{ __( 'Save', 'cns-map-suite' ) }
+					</Button>
+					<Button
+						variant="secondary"
+						size="small"
+						isDestructive
+						onClick={ handleDelete }
+					>
+						{ __( 'Delete', 'cns-map-suite' ) }
+					</Button>
 				</div>
 			</div>
 		</aside>

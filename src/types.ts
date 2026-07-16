@@ -94,7 +94,6 @@ export type AreaType      = 'GEOGRAPHY' | 'HISTORY' | 'NATURAL' | 'EVENT' | 'OTH
 export type InfoboxSource = 'manual' | 'post';
 export type IconSource    = 'svg' | 'image';
 export type BgType        = 'color' | 'image';
-export type SaveStatusKind = '' | 'ok' | 'error';
 export type Tab           = 'settings' | 'description' | 'objects' | 'areas' | 'labels' | 'hierarchy' | 'preview' | 'stories';
 export type LabelPlacement = 'centered' | 'indicator';
 
@@ -297,11 +296,6 @@ export interface DrawState {
 	imageX: number;
 	imageY: number;
 	imageW: number;
-}
-
-export interface SaveStatus {
-	text: string;
-	type: SaveStatusKind;
 }
 
 // ── Form data ─────────────────────────────────────────────────────────────────

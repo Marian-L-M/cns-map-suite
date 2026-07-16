@@ -1,7 +1,15 @@
-import { useRef } from '@wordpress/element';
+import {
+	ExternalLink,
+	RadioControl,
+	RangeControl,
+	SelectControl,
+	TextControl,
+	__experimentalNumberControl as NumberControl,
+} from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import MediaPicker from '../shared/MediaPicker';
 import IconPicker  from '../shared/IconPicker';
-import RangeField  from '../shared/RangeField';
+import ColorField  from '../shared/ColorField';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
 import type { ObjectFormData, ObjectSavePayload, ObjectType, LibraryIcon, MapObject } from '../../../types';
 
@@ -20,9 +28,6 @@ interface Props {
 }
 
 export default function ObjectForm( { formData, onChange, icons }: Props ) {
-	const uid = useRef( Math.random().toString( 36 ).slice( 2 ) );
-	const n   = uid.current;
-
 	function set<K extends keyof ObjectFormData>( key: K, val: ObjectFormData[ K ] ) {
 		onChange( { ...formData, [ key ]: val } );
 	}
@@ -33,76 +38,102 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 		<>
 			{ /* ── Icon ── */ }
 			<section className="cns-modal-section">
-				<h3>Icon</h3>
-				<div className="cns-radio-toggle">
-					<label>
-						<input type="radio" name={ `obj-icon-src-${ n }` } value="svg" checked={ isSvgSource }
-							onChange={ () => set( 'icon_source', 'svg' ) } />
-						{ ' ' }From library
-					</label>
-					<label>
-						<input type="radio" name={ `obj-icon-src-${ n }` } value="image" checked={ ! isSvgSource }
-							onChange={ () => set( 'icon_source', 'image' ) } />
-						{ ' ' }Custom image
-					</label>
-				</div>
-				{ isSvgSource && (
-					<>
-						<IconPicker
-							icons={ icons }
-							selectedIconId={ formData.icon_image_id_svg }
-							onSelect={ ( id ) => set( 'icon_image_id_svg', id ) }
+				<h3>{ __( 'Icon', 'cns-map-suite' ) }</h3>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<RadioControl
+							label={ __( 'Icon source', 'cns-map-suite' ) }
+							hideLabelFromVision
+							selected={ isSvgSource ? 'svg' : 'image' }
+							options={ [
+								{ label: __( 'From library', 'cns-map-suite' ), value: 'svg' },
+								{ label: __( 'Custom image', 'cns-map-suite' ), value: 'image' },
+							] }
+							onChange={ ( v ) => set( 'icon_source', v as 'svg' | 'image' ) }
 						/>
-						<p className="description">
-							<a href={ window.cnsMapSuite.iconsUrl } target="_blank" rel="noreferrer">
-								Manage icon library →
-							</a>
-						</p>
-					</>
-				) }
-				{ ! isSvgSource && (
-					<MediaPicker
-						imageId={ formData.icon_image_id_custom }
-						imageUrl={ formData.icon_image_url }
-						title="Select Icon Image"
-						onChange={ ( att ) => onChange( {
-							...formData,
-							icon_image_id_custom: att ? att.id : 0,
-							icon_image_url:       att ? att.url : '',
-						} ) }
-					/>
-				) }
+					</div>
+					{ isSvgSource && (
+						<div className="cns-grid__group cns-grid__span-full">
+							<IconPicker
+								icons={ icons }
+								selectedIconId={ formData.icon_image_id_svg }
+								onSelect={ ( id ) => set( 'icon_image_id_svg', id ) }
+							/>
+							<p className="description">
+								<ExternalLink href={ window.cnsMapSuite.iconsUrl }>
+									{ __( 'Manage icon library', 'cns-map-suite' ) }
+								</ExternalLink>
+							</p>
+						</div>
+					) }
+					{ ! isSvgSource && (
+						<div className="cns-grid__group cns-grid__span-full">
+							<MediaPicker
+								imageId={ formData.icon_image_id_custom }
+								imageUrl={ formData.icon_image_url }
+								title={ __( 'Select Icon Image', 'cns-map-suite' ) }
+								onChange={ ( att ) => onChange( {
+									...formData,
+									icon_image_id_custom: att ? att.id : 0,
+									icon_image_url:       att ? att.url : '',
+								} ) }
+							/>
+						</div>
+					) }
+				</div>
 			</section>
 
 			{ /* ── Details ── */ }
 			<section className="cns-modal-section">
-				<h3>Details</h3>
-				<div className="cns-form-grid">
-					<div className="cns-form-row cns-form-row--full">
-						<label>Title</label>
-						<input type="text" className="large-text" value={ formData.title }
-							onChange={ ( e ) => set( 'title', e.target.value ) } />
+				<h3>{ __( 'Details', 'cns-map-suite' ) }</h3>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<TextControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Title', 'cns-map-suite' ) }
+							value={ formData.title }
+							onChange={ ( v ) => set( 'title', v ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Type</label>
-						<select value={ formData.type } onChange={ ( e ) => set( 'type', e.target.value as ObjectType ) }>
-							{ TYPES.map( ( t ) => <option key={ t.value } value={ t.value }>{ t.label }</option> ) }
-						</select>
+					<div className="cns-grid__group">
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Type', 'cns-map-suite' ) }
+							value={ formData.type }
+							options={ TYPES }
+							onChange={ ( v ) => set( 'type', v as ObjectType ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Object Time</label>
-						<input type="number" className="small-text" value={ formData.object_time }
-							onChange={ ( e ) => set( 'object_time', parseInt( e.target.value, 10 ) || 0 ) } />
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Object Time', 'cns-map-suite' ) }
+							value={ formData.object_time }
+							step={ 1 }
+							onChange={ ( v ) =>
+								set( 'object_time', parseInt( v ?? '', 10 ) || 0 )
+							}
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>X (px)</label>
-						<input type="number" className="small-text" value={ formData.x }
-							onChange={ ( e ) => set( 'x', parseInt( e.target.value, 10 ) || 0 ) } />
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'X (px)', 'cns-map-suite' ) }
+							value={ formData.x }
+							step={ 1 }
+							onChange={ ( v ) => set( 'x', parseInt( v ?? '', 10 ) || 0 ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Y (px)</label>
-						<input type="number" className="small-text" value={ formData.y }
-							onChange={ ( e ) => set( 'y', parseInt( e.target.value, 10 ) || 0 ) } />
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Y (px)', 'cns-map-suite' ) }
+							value={ formData.y }
+							step={ 1 }
+							onChange={ ( v ) => set( 'y', parseInt( v ?? '', 10 ) || 0 ) }
+						/>
 					</div>
 				</div>
 			</section>
@@ -112,28 +143,36 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 
 			{ /* ── Design ── */ }
 			<section className="cns-modal-section">
-				<h3>Design</h3>
-				<div className="cns-form-grid">
-					<div className="cns-form-row cns-form-row--full">
-						<label>Icon Size (px)</label>
-						<RangeField
+				<h3>{ __( 'Design', 'cns-map-suite' ) }</h3>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<RangeControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Icon Size (px)', 'cns-map-suite' ) }
 							min={ 8 } max={ 128 } step={ 1 }
 							value={ formData.style_size }
-							onChange={ ( v ) => set( 'style_size', v ) }
+							onChange={ ( v ) => set( 'style_size', v ?? 32 ) }
 						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Fill Color</label>
-						<input type="color" value={ formData.style_fill }
-							onChange={ ( e ) => set( 'style_fill', e.target.value ) } />
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Fill Color', 'cns-map-suite' ) }
+							value={ formData.style_fill }
+							onChange={ ( v ) => set( 'style_fill', v ) }
+						/>
 					</div>
-					<div className="cns-form-row">
-						<label>Stroke Color</label>
-						<input type="color" value={ formData.style_stroke }
-							onChange={ ( e ) => set( 'style_stroke', e.target.value ) } />
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Stroke Color', 'cns-map-suite' ) }
+							value={ formData.style_stroke }
+							onChange={ ( v ) => set( 'style_stroke', v ) }
+						/>
 					</div>
 				</div>
-				<p className="description">Fill and stroke are applied to SVG icons only.</p>
+				<p className="description">
+					{ __( 'Fill and stroke are applied to SVG icons only.', 'cns-map-suite' ) }
+				</p>
 			</section>
 		</>
 	);

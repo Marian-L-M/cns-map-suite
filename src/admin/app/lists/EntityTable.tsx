@@ -42,7 +42,9 @@ export default function EntityTable<T extends { id: number }>( {
 						{ columns.map( ( col, i ) => (
 							<td key={ i } className={ col.className }>{ col.render( item ) }</td>
 						) ) }
-						<td className="cns-maps-actions">{ renderActions( item ) }</td>
+						<td className="cns-maps-actions">
+							<div className="cns-actions-row">{ renderActions( item ) }</div>
+						</td>
 					</tr>
 				) ) }
 			</tbody>

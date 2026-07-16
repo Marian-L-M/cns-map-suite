@@ -1,3 +1,6 @@
+import { Button } from '@wordpress/components';
+import { copy, pencil, trash } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import EntityTable from './EntityTable';
 import type { EntityColumn } from './EntityTable';
 import type { MapArea } from '../../../types';
@@ -20,14 +23,28 @@ export default function AreasList( { areas, onSelect, onDuplicate, onDelete }: P
 		<EntityTable
 			items={ areas }
 			columns={ COLUMNS }
-			emptyText={ 'No areas yet. Click “Add Area” to create one.' }
+			emptyText={ __( 'No areas yet. Click “Add Area” to create one.', 'cns-map-suite' ) }
 			renderActions={ ( area ) => (
 				<>
-					<button className="button button-small" onClick={ () => onSelect( area.id ) }>Edit</button>
-					{ ' ' }
-					<button className="button button-small" onClick={ () => onDuplicate( area.id ) }>Duplicate</button>
-					{ ' ' }
-					<button className="button button-small" onClick={ () => onDelete( area.id ) }>Delete</button>
+					<Button
+						size="small"
+						icon={ pencil }
+						label={ __( 'Edit', 'cns-map-suite' ) }
+						onClick={ () => onSelect( area.id ) }
+					/>
+					<Button
+						size="small"
+						icon={ copy }
+						label={ __( 'Duplicate', 'cns-map-suite' ) }
+						onClick={ () => onDuplicate( area.id ) }
+					/>
+					<Button
+						size="small"
+						icon={ trash }
+						isDestructive
+						label={ __( 'Delete', 'cns-map-suite' ) }
+						onClick={ () => onDelete( area.id ) }
+					/>
 				</>
 			) }
 		/>

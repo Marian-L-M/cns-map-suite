@@ -1,4 +1,6 @@
 import { useRef, useEffect } from '@wordpress/element';
+import { Button } from '@wordpress/components';
+import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import ObjectsCanvas from '../canvases/ObjectsCanvas';
 import ObjectsList   from '../lists/ObjectsList';
@@ -126,9 +128,9 @@ export default function ObjectsPanel( {
 		<div className="cns-tab-panel cns-tab-panel--active" data-panel="objects" role="tabpanel">
 			<div className="cns-objects-layout">
 				<div className="cns-objects-toolbar">
-					<button type="button" className="button button-primary" onClick={ handleAdd }>
+					<Button variant="primary" icon={ plus } onClick={ handleAdd }>
 						{ __( 'Add Object', 'cns-map-suite' ) }
-					</button>
+					</Button>
 					<p className="description">
 						{ __(
 							'Click an object to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty canvas to place a new object at that position, then edit it in the side panel. With an object selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',

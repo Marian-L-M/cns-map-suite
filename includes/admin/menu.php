@@ -156,6 +156,9 @@ function cns_map_suite_enqueue_admin_assets(): void {
 	if (in_array($page, [CNS_MAP_PAGE_EDITOR, CNS_MAP_PAGE_ICONS, CNS_MAP_PAGE_SETTINGS_ICONS], true)) {
 		wp_enqueue_media();
 		wp_enqueue_style('wp-color-picker');
+		// Styles for @wordpress/components (the script dep comes from the
+		// generated asset file, but the stylesheet must be enqueued manually).
+		wp_enqueue_style('wp-components');
 	}
 
 	if ($page === CNS_MAP_PAGE_EDITOR) {

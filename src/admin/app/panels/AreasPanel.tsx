@@ -1,4 +1,8 @@
 import { useState, useEffect } from '@wordpress/element';
+import { Button } from '@wordpress/components';
+import { useDispatch } from '@wordpress/data';
+import { store as noticesStore } from '@wordpress/notices';
+import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import AreasCanvas  from '../canvases/AreasCanvas';
 import AreasList    from '../lists/AreasList';
@@ -33,6 +37,7 @@ export default function AreasPanel( {
 	onDuplicate, onDelete,
 }: Props ) {
 	useMapResource<MapArea>( mapId, 'areas', onAreasLoaded );
+	const { createErrorNotice } = useDispatch( noticesStore );
 
 	// ── Keyboard shortcuts (active while the Areas tab is mounted) ─────────────
 
@@ -67,14 +72,16 @@ export default function AreasPanel( {
 			y: n.y + 24 / canvasH,
 		} ) );
 		areaClipboard = { ...areaClipboard, nodes };
-		const res  = await apiFetch( 'POST', `/maps/${ mapId }/areas`, {
-			...areaClipboard.form,
-			nodes: JSON.stringify( nodes ),
-		} );
-		const data = await res.json() as MapArea;
-		if ( ! res.ok ) return;
-		onAreasLoaded( [ ...areas, data ] );
-		onSelect( data.id );
+		try {
+			const data = await apiFetch< MapArea >( 'POST', `/maps/${ mapId }/areas`, {
+				...areaClipboard.form,
+				nodes: JSON.stringify( nodes ),
+			} );
+			onAreasLoaded( [ ...areas, data ] );
+			onSelect( data.id );
+		} catch {
+			/* paste failures are silent, as before */
+		}
 	}
 
 	useCanvasKeyboard( {
@@ -148,7 +155,7 @@ export default function AreasPanel( {
 		if ( ! mapId ) return;
 		const defaultNodes = getDefaultNodes( 'POLYGON' );
 		try {
-			const res  = await apiFetch( 'POST', `/maps/${ mapId }/areas`, {
+			const data = await apiFetch< MapArea >( 'POST', `/maps/${ mapId }/areas`, {
 				title:               __( 'New Area', 'cns-map-suite' ),
 				nodes:               JSON.stringify( defaultNodes ),
 				style_fill:          '#2271b1',
@@ -156,11 +163,15 @@ export default function AreasPanel( {
 				style_stroke:        '#2271b1',
 				style_stroke_width:  2,
 			} );
-			const data = await res.json() as MapArea;
-			if ( ! res.ok ) throw new Error( ( data as unknown as { message?: string } ).message || __( 'Failed to create area.', 'cns-map-suite' ) );
 			onAreasLoaded( [ ...areas, data ] );
 			onSelect( data.id );
-		} catch ( err ) { alert( ( err as Error ).message ); }
+		} catch ( err ) {
+			createErrorNotice(
+				( err as Error ).message ||
+					__( 'Failed to create area.', 'cns-map-suite' ),
+				{ type: 'snackbar' }
+			);
+		}
 	}
 
 	async function handleDelete( id: number ) {
@@ -174,9 +185,9 @@ export default function AreasPanel( {
 		<div className="cns-tab-panel cns-tab-panel--active" data-panel="areas" role="tabpanel">
 			<div className="cns-objects-layout">
 				<div className="cns-objects-toolbar">
-					<button type="button" className="button button-primary" onClick={ handleAddArea }>
+					<Button variant="primary" icon={ plus } onClick={ handleAddArea }>
 						{ __( 'Add Area', 'cns-map-suite' ) }
-					</button>
+					</Button>
 					<p className="description">
 						{ __(
 							'Click a node to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty space on a selected area to add a node. With an area selected: arrow keys move the whole area (Shift = 10 px), Tab/Shift+Tab cycles its nodes — arrows then nudge that node and Delete removes it (Esc clears) — Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.',

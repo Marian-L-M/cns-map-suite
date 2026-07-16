@@ -1,3 +1,6 @@
+import { Button } from '@wordpress/components';
+import { copy, pencil, trash } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import EntityTable from './EntityTable';
 import type { EntityColumn } from './EntityTable';
 import type { MapObject } from '../../../types';
@@ -28,14 +31,28 @@ export default function ObjectsList( { objects, onEdit, onDuplicate, onDelete }:
 		<EntityTable
 			items={ objects }
 			columns={ COLUMNS }
-			emptyText="No objects yet. Click on the canvas to place one."
+			emptyText={ __( 'No objects yet. Click on the canvas to place one.', 'cns-map-suite' ) }
 			renderActions={ ( obj ) => (
 				<>
-					<button className="button button-small" onClick={ () => onEdit( obj ) }>Edit</button>
-					{ ' ' }
-					<button className="button button-small" onClick={ () => onDuplicate( obj.id ) }>Duplicate</button>
-					{ ' ' }
-					<button className="button button-small" onClick={ () => onDelete( obj.id ) }>Delete</button>
+					<Button
+						size="small"
+						icon={ pencil }
+						label={ __( 'Edit', 'cns-map-suite' ) }
+						onClick={ () => onEdit( obj ) }
+					/>
+					<Button
+						size="small"
+						icon={ copy }
+						label={ __( 'Duplicate', 'cns-map-suite' ) }
+						onClick={ () => onDuplicate( obj.id ) }
+					/>
+					<Button
+						size="small"
+						icon={ trash }
+						isDestructive
+						label={ __( 'Delete', 'cns-map-suite' ) }
+						onClick={ () => onDelete( obj.id ) }
+					/>
 				</>
 			) }
 		/>

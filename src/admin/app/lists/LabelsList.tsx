@@ -1,3 +1,6 @@
+import { Button } from '@wordpress/components';
+import { copy, pencil, trash } from '@wordpress/icons';
+import { __ } from '@wordpress/i18n';
 import EntityTable from './EntityTable';
 import type { EntityColumn } from './EntityTable';
 import type { MapLabel } from '../../../types';
@@ -42,14 +45,28 @@ export default function LabelsList( { labels, onEdit, onDuplicate, onDelete }: P
 		<EntityTable
 			items={ labels }
 			columns={ COLUMNS }
-			emptyText="No labels yet. Click on the canvas to place one."
+			emptyText={ __( 'No labels yet. Click on the canvas to place one.', 'cns-map-suite' ) }
 			renderActions={ ( label ) => (
 				<>
-					<button className="button button-small" onClick={ () => onEdit( label ) }>Edit</button>
-					{ ' ' }
-					<button className="button button-small" onClick={ () => onDuplicate( label.id ) }>Duplicate</button>
-					{ ' ' }
-					<button className="button button-small" onClick={ () => onDelete( label.id ) }>Delete</button>
+					<Button
+						size="small"
+						icon={ pencil }
+						label={ __( 'Edit', 'cns-map-suite' ) }
+						onClick={ () => onEdit( label ) }
+					/>
+					<Button
+						size="small"
+						icon={ copy }
+						label={ __( 'Duplicate', 'cns-map-suite' ) }
+						onClick={ () => onDuplicate( label.id ) }
+					/>
+					<Button
+						size="small"
+						icon={ trash }
+						isDestructive
+						label={ __( 'Delete', 'cns-map-suite' ) }
+						onClick={ () => onDelete( label.id ) }
+					/>
 				</>
 			) }
 		/>

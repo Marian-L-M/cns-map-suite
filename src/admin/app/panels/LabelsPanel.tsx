@@ -1,4 +1,6 @@
 import { useEffect, useRef } from '@wordpress/element';
+import { Button } from '@wordpress/components';
+import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import LabelsCanvas from '../canvases/LabelsCanvas';
 import type { LabelGeometry } from '../canvases/LabelsCanvas';
@@ -120,9 +122,9 @@ export default function LabelsPanel( {
 		<div className="cns-tab-panel cns-tab-panel--active" data-panel="labels" role="tabpanel">
 			<div className="cns-objects-layout">
 				<div className="cns-objects-toolbar">
-					<button type="button" className="button button-primary" onClick={ handleAdd }>
+					<Button variant="primary" icon={ plus } onClick={ handleAdd }>
 						{ __( 'Add Label', 'cns-map-suite' ) }
-					</button>
+					</Button>
 					<p className="description">
 						{ __(
 							'Click a label to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). In indicator mode the dot and the text box move independently. With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',

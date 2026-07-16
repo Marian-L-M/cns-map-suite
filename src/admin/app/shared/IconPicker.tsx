@@ -1,3 +1,5 @@
+import { Button, ExternalLink } from '@wordpress/components';
+import { __ } from '@wordpress/i18n';
 import type { LibraryIcon } from '../../../types';
 
 interface Props {
@@ -10,24 +12,33 @@ export default function IconPicker( { icons, selectedIconId, onSelect }: Props )
 	if ( ! icons || ! icons.length ) {
 		return (
 			<p className="description">
-				No icons yet.{ ' ' }
-				<a href={ window.cnsMapSuite.iconsUrl } target="_blank" rel="noreferrer">Add icons →</a>
+				{ __( 'No icons yet.', 'cns-map-suite' ) }{ ' ' }
+				<ExternalLink href={ window.cnsMapSuite.iconsUrl }>
+					{ __( 'Add icons', 'cns-map-suite' ) }
+				</ExternalLink>
 			</p>
 		);
 	}
 
 	return (
-		<div className="cns-icon-picker-grid">
+		<div
+			className="cns-icon-picker-grid"
+			aria-label={ __( 'Icon library', 'cns-map-suite' ) }
+		>
 			{ icons.map( ( icon ) => (
-				<button
+				<Button
 					key={ icon.id }
-					type="button"
-					className={ `cns-icon-item${ icon.id === selectedIconId ? ' cns-icon-item--active' : '' }` }
-					title={ icon.title }
+					className={ `cns-icon-item${
+						icon.id === selectedIconId
+							? ' cns-icon-item--active'
+							: ''
+					}` }
+					label={ icon.title }
+					aria-pressed={ icon.id === selectedIconId }
 					onClick={ () => onSelect( icon.id ) }
 				>
 					<img src={ icon.url } alt={ icon.title } />
-				</button>
+				</Button>
 			) ) }
 		</div>
 	);
