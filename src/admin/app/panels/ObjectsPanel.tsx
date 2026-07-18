@@ -1,11 +1,15 @@
+import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
 import { useRef, useEffect } from '@wordpress/element';
-import { Button } from '@wordpress/components';
 import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+
 import ObjectsCanvas from '../canvases/ObjectsCanvas';
-import ObjectsList   from '../lists/ObjectsList';
+import ObjectsList from '../lists/ObjectsList';
 import { settingsToDrawState } from '../../canvas';
-import { defaultObjectFormData, collectObjectPayload } from '../forms/ObjectForm';
+import {
+	defaultObjectFormData,
+	collectObjectPayload,
+} from '../forms/ObjectForm';
 import { useCanvasKeyboard, createDebouncedNudge } from '../useCanvasKeyboard';
 import { useMapResource } from '../useMapResource';
 import type { MapSettings, MapObject, ObjectSavePayload } from '../../../types';
@@ -23,43 +27,58 @@ interface Props {
 	onObjectsLoaded: ( objects: MapObject[] ) => void;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
-	onAdd: ( payload: ObjectSavePayload ) => Promise<MapObject>;
-	onPositionUpdate: ( id: number, x: number, y: number ) => Promise<void>;
-	onLocalUpdate: ( id: number, patch: Partial<MapObject> ) => void;
-	onDuplicate: ( id: number ) => Promise<void>;
+	onAdd: ( payload: ObjectSavePayload ) => Promise< MapObject >;
+	onPositionUpdate: ( id: number, x: number, y: number ) => Promise< void >;
+	onLocalUpdate: ( id: number, patch: Partial< MapObject > ) => void;
+	onDuplicate: ( id: number ) => Promise< void >;
 	onRepositionStart: ( id: number ) => void;
 	onRepositionComplete: () => void;
-	onDelete: ( id: number ) => Promise<void>;
+	onDelete: ( id: number ) => Promise< void >;
 }
 
 export default function ObjectsPanel( {
-	mapId, settings, objects, selectedObjectId,
+	mapId,
+	settings,
+	objects,
+	selectedObjectId,
 	repositioningObjectId,
-	onObjectsLoaded, onSelect, onDeselect,
-	onAdd, onPositionUpdate, onLocalUpdate, onDuplicate,
-	onRepositionStart, onRepositionComplete,
+	onObjectsLoaded,
+	onSelect,
+	onDeselect,
+	onAdd,
+	onPositionUpdate,
+	onLocalUpdate,
+	onDuplicate,
+	onRepositionStart,
+	onRepositionComplete,
 	onDelete,
 }: Props ) {
-	useMapResource<MapObject>( mapId, 'objects', onObjectsLoaded );
+	useMapResource< MapObject >( mapId, 'objects', onObjectsLoaded );
 
 	// The nudge factory is created once; these refs feed it live values.
-	const stateRef   = useRef( { objects, selectedObjectId } );
+	const stateRef = useRef( { objects, selectedObjectId } );
 	stateRef.current = { objects, selectedObjectId };
-	const propsRef   = useRef( { onPositionUpdate, onLocalUpdate } );
+	const propsRef = useRef( { onPositionUpdate, onLocalUpdate } );
 	propsRef.current = { onPositionUpdate, onLocalUpdate };
 
 	// ── Keyboard shortcuts (active while the Objects tab is mounted) ───────────
 
-	const selectedObject = objects.find( ( o ) => o.id === selectedObjectId ) || null;
+	const selectedObject =
+		objects.find( ( o ) => o.id === selectedObjectId ) || null;
 
-	const nudger = useRef( createDebouncedNudge(
-		() => {
-			const s = stateRef.current;
-			return s.objects.find( ( o ) => o.id === s.selectedObjectId ) || null;
-		},
-		( id, x, y ) => propsRef.current.onLocalUpdate( id, { x, y } ),
-		( id, x, y ) => void propsRef.current.onPositionUpdate( id, x, y ),
-	) );
+	const nudger = useRef(
+		createDebouncedNudge(
+			() => {
+				const s = stateRef.current;
+				return (
+					s.objects.find( ( o ) => o.id === s.selectedObjectId ) ||
+					null
+				);
+			},
+			( id, x, y ) => propsRef.current.onLocalUpdate( id, { x, y } ),
+			( id, x, y ) => void propsRef.current.onPositionUpdate( id, x, y )
+		)
+	);
 	useEffect( () => () => nudger.current.flush(), [] ); // persist pending nudge on tab leave
 
 	async function pasteObject() {
@@ -79,7 +98,9 @@ export default function ObjectsPanel( {
 	useCanvasKeyboard( {
 		copy: () => {
 			if ( ! selectedObject ) return false;
-			objectClipboard = collectObjectPayload( defaultObjectFormData( selectedObject, null, null ) );
+			objectClipboard = collectObjectPayload(
+				defaultObjectFormData( selectedObject, null, null )
+			);
 			return true;
 		},
 		paste: () => {
@@ -94,7 +115,8 @@ export default function ObjectsPanel( {
 		},
 		remove: () => {
 			if ( ! selectedObject ) return false;
-			if ( confirm( __( 'Delete this object?', 'cns-map-suite' ) ) ) void onDelete( selectedObject.id );
+			if ( confirm( __( 'Delete this object?', 'cns-map-suite' ) ) )
+				void onDelete( selectedObject.id );
 			return true;
 		},
 		nudge: ( dx, dy ) => nudger.current.nudge( dx, dy ),
@@ -125,20 +147,63 @@ export default function ObjectsPanel( {
 	const drawState = settingsToDrawState( settings );
 
 	return (
-		<div className="cns-tab-panel cns-tab-panel--active" data-panel="objects" role="tabpanel">
-			<div className="cns-objects-layout">
-				<div className="cns-objects-toolbar">
-					<Button variant="primary" icon={ plus } onClick={ handleAdd }>
-						{ __( 'Add Object', 'cns-map-suite' ) }
-					</Button>
-					<p className="description">
-						{ __(
-							'Click an object to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty canvas to place a new object at that position, then edit it in the side panel. With an object selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
-							'cns-map-suite'
-						) }
-					</p>
-				</div>
-
+		<div
+			className="cns-tab-panel cns-tab-panel--active"
+			data-panel="objects"
+			role="tabpanel"
+		>
+			<Flex gap={ 2 } direction="column" align="center">
+				<FlexBlock style={ { width: '100%' } }>
+					<Flex gap={ 4 } align="start" justify="space-between">
+						<FlexItem>
+							<ul className="description">
+								<li>
+									{ __(
+										'Click an object to pick it up — it follows the cursor;',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Click again or press Enter to place object',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Press Esc to cancel current placement.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Click empty canvas to place a new object at position.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										' Edit object contents it in the side panel. ',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'While object seleted, Enter picks it up, arrow keys nudge, Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
+										'cns-map-suite'
+									) }
+								</li>
+							</ul>
+						</FlexItem>
+						<Button
+							variant="primary"
+							icon={ plus }
+							onClick={ handleAdd }
+						>
+							{ __( 'Add Object', 'cns-map-suite' ) }
+						</Button>
+					</Flex>
+				</FlexBlock>
 				<ObjectsCanvas
 					drawState={ drawState }
 					objects={ objects }
@@ -157,7 +222,7 @@ export default function ObjectsPanel( {
 					onDuplicate={ ( id ) => void onDuplicate( id ) }
 					onDelete={ handleDelete }
 				/>
-			</div>
+			</Flex>
 		</div>
 	);
 }

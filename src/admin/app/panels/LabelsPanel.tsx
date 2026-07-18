@@ -1,10 +1,11 @@
+import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
 import { useEffect, useRef } from '@wordpress/element';
-import { Button } from '@wordpress/components';
 import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
+
 import LabelsCanvas from '../canvases/LabelsCanvas';
 import type { LabelGeometry } from '../canvases/LabelsCanvas';
-import LabelsList   from '../lists/LabelsList';
+import LabelsList from '../lists/LabelsList';
 import { settingsToDrawState } from '../../canvas';
 import { defaultLabelFormData, collectLabelPayload } from '../forms/LabelForm';
 import { useCanvasKeyboard, createDebouncedNudge } from '../useCanvasKeyboard';
@@ -24,42 +25,59 @@ interface Props {
 	onLabelsLoaded: ( labels: MapLabel[] ) => void;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
-	onAdd: ( payload: LabelSavePayload ) => Promise<MapLabel>;
-	onGeometryUpdate: ( id: number, geometry: Partial<LabelGeometry> ) => Promise<void>;
-	onLocalUpdate: ( id: number, patch: Partial<MapLabel> ) => void;
-	onDuplicate: ( id: number ) => Promise<void>;
+	onAdd: ( payload: LabelSavePayload ) => Promise< MapLabel >;
+	onGeometryUpdate: (
+		id: number,
+		geometry: Partial< LabelGeometry >
+	) => Promise< void >;
+	onLocalUpdate: ( id: number, patch: Partial< MapLabel > ) => void;
+	onDuplicate: ( id: number ) => Promise< void >;
 	onRepositionComplete: () => void;
-	onDelete: ( id: number ) => Promise<void>;
+	onDelete: ( id: number ) => Promise< void >;
 }
 
 export default function LabelsPanel( {
-	mapId, settings, labels, selectedLabelId,
+	mapId,
+	settings,
+	labels,
+	selectedLabelId,
 	repositioningLabelId,
-	onLabelsLoaded, onSelect, onDeselect,
-	onAdd, onGeometryUpdate, onLocalUpdate, onDuplicate,
+	onLabelsLoaded,
+	onSelect,
+	onDeselect,
+	onAdd,
+	onGeometryUpdate,
+	onLocalUpdate,
+	onDuplicate,
 	onRepositionComplete,
 	onDelete,
 }: Props ) {
-	useMapResource<MapLabel>( mapId, 'labels', onLabelsLoaded );
+	useMapResource< MapLabel >( mapId, 'labels', onLabelsLoaded );
 
 	// The nudge factory is created once; these refs feed it live values.
-	const stateRef   = useRef( { labels, selectedLabelId } );
+	const stateRef = useRef( { labels, selectedLabelId } );
 	stateRef.current = { labels, selectedLabelId };
-	const propsRef   = useRef( { onGeometryUpdate, onLocalUpdate } );
+	const propsRef = useRef( { onGeometryUpdate, onLocalUpdate } );
 	propsRef.current = { onGeometryUpdate, onLocalUpdate };
 
 	// ── Keyboard shortcuts (active while the Labels tab is mounted) ────────────
 
-	const selectedLabel = labels.find( ( l ) => l.id === selectedLabelId ) || null;
+	const selectedLabel =
+		labels.find( ( l ) => l.id === selectedLabelId ) || null;
 
-	const nudger = useRef( createDebouncedNudge(
-		() => {
-			const s = stateRef.current;
-			return s.labels.find( ( l ) => l.id === s.selectedLabelId ) || null;
-		},
-		( id, x, y ) => propsRef.current.onLocalUpdate( id, { x, y } ),
-		( id, x, y ) => void propsRef.current.onGeometryUpdate( id, { x, y } ),
-	) );
+	const nudger = useRef(
+		createDebouncedNudge(
+			() => {
+				const s = stateRef.current;
+				return (
+					s.labels.find( ( l ) => l.id === s.selectedLabelId ) || null
+				);
+			},
+			( id, x, y ) => propsRef.current.onLocalUpdate( id, { x, y } ),
+			( id, x, y ) =>
+				void propsRef.current.onGeometryUpdate( id, { x, y } )
+		)
+	);
 	useEffect( () => () => nudger.current.flush(), [] ); // persist pending nudge on tab leave
 
 	async function pasteLabel() {
@@ -79,7 +97,9 @@ export default function LabelsPanel( {
 	useCanvasKeyboard( {
 		copy: () => {
 			if ( ! selectedLabel ) return false;
-			labelClipboard = collectLabelPayload( defaultLabelFormData( selectedLabel, null, null ) );
+			labelClipboard = collectLabelPayload(
+				defaultLabelFormData( selectedLabel, null, null )
+			);
 			return true;
 		},
 		paste: () => {
@@ -94,7 +114,8 @@ export default function LabelsPanel( {
 		},
 		remove: () => {
 			if ( ! selectedLabel ) return false;
-			if ( confirm( __( 'Delete this label?', 'cns-map-suite' ) ) ) void onDelete( selectedLabel.id );
+			if ( confirm( __( 'Delete this label?', 'cns-map-suite' ) ) )
+				void onDelete( selectedLabel.id );
 			return true;
 		},
 		nudge: ( dx, dy ) => nudger.current.nudge( dx, dy ),
@@ -119,20 +140,51 @@ export default function LabelsPanel( {
 	const drawState = settingsToDrawState( settings );
 
 	return (
-		<div className="cns-tab-panel cns-tab-panel--active" data-panel="labels" role="tabpanel">
-			<div className="cns-objects-layout">
-				<div className="cns-objects-toolbar">
-					<Button variant="primary" icon={ plus } onClick={ handleAdd }>
-						{ __( 'Add Label', 'cns-map-suite' ) }
-					</Button>
-					<p className="description">
-						{ __(
-							'Click a label to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). In indicator mode the dot and the text box move independently. With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
-							'cns-map-suite'
-						) }
-					</p>
-				</div>
-
+		<div
+			className="cns-tab-panel cns-tab-panel--active"
+			data-panel="labels"
+			role="tabpanel"
+		>
+			<Flex gap={ 2 } direction="column" align="center">
+				<FlexBlock style={ { width: '100%' } }>
+					<Flex gap={ 4 } align="start" justify="space-between">
+						<FlexItem>
+							<ul className="description">
+								<li>
+									{ __(
+										'Click a label to pick it up — it follows the cursor;',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Esc cancels placement.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'In indicator mode the dot and the text box move independently.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
+										'cns-map-suite'
+									) }
+								</li>
+							</ul>
+						</FlexItem>
+						<Button
+							variant="primary"
+							icon={ plus }
+							onClick={ handleAdd }
+						>
+							{ __( 'Add Label', 'cns-map-suite' ) }
+						</Button>
+					</Flex>
+				</FlexBlock>
 				<LabelsCanvas
 					drawState={ drawState }
 					labels={ labels }
@@ -143,14 +195,13 @@ export default function LabelsPanel( {
 					onGeometryUpdate={ onGeometryUpdate }
 					onRepositionComplete={ onRepositionComplete }
 				/>
-
 				<LabelsList
 					labels={ labels }
 					onEdit={ ( label ) => onSelect( label.id ) }
 					onDuplicate={ ( id ) => void onDuplicate( id ) }
 					onDelete={ handleDelete }
 				/>
-			</div>
+			</Flex>
 		</div>
 	);
 }

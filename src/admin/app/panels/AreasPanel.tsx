@@ -1,11 +1,12 @@
-import { useState, useEffect } from '@wordpress/element';
-import { Button } from '@wordpress/components';
+import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
-import { store as noticesStore } from '@wordpress/notices';
+import { useState, useEffect } from '@wordpress/element';
 import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
-import AreasCanvas  from '../canvases/AreasCanvas';
-import AreasList    from '../lists/AreasList';
+import { store as noticesStore } from '@wordpress/notices';
+
+import AreasCanvas from '../canvases/AreasCanvas';
+import AreasList from '../lists/AreasList';
 import { apiFetch } from '../../utils';
 import { settingsToDrawState } from '../../canvas';
 import { getDefaultNodes, moveAreaNode, canRemoveAreaNode } from '../../areas';
@@ -27,28 +28,37 @@ interface Props {
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
 	onNodesUpdate: ( areaId: number, nodes: Node[] ) => void;
-	onDuplicate: ( id: number ) => Promise<void>;
-	onDelete: ( id: number ) => Promise<void>;
+	onDuplicate: ( id: number ) => Promise< void >;
+	onDelete: ( id: number ) => Promise< void >;
 }
 
 export default function AreasPanel( {
-	mapId, settings, areas, selectedAreaId,
-	onAreasLoaded, onSelect, onDeselect, onNodesUpdate,
-	onDuplicate, onDelete,
+	mapId,
+	settings,
+	areas,
+	selectedAreaId,
+	onAreasLoaded,
+	onSelect,
+	onDeselect,
+	onNodesUpdate,
+	onDuplicate,
+	onDelete,
 }: Props ) {
-	useMapResource<MapArea>( mapId, 'areas', onAreasLoaded );
+	useMapResource< MapArea >( mapId, 'areas', onAreasLoaded );
 	const { createErrorNotice } = useDispatch( noticesStore );
 
 	// ── Keyboard shortcuts (active while the Areas tab is mounted) ─────────────
 
 	const selectedArea = areas.find( ( a ) => a.id === selectedAreaId ) || null;
-	const canvasW      = settings.width || 1000;
-	const canvasH      = canvasW / ( settings.aspectRatio || 1 );
+	const canvasW = settings.width || 1000;
+	const canvasH = canvasW / ( settings.aspectRatio || 1 );
 
 	// Keyboard-focused node of the selected area (Tab cycles it): arrows then
 	// nudge that node instead of the whole area, Delete removes it, Esc clears
 	// the focus (handled in the canvas, before deselecting).
-	const [ focusedNodeIdx, setFocusedNodeIdx ] = useState<number | null>( null );
+	const [ focusedNodeIdx, setFocusedNodeIdx ] = useState< number | null >(
+		null
+	);
 
 	useEffect( () => {
 		setFocusedNodeIdx( null );
@@ -73,10 +83,14 @@ export default function AreasPanel( {
 		} ) );
 		areaClipboard = { ...areaClipboard, nodes };
 		try {
-			const data = await apiFetch< MapArea >( 'POST', `/maps/${ mapId }/areas`, {
-				...areaClipboard.form,
-				nodes: JSON.stringify( nodes ),
-			} );
+			const data = await apiFetch< MapArea >(
+				'POST',
+				`/maps/${ mapId }/areas`,
+				{
+					...areaClipboard.form,
+					nodes: JSON.stringify( nodes ),
+				}
+			);
 			onAreasLoaded( [ ...areas, data ] );
 			onSelect( data.id );
 		} catch {
@@ -88,8 +102,10 @@ export default function AreasPanel( {
 		copy: () => {
 			if ( ! selectedArea ) return false;
 			areaClipboard = {
-				form:  defaultAreaFormData( selectedArea ),
-				nodes: ( selectedArea.nodes || [] ).map( ( n ) => ( { ...n } ) ),
+				form: defaultAreaFormData( selectedArea ),
+				nodes: ( selectedArea.nodes || [] ).map( ( n ) => ( {
+					...n,
+				} ) ),
 			};
 			return true;
 		},
@@ -109,15 +125,20 @@ export default function AreasPanel( {
 			if ( ! selectedArea ) return false;
 			if ( focusedNodeIdx !== null ) {
 				if ( canRemoveAreaNode( selectedArea ) ) {
-					const nodes = ( selectedArea.nodes || [] ).filter( ( _, i ) => i !== focusedNodeIdx );
+					const nodes = ( selectedArea.nodes || [] ).filter(
+						( _, i ) => i !== focusedNodeIdx
+					);
 					onNodesUpdate( selectedArea.id, nodes );
 					// The clamp effect keeps the index valid; move focus to
 					// the previous node so repeated Deletes walk backwards.
-					setFocusedNodeIdx( focusedNodeIdx > 0 ? focusedNodeIdx - 1 : 0 );
+					setFocusedNodeIdx(
+						focusedNodeIdx > 0 ? focusedNodeIdx - 1 : 0
+					);
 				}
 				return true; // claim the key even when the shape can't shrink
 			}
-			if ( confirm( __( 'Delete this area?', 'cns-map-suite' ) ) ) void onDelete( selectedArea.id );
+			if ( confirm( __( 'Delete this area?', 'cns-map-suite' ) ) )
+				void onDelete( selectedArea.id );
 			return true;
 		},
 		// Arrow keys nudge the focused node, or move the whole area when no
@@ -125,11 +146,23 @@ export default function AreasPanel( {
 		// geometry save in MapEditorApp.
 		nudge: ( dx, dy ) => {
 			if ( ! selectedArea ) return false;
-			if ( focusedNodeIdx !== null && ( selectedArea.nodes || [] )[ focusedNodeIdx ] ) {
+			if (
+				focusedNodeIdx !== null &&
+				( selectedArea.nodes || [] )[ focusedNodeIdx ]
+			) {
 				const node = selectedArea.nodes[ focusedNodeIdx ];
-				const newX = Math.min( 1, Math.max( 0, node.x + dx / canvasW ) );
-				const newY = Math.min( 1, Math.max( 0, node.y + dy / canvasH ) );
-				onNodesUpdate( selectedArea.id, moveAreaNode( selectedArea, focusedNodeIdx, newX, newY ) );
+				const newX = Math.min(
+					1,
+					Math.max( 0, node.x + dx / canvasW )
+				);
+				const newY = Math.min(
+					1,
+					Math.max( 0, node.y + dy / canvasH )
+				);
+				onNodesUpdate(
+					selectedArea.id,
+					moveAreaNode( selectedArea, focusedNodeIdx, newX, newY )
+				);
 				return true;
 			}
 			const nodes = ( selectedArea.nodes || [] ).map( ( n ) => ( {
@@ -145,7 +178,9 @@ export default function AreasPanel( {
 			if ( ! selectedArea || ! nodeCount ) return false;
 			setFocusedNodeIdx( ( prev ) => {
 				if ( prev === null ) return backwards ? nodeCount - 1 : 0;
-				return ( prev + ( backwards ? -1 : 1 ) + nodeCount ) % nodeCount;
+				return (
+					( prev + ( backwards ? -1 : 1 ) + nodeCount ) % nodeCount
+				);
 			} );
 			return true;
 		},
@@ -155,14 +190,18 @@ export default function AreasPanel( {
 		if ( ! mapId ) return;
 		const defaultNodes = getDefaultNodes( 'POLYGON' );
 		try {
-			const data = await apiFetch< MapArea >( 'POST', `/maps/${ mapId }/areas`, {
-				title:               __( 'New Area', 'cns-map-suite' ),
-				nodes:               JSON.stringify( defaultNodes ),
-				style_fill:          '#2271b1',
-				style_fill_opacity:  0.3,
-				style_stroke:        '#2271b1',
-				style_stroke_width:  2,
-			} );
+			const data = await apiFetch< MapArea >(
+				'POST',
+				`/maps/${ mapId }/areas`,
+				{
+					title: __( 'New Area', 'cns-map-suite' ),
+					nodes: JSON.stringify( defaultNodes ),
+					style_fill: '#2271b1',
+					style_fill_opacity: 0.3,
+					style_stroke: '#2271b1',
+					style_stroke_width: 2,
+				}
+			);
 			onAreasLoaded( [ ...areas, data ] );
 			onSelect( data.id );
 		} catch ( err ) {
@@ -182,20 +221,69 @@ export default function AreasPanel( {
 	const drawState = settingsToDrawState( settings );
 
 	return (
-		<div className="cns-tab-panel cns-tab-panel--active" data-panel="areas" role="tabpanel">
-			<div className="cns-objects-layout">
-				<div className="cns-objects-toolbar">
-					<Button variant="primary" icon={ plus } onClick={ handleAddArea }>
-						{ __( 'Add Area', 'cns-map-suite' ) }
-					</Button>
-					<p className="description">
-						{ __(
-							'Click a node to pick it up — it follows the cursor; click or press Enter to drop (Esc cancels). Click empty space on a selected area to add a node. With an area selected: arrow keys move the whole area (Shift = 10 px), Tab/Shift+Tab cycles its nodes — arrows then nudge that node and Delete removes it (Esc clears) — Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.',
-							'cns-map-suite'
-						) }
-					</p>
-				</div>
-
+		<div
+			className="cns-tab-panel cns-tab-panel--active"
+			data-panel="areas"
+			role="tabpanel"
+		>
+			<Flex gap={ 2 } direction="column" align="center">
+				<FlexBlock style={ { width: '100%' } }>
+					<Flex gap={ 4 } align="start" justify="space-between">
+						<FlexItem>
+							<ul className="description">
+								<li>
+									{ __(
+										'Click a node to pick it up — it follows the cursor.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Click or press Enter to place node.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Press Esc to cancel current placement.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Click empty space on a selected area to add a node. ',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'With an area selected: arrow keys move the whole area (Shift = 10 px).',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										' Tab/Shift+Tab cycles nodes; Arrows nudge node; Delete removes node.',
+										'cns-map-suite'
+									) }
+								</li>
+								<li>
+									{ __(
+										'Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.',
+										'cns-map-suite'
+									) }
+								</li>
+							</ul>
+						</FlexItem>
+						<Button
+							variant="primary"
+							icon={ plus }
+							onClick={ handleAddArea }
+						>
+							{ __( 'Add Area', 'cns-map-suite' ) }
+						</Button>
+					</Flex>
+				</FlexBlock>
 				<AreasCanvas
 					drawState={ drawState }
 					areas={ areas }
@@ -206,14 +294,13 @@ export default function AreasPanel( {
 					onNodesChange={ onNodesUpdate }
 					onNodeFocusChange={ setFocusedNodeIdx }
 				/>
-
 				<AreasList
 					areas={ areas }
 					onSelect={ onSelect }
 					onDuplicate={ ( id ) => void onDuplicate( id ) }
 					onDelete={ handleDelete }
 				/>
-			</div>
+			</Flex>
 		</div>
 	);
 }

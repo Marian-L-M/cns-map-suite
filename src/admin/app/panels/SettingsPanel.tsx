@@ -5,8 +5,18 @@ import {
 	TextControl,
 	ToggleControl,
 	__experimentalNumberControl as NumberControl,
+	Card,
+	CardBody,
+	CardDivider,
+	Tooltip,
+	Flex,
 } from '@wordpress/components';
-import { chevronRightSmall, chevronLeftSmall } from '@wordpress/icons';
+import {
+	Icon,
+	chevronRightSmall,
+	chevronLeftSmall,
+	info,
+} from '@wordpress/icons';
 
 // Custom elements
 import ColorField from '../shared/ColorField';
@@ -40,7 +50,6 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 						<div className="cns-grid__group cns-grid__span-3">
 							<TextControl
 								__next40pxDefaultSize
-								__nextHasNoMarginBottom
 								label={ __( 'Map Title', 'cns-map-suite' ) }
 								value={ settings.title }
 								placeholder={ __(
@@ -50,12 +59,14 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 								onChange={ ( title ) => set( 'title', title ) }
 							/>
 						</div>
-
 						{ /*  Map Time Value */ }
 						<div className="cns-grid__group cns-grid__span-1">
 							<NumberControl
 								__next40pxDefaultSize
-								label={ __( 'Map Time', 'cns-map-suite' ) }
+								label={ __(
+									'Timeline value',
+									'cns-map-suite'
+								) }
 								value={ settings.time }
 								step={ 1 }
 								spinControls="native"
@@ -68,18 +79,47 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 										parseInt( value ?? '', 10 ) || 0
 									)
 								}
-								help={ __(
-									'In-world timeline value.',
-									'cns-map-suite'
-								) }
 							/>
+						</div>
+
+						{ /* Flags */ }
+						<div className="cns-grid__group cns-grid__span-4">
+							<Flex gap={ 1 } align="center" justify="start">
+								<ToggleControl
+									label={ __( 'MasterMap', 'cns-map-suite' ) }
+									checked={ settings.isMaster }
+									onChange={ ( v ) => set( 'isMaster', v ) }
+								/>
+								<Tooltip
+									text="Relational map that links to other child maps."
+									placement="top-end"
+								>
+									<div>
+										<Icon icon={ info } size={ 16 } />
+									</div>
+								</Tooltip>
+							</Flex>
+							<Flex gap={ 1 } align="center" justify="start">
+								<ToggleControl
+									label={ __( 'Featured', 'cns-map-suite' ) }
+									checked={ settings.featured }
+									onChange={ ( v ) => set( 'featured', v ) }
+								/>
+								<Tooltip
+									text="Display in featured section"
+									placement="top-end"
+								>
+									<div>
+										<Icon icon={ info } size={ 16 } />
+									</div>
+								</Tooltip>
+							</Flex>
 						</div>
 
 						{ /* Aspect Ratio */ }
 						<div className="cns-grid__group cns-grid__span-3">
 							<RangeControl
 								__next40pxDefaultSize
-								__nextHasNoMarginBottom
 								label={ __( 'Aspect Ratio', 'cns-map-suite' ) }
 								help={ __(
 									'Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)',
@@ -112,7 +152,10 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 						<div className="cns-grid__group cns-grid__span-1">
 							<NumberControl
 								__next40pxDefaultSize
-								label={ __( 'Max Width (px)', 'cns-map-suite' ) }
+								label={ __(
+									'Max Width (px)',
+									'cns-map-suite'
+								) }
 								min={ 100 }
 								step={ 10 }
 								value={ settings.width }
@@ -130,7 +173,10 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 							<MediaPicker
 								imageId={ settings.imageId }
 								imageUrl={ settings.imageUrl }
-								label={ __( 'Base Map Image', 'cns-map-suite' ) }
+								label={ __(
+									'Base Map Image',
+									'cns-map-suite'
+								) }
 								title={ __(
 									'Select Base Map Image',
 									'cns-map-suite'
@@ -147,49 +193,93 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 
 						{ /* Image placement */ }
 						<div className="cns-grid__group cns-grid__span-2">
-							<RangeControl
-								__next40pxDefaultSize
-								__nextHasNoMarginBottom
-								label={ __( 'Image X offset', 'cns-map-suite' ) }
-								min={ 0 }
-								max={ 1 }
-								step={ 0.01 }
-								withInputField
-								value={ settings.imageX }
-								onChange={ ( v ) => set( 'imageX', v ?? 0 ) }
-							/>
-							<RangeControl
-								__next40pxDefaultSize
-								__nextHasNoMarginBottom
-								label={ __( 'Image Y offset', 'cns-map-suite' ) }
-								min={ 0 }
-								max={ 1 }
-								step={ 0.01 }
-								withInputField
-								value={ settings.imageY }
-								onChange={ ( v ) => set( 'imageY', v ?? 0 ) }
-							/>
-							<RangeControl
-								__next40pxDefaultSize
-								__nextHasNoMarginBottom
-								label={ __( 'Image Width', 'cns-map-suite' ) }
-								help={ __(
-									'1.0 = full canvas width. Height follows the image ratio.',
-									'cns-map-suite'
-								) }
-								min={ 0.1 }
-								max={ 2 }
-								step={ 0.01 }
-								withInputField
-								value={ settings.imageW }
-								onChange={ ( v ) => set( 'imageW', v ?? 1 ) }
-							/>
+							<Card className="image-scale-positioning">
+								<CardBody>
+									<RangeControl
+										__next40pxDefaultSize
+										label={ __(
+											'Image Width',
+											'cns-map-suite'
+										) }
+										help={ __(
+											'1.0 = full canvas width. Height follows the image ratio.',
+											'cns-map-suite'
+										) }
+										min={ 0.1 }
+										max={ 2 }
+										step={ 0.01 }
+										withInputField
+										value={ settings.imageW }
+										onChange={ ( v ) =>
+											set( 'imageW', v ?? 1 )
+										}
+									/>
+								</CardBody>
+								<CardDivider />
+								<CardBody>
+									<RangeControl
+										__next40pxDefaultSize
+										label={ __(
+											'Image Y offset',
+											'cns-map-suite'
+										) }
+										min={ 0 }
+										max={ 1 }
+										step={ 0.01 }
+										withInputField
+										value={ settings.imageY }
+										onChange={ ( v ) =>
+											set( 'imageY', v ?? 0 )
+										}
+									/>
+								</CardBody>
+								<CardDivider />
+								<CardBody>
+									<RangeControl
+										__next40pxDefaultSize
+										label={ __(
+											'Image X offset',
+											'cns-map-suite'
+										) }
+										min={ 0 }
+										max={ 1 }
+										step={ 0.01 }
+										withInputField
+										value={ settings.imageX }
+										onChange={ ( v ) =>
+											set( 'imageX', v ?? 0 )
+										}
+									/>
+								</CardBody>
+							</Card>
 						</div>
 
-						{ /* Background */ }
+						{ /* Thumbnail */ }
+						<div className="cns-grid__group cns-grid__span-2">
+							<MediaPicker
+								imageId={ settings.thumbnailId ?? 0 }
+								imageUrl={ settings.thumbnailUrl }
+								label={ __( 'Thumbnail', 'cns-map-suite' ) }
+								title={ __(
+									'Select Map Thumbnail',
+									'cns-map-suite'
+								) }
+								onChange={ ( att ) =>
+									onChange( ( prev ) => ( {
+										...prev,
+										thumbnailId: att ? att.id : null,
+										thumbnailUrl: att ? att.url : '',
+									} ) )
+								}
+							/>
+						</div>
+						{ /* Map Background */ }
 						<div className="cns-grid__group cns-grid__span-2">
 							<RadioControl
-								label={ __( 'Background', 'cns-map-suite' ) }
+								label={ __(
+									'Map Background',
+									'cns-map-suite'
+								) }
 								selected={ settings.bgType }
 								options={ [
 									{
@@ -202,7 +292,10 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 									},
 								] }
 								onChange={ ( v ) =>
-									set( 'bgType', v as MapSettings[ 'bgType' ] )
+									set(
+										'bgType',
+										v as MapSettings[ 'bgType' ]
+									)
 								}
 							/>
 							{ settings.bgType === 'color' && (
@@ -232,52 +325,6 @@ export default function SettingsPanel( { settings, onChange }: Props ) {
 									}
 								/>
 							) }
-						</div>
-
-						{ /* Thumbnail */ }
-						<div className="cns-grid__group cns-grid__span-2">
-							<MediaPicker
-								imageId={ settings.thumbnailId ?? 0 }
-								imageUrl={ settings.thumbnailUrl }
-								label={ __( 'Thumbnail', 'cns-map-suite' ) }
-								title={ __(
-									'Select Map Thumbnail',
-									'cns-map-suite'
-								) }
-								onChange={ ( att ) =>
-									onChange( ( prev ) => ( {
-										...prev,
-										thumbnailId: att ? att.id : null,
-										thumbnailUrl: att ? att.url : '',
-									} ) )
-								}
-							/>
-							<p className="description">
-								{ __(
-									'Used as the map’s featured image in listings.',
-									'cns-map-suite'
-								) }
-							</p>
-						</div>
-
-						{ /* Flags */ }
-						<div className="cns-grid__group cns-grid__span-2">
-							<ToggleControl
-								__nextHasNoMarginBottom
-								label={ __( 'MasterMap mode', 'cns-map-suite' ) }
-								help={ __(
-									'Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy.',
-									'cns-map-suite'
-								) }
-								checked={ settings.isMaster }
-								onChange={ ( v ) => set( 'isMaster', v ) }
-							/>
-							<ToggleControl
-								__nextHasNoMarginBottom
-								label={ __( 'Featured', 'cns-map-suite' ) }
-								checked={ settings.featured }
-								onChange={ ( v ) => set( 'featured', v ) }
-							/>
 						</div>
 					</div>
 				</div>
