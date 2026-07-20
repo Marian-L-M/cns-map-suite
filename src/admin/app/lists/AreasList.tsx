@@ -12,34 +12,50 @@ interface Props {
 	onDelete: ( id: number ) => void;
 }
 
-const COLUMNS: EntityColumn<MapArea>[] = [
+const COLUMNS: EntityColumn< MapArea >[] = [
 	{ header: 'Title', render: ( area ) => area.title || '(no title)' },
-	{ header: 'Type',  render: ( area ) => <span className="cns-badge cns-badge--type">{ area.type }</span> },
-	{ header: 'Nodes', render: ( area ) => `${ ( area.nodes || [] ).length } nodes` },
+	{
+		header: 'Type',
+		render: ( area ) => (
+			<span className="cns-badge cns-badge--type">{ area.type }</span>
+		),
+	},
+	{
+		header: 'Nodes',
+		render: ( area ) => `${ ( area.nodes || [] ).length } nodes`,
+	},
 ];
 
-export default function AreasList( { areas, onSelect, onDuplicate, onDelete }: Props ) {
+export default function AreasList( {
+	areas,
+	onSelect,
+	onDuplicate,
+	onDelete,
+}: Props ) {
 	return (
 		<EntityTable
 			items={ areas }
 			columns={ COLUMNS }
-			emptyText={ __( 'No areas yet. Click “Add Area” to create one.', 'cns-map-suite' ) }
+			emptyText={ __(
+				'No areas yet. Click “Add Area” to create one.',
+				'cns-map-suite'
+			) }
 			renderActions={ ( area ) => (
 				<>
 					<Button
-						size="small"
+						variant="secondary"
 						icon={ pencil }
 						label={ __( 'Edit', 'cns-map-suite' ) }
 						onClick={ () => onSelect( area.id ) }
 					/>
 					<Button
-						size="small"
+						variant="secondary"
 						icon={ copy }
 						label={ __( 'Duplicate', 'cns-map-suite' ) }
 						onClick={ () => onDuplicate( area.id ) }
 					/>
 					<Button
-						size="small"
+						variant="secondary"
 						icon={ trash }
 						isDestructive
 						label={ __( 'Delete', 'cns-map-suite' ) }

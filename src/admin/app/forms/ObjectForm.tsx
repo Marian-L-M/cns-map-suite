@@ -8,17 +8,23 @@ import {
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import MediaPicker from '../shared/MediaPicker';
-import IconPicker  from '../shared/IconPicker';
-import ColorField  from '../shared/ColorField';
+import IconPicker from '../shared/IconPicker';
+import ColorField from '../shared/ColorField';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
-import type { ObjectFormData, ObjectSavePayload, ObjectType, LibraryIcon, MapObject } from '../../../types';
+import type {
+	ObjectFormData,
+	ObjectSavePayload,
+	ObjectType,
+	LibraryIcon,
+	MapObject,
+} from '../../../types';
 
 const TYPES: { value: ObjectType; label: string }[] = [
 	{ value: 'LOCATION', label: 'Location' },
-	{ value: 'HISTORY',  label: 'History' },
-	{ value: 'NATURAL',  label: 'Natural' },
-	{ value: 'EVENT',    label: 'Event' },
-	{ value: 'OTHER',    label: 'Other' },
+	{ value: 'HISTORY', label: 'History' },
+	{ value: 'NATURAL', label: 'Natural' },
+	{ value: 'EVENT', label: 'Event' },
+	{ value: 'OTHER', label: 'Other' },
 ];
 
 interface Props {
@@ -27,8 +33,22 @@ interface Props {
 	icons: LibraryIcon[];
 }
 
+const ICON_OPTIONS = [
+	{
+		label: __( 'From library', 'cns-map-suite' ),
+		value: 'svg',
+	},
+	{
+		label: __( 'Custom image', 'cns-map-suite' ),
+		value: 'image',
+	},
+];
+
 export default function ObjectForm( { formData, onChange, icons }: Props ) {
-	function set<K extends keyof ObjectFormData>( key: K, val: ObjectFormData[ K ] ) {
+	function set< K extends keyof ObjectFormData >(
+		key: K,
+		val: ObjectFormData[ K ]
+	) {
 		onChange( { ...formData, [ key ]: val } );
 	}
 
@@ -40,43 +60,54 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 			<section className="cns-modal-section">
 				<h3>{ __( 'Icon', 'cns-map-suite' ) }</h3>
 				<div className="cns-grid cns-grid__12">
-					<div className="cns-grid__group cns-grid__span-full">
+					<div className="cns-grid__row">
 						<RadioControl
 							label={ __( 'Icon source', 'cns-map-suite' ) }
 							hideLabelFromVision
 							selected={ isSvgSource ? 'svg' : 'image' }
-							options={ [
-								{ label: __( 'From library', 'cns-map-suite' ), value: 'svg' },
-								{ label: __( 'Custom image', 'cns-map-suite' ), value: 'image' },
-							] }
-							onChange={ ( v ) => set( 'icon_source', v as 'svg' | 'image' ) }
+							options={ ICON_OPTIONS }
+							onChange={ ( v ) =>
+								set( 'icon_source', v as 'svg' | 'image' )
+							}
 						/>
 					</div>
 					{ isSvgSource && (
-						<div className="cns-grid__group cns-grid__span-full">
+						<div className="cns-grid__row">
 							<IconPicker
 								icons={ icons }
 								selectedIconId={ formData.icon_image_id_svg }
-								onSelect={ ( id ) => set( 'icon_image_id_svg', id ) }
+								onSelect={ ( id ) =>
+									set( 'icon_image_id_svg', id )
+								}
 							/>
 							<p className="description">
-								<ExternalLink href={ window.cnsMapSuite.iconsUrl }>
-									{ __( 'Manage icon library', 'cns-map-suite' ) }
+								<ExternalLink
+									href={ window.cnsMapSuite.iconsUrl }
+								>
+									{ __(
+										'Manage icon library',
+										'cns-map-suite'
+									) }
 								</ExternalLink>
 							</p>
 						</div>
 					) }
 					{ ! isSvgSource && (
-						<div className="cns-grid__group cns-grid__span-full">
+						<div className="cns-grid__row">
 							<MediaPicker
 								imageId={ formData.icon_image_id_custom }
 								imageUrl={ formData.icon_image_url }
-								title={ __( 'Select Icon Image', 'cns-map-suite' ) }
-								onChange={ ( att ) => onChange( {
-									...formData,
-									icon_image_id_custom: att ? att.id : 0,
-									icon_image_url:       att ? att.url : '',
-								} ) }
+								title={ __(
+									'Select Icon Image',
+									'cns-map-suite'
+								) }
+								onChange={ ( att ) =>
+									onChange( {
+										...formData,
+										icon_image_id_custom: att ? att.id : 0,
+										icon_image_url: att ? att.url : '',
+									} )
+								}
 							/>
 						</div>
 					) }
@@ -87,10 +118,9 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 			<section className="cns-modal-section">
 				<h3>{ __( 'Details', 'cns-map-suite' ) }</h3>
 				<div className="cns-grid cns-grid__12">
-					<div className="cns-grid__group cns-grid__span-full">
+					<div className="cns-grid__row">
 						<TextControl
 							__next40pxDefaultSize
-							__nextHasNoMarginBottom
 							label={ __( 'Title', 'cns-map-suite' ) }
 							value={ formData.title }
 							onChange={ ( v ) => set( 'title', v ) }
@@ -98,8 +128,6 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 					</div>
 					<div className="cns-grid__group">
 						<SelectControl
-							__next40pxDefaultSize
-							__nextHasNoMarginBottom
 							label={ __( 'Type', 'cns-map-suite' ) }
 							value={ formData.type }
 							options={ TYPES }
@@ -113,7 +141,10 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 							value={ formData.object_time }
 							step={ 1 }
 							onChange={ ( v ) =>
-								set( 'object_time', parseInt( v ?? '', 10 ) || 0 )
+								set(
+									'object_time',
+									parseInt( v ?? '', 10 ) || 0
+								)
 							}
 						/>
 					</div>
@@ -123,7 +154,9 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 							label={ __( 'X (px)', 'cns-map-suite' ) }
 							value={ formData.x }
 							step={ 1 }
-							onChange={ ( v ) => set( 'x', parseInt( v ?? '', 10 ) || 0 ) }
+							onChange={ ( v ) =>
+								set( 'x', parseInt( v ?? '', 10 ) || 0 )
+							}
 						/>
 					</div>
 					<div className="cns-grid__group">
@@ -132,7 +165,9 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 							label={ __( 'Y (px)', 'cns-map-suite' ) }
 							value={ formData.y }
 							step={ 1 }
-							onChange={ ( v ) => set( 'y', parseInt( v ?? '', 10 ) || 0 ) }
+							onChange={ ( v ) =>
+								set( 'y', parseInt( v ?? '', 10 ) || 0 )
+							}
 						/>
 					</div>
 				</div>
@@ -148,9 +183,10 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 					<div className="cns-grid__group cns-grid__span-full">
 						<RangeControl
 							__next40pxDefaultSize
-							__nextHasNoMarginBottom
 							label={ __( 'Icon Size (px)', 'cns-map-suite' ) }
-							min={ 8 } max={ 128 } step={ 1 }
+							min={ 8 }
+							max={ 128 }
+							step={ 1 }
 							value={ formData.style_size }
 							onChange={ ( v ) => set( 'style_size', v ?? 32 ) }
 						/>
@@ -171,7 +207,10 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 					</div>
 				</div>
 				<p className="description">
-					{ __( 'Fill and stroke are applied to SVG icons only.', 'cns-map-suite' ) }
+					{ __(
+						'Fill and stroke are applied to SVG icons only.',
+						'cns-map-suite'
+					) }
 				</p>
 			</section>
 		</>
@@ -181,44 +220,50 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 export function defaultObjectFormData(
 	obj: MapObject | null,
 	x: number | null,
-	y: number | null,
+	y: number | null
 ): ObjectFormData {
-	const isSvg = ! obj || ! obj.icon_image_id || obj.icon_mime === 'image/svg+xml';
+	const isSvg =
+		! obj || ! obj.icon_image_id || obj.icon_mime === 'image/svg+xml';
 	return {
-		icon_source:          isSvg ? 'svg' : 'image',
-		icon_image_id_svg:    ( isSvg && obj?.icon_image_id ) ? obj.icon_image_id : null,
-		icon_image_id_custom: ( ! isSvg && obj?.icon_image_id ) ? obj.icon_image_id : 0,
-		icon_image_url:       ( obj?.icon_url && ! isSvg ) ? obj.icon_url : '',
-		title:                obj?.title       || '',
-		type:                 obj?.type        || 'LOCATION',
-		object_time:          obj?.object_time ?? 0,
-		x:                    obj ? obj.x : ( x ?? 0 ),
-		y:                    obj ? obj.y : ( y ?? 0 ),
+		icon_source: isSvg ? 'svg' : 'image',
+		icon_image_id_svg:
+			isSvg && obj?.icon_image_id ? obj.icon_image_id : null,
+		icon_image_id_custom:
+			! isSvg && obj?.icon_image_id ? obj.icon_image_id : 0,
+		icon_image_url: obj?.icon_url && ! isSvg ? obj.icon_url : '',
+		title: obj?.title || '',
+		type: obj?.type || 'LOCATION',
+		object_time: obj?.object_time ?? 0,
+		x: obj ? obj.x : x ?? 0,
+		y: obj ? obj.y : y ?? 0,
 		...infoboxFormDefaults( obj ),
-		style_size:           obj?.canvas_styles?.size        || 32,
-		style_fill:           obj?.canvas_styles?.fillStyle   || '#ffffff',
-		style_stroke:         obj?.canvas_styles?.strokeStyle || '#2271b1',
+		style_size: obj?.canvas_styles?.size || 32,
+		style_fill: obj?.canvas_styles?.fillStyle || '#ffffff',
+		style_stroke: obj?.canvas_styles?.strokeStyle || '#2271b1',
 	};
 }
 
-export function collectObjectPayload( formData: ObjectFormData ): ObjectSavePayload {
-	const iconImageId = formData.icon_source === 'svg'
-		? ( formData.icon_image_id_svg || 0 )
-		: ( formData.icon_image_id_custom || 0 );
+export function collectObjectPayload(
+	formData: ObjectFormData
+): ObjectSavePayload {
+	const iconImageId =
+		formData.icon_source === 'svg'
+			? formData.icon_image_id_svg || 0
+			: formData.icon_image_id_custom || 0;
 	return {
-		icon_image_id:       iconImageId,
-		title:               formData.title               || '',
-		type:                formData.type                || 'LOCATION',
-		x:                   formData.x                  || 0,
-		y:                   formData.y                  || 0,
-		object_time:         formData.object_time        || 0,
-		infobox_source:      formData.infobox_source     || 'manual',
-		linked_post_id:      formData.linked_post_id     || 0,
-		infobox_title:       formData.infobox_title      || '',
+		icon_image_id: iconImageId,
+		title: formData.title || '',
+		type: formData.type || 'LOCATION',
+		x: formData.x || 0,
+		y: formData.y || 0,
+		object_time: formData.object_time || 0,
+		infobox_source: formData.infobox_source || 'manual',
+		linked_post_id: formData.linked_post_id || 0,
+		infobox_title: formData.infobox_title || '',
 		infobox_description: formData.infobox_description || '',
-		infobox_image_id:    formData.infobox_image_id   || 0,
-		style_size:          formData.style_size         || 32,
-		style_fill:          formData.style_fill         || '#ffffff',
-		style_stroke:        formData.style_stroke       || '#2271b1',
+		infobox_image_id: formData.infobox_image_id || 0,
+		style_size: formData.style_size || 32,
+		style_fill: formData.style_fill || '#ffffff',
+		style_stroke: formData.style_stroke || '#2271b1',
 	};
 }

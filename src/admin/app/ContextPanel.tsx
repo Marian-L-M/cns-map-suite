@@ -435,11 +435,14 @@ export default function ContextPanel( {
 					</>
 				) }
 			</div>
-
-			<div className="cns-map-editor__context-footer">
+			<Flex
+				className="cns-map-editor__context-footer"
+				justify="end"
+				align="center"
+				gap={ 2 }
+			>
 				<Button
 					variant="primary"
-					size="small"
 					isBusy={ saving }
 					disabled={ saving }
 					onClick={ handleSave }
@@ -448,13 +451,12 @@ export default function ContextPanel( {
 				</Button>
 				<Button
 					variant="secondary"
-					size="small"
 					isDestructive
 					onClick={ handleDelete }
 				>
 					{ __( 'Delete', 'cns-map-suite' ) }
 				</Button>
-			</div>
+			</Flex>
 		</aside>
 	);
 }

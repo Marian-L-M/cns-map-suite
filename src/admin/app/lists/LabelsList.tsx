@@ -12,7 +12,7 @@ interface Props {
 	onDelete: ( id: number ) => void;
 }
 
-const COLUMNS: EntityColumn<MapLabel>[] = [
+const COLUMNS: EntityColumn< MapLabel >[] = [
 	{
 		header: '',
 		width: 36,
@@ -21,8 +21,10 @@ const COLUMNS: EntityColumn<MapLabel>[] = [
 			<span
 				className="cns-obj-dot"
 				style={ {
-					background:  label.canvas_styles?.bgColor || '#ffffff',
-					border:      `2px solid ${ label.canvas_styles?.borderColor || '#1e1e1e' }`,
+					background: label.canvas_styles?.bgColor || '#ffffff',
+					border: `2px solid ${
+						label.canvas_styles?.borderColor || '#1e1e1e'
+					}`,
 					borderRadius: 3,
 				} }
 			/>
@@ -37,31 +39,46 @@ const COLUMNS: EntityColumn<MapLabel>[] = [
 			</span>
 		),
 	},
-	{ header: 'Position', render: ( label ) => <>{ label.x }, { label.y }</> },
+	{
+		header: 'Position',
+		render: ( label ) => (
+			<>
+				{ label.x }, { label.y }
+			</>
+		),
+	},
 ];
 
-export default function LabelsList( { labels, onEdit, onDuplicate, onDelete }: Props ) {
+export default function LabelsList( {
+	labels,
+	onEdit,
+	onDuplicate,
+	onDelete,
+}: Props ) {
 	return (
 		<EntityTable
 			items={ labels }
 			columns={ COLUMNS }
-			emptyText={ __( 'No labels yet. Click on the canvas to place one.', 'cns-map-suite' ) }
+			emptyText={ __(
+				'No labels yet. Click on the canvas to place one.',
+				'cns-map-suite'
+			) }
 			renderActions={ ( label ) => (
 				<>
 					<Button
-						size="small"
+						variant="secondary"
 						icon={ pencil }
 						label={ __( 'Edit', 'cns-map-suite' ) }
 						onClick={ () => onEdit( label ) }
 					/>
 					<Button
-						size="small"
+						variant="secondary"
 						icon={ copy }
 						label={ __( 'Duplicate', 'cns-map-suite' ) }
 						onClick={ () => onDuplicate( label.id ) }
 					/>
 					<Button
-						size="small"
+						variant="secondary"
 						icon={ trash }
 						isDestructive
 						label={ __( 'Delete', 'cns-map-suite' ) }

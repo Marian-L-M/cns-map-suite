@@ -318,18 +318,19 @@ function ContextPanel({
           onNodesChange: nodes => onRegionNodesUpdate(selectedRegion.id, nodes)
         })]
       })]
-    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("div", {
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.Flex, {
       className: "cns-map-editor__context-footer",
+      justify: "end",
+      align: "center",
+      gap: 2,
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.Button, {
         variant: "primary",
-        size: "small",
         isBusy: saving,
         disabled: saving,
         onClick: handleSave,
         children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Save', 'cns-map-suite')
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_1__.Button, {
         variant: "secondary",
-        size: "small",
         isDestructive: true,
         onClick: handleDelete,
         children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_6__.__)('Delete', 'cns-map-suite')
@@ -2937,6 +2938,13 @@ const TYPES = [{
   value: 'OTHER',
   label: 'Other'
 }];
+const ICON_OPTIONS = [{
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('From library', 'cns-map-suite'),
+  value: 'svg'
+}, {
+  label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Custom image', 'cns-map-suite'),
+  value: 'image'
+}];
 function ObjectForm({
   formData,
   onChange,
@@ -2957,22 +2965,16 @@ function ObjectForm({
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         className: "cns-grid cns-grid__12",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-          className: "cns-grid__group cns-grid__span-full",
+          className: "cns-grid__row",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.RadioControl, {
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Icon source', 'cns-map-suite'),
             hideLabelFromVision: true,
             selected: isSvgSource ? 'svg' : 'image',
-            options: [{
-              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('From library', 'cns-map-suite'),
-              value: 'svg'
-            }, {
-              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Custom image', 'cns-map-suite'),
-              value: 'image'
-            }],
+            options: ICON_OPTIONS,
             onChange: v => set('icon_source', v)
           })
         }), isSvgSource && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
-          className: "cns-grid__group cns-grid__span-full",
+          className: "cns-grid__row",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_shared_IconPicker__WEBPACK_IMPORTED_MODULE_3__["default"], {
             icons: icons,
             selectedIconId: formData.icon_image_id_svg,
@@ -2985,7 +2987,7 @@ function ObjectForm({
             })
           })]
         }), !isSvgSource && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-          className: "cns-grid__group cns-grid__span-full",
+          className: "cns-grid__row",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_shared_MediaPicker__WEBPACK_IMPORTED_MODULE_2__["default"], {
             imageId: formData.icon_image_id_custom,
             imageUrl: formData.icon_image_url,
@@ -3005,10 +3007,9 @@ function ObjectForm({
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)("div", {
         className: "cns-grid cns-grid__12",
         children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
-          className: "cns-grid__group cns-grid__span-full",
+          className: "cns-grid__row",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.TextControl, {
             __next40pxDefaultSize: true,
-            __nextHasNoMarginBottom: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Title', 'cns-map-suite'),
             value: formData.title,
             onChange: v => set('title', v)
@@ -3016,8 +3017,6 @@ function ObjectForm({
         }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("div", {
           className: "cns-grid__group",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.SelectControl, {
-            __next40pxDefaultSize: true,
-            __nextHasNoMarginBottom: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Type', 'cns-map-suite'),
             value: formData.type,
             options: TYPES,
@@ -3065,7 +3064,6 @@ function ObjectForm({
           className: "cns-grid__group cns-grid__span-full",
           children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.RangeControl, {
             __next40pxDefaultSize: true,
-            __nextHasNoMarginBottom: true,
             label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Icon Size (px)', 'cns-map-suite'),
             min: 8,
             max: 128,
@@ -3430,17 +3428,17 @@ function AreasList({
     emptyText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('No areas yet. Click “Add Area” to create one.', 'cns-map-suite'),
     renderActions: area => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_2__["default"],
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Edit', 'cns-map-suite'),
         onClick: () => onSelect(area.id)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_1__["default"],
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Duplicate', 'cns-map-suite'),
         onClick: () => onDuplicate(area.id)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_3__["default"],
         isDestructive: true,
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Delete', 'cns-map-suite'),
@@ -3647,17 +3645,17 @@ function LabelsList({
     emptyText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('No labels yet. Click on the canvas to place one.', 'cns-map-suite'),
     renderActions: label => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_2__["default"],
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Edit', 'cns-map-suite'),
         onClick: () => onEdit(label)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_1__["default"],
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Duplicate', 'cns-map-suite'),
         onClick: () => onDuplicate(label.id)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_3__["default"],
         isDestructive: true,
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Delete', 'cns-map-suite'),
@@ -3740,17 +3738,17 @@ function ObjectsList({
     emptyText: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('No objects yet. Click on the canvas to place one.', 'cns-map-suite'),
     renderActions: obj => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
       children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_2__["default"],
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Edit', 'cns-map-suite'),
         onClick: () => onEdit(obj)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_1__["default"],
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Duplicate', 'cns-map-suite'),
         onClick: () => onDuplicate(obj.id)
       }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-        size: "small",
+        variant: "secondary",
         icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_3__["default"],
         isDestructive: true,
         label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Delete', 'cns-map-suite'),
@@ -5885,7 +5883,6 @@ async function drawObjectMarker(ctx, obj, isSelected) {
   const size = obj.canvas_styles?.size ?? 32;
   const fill = obj.canvas_styles?.fillStyle ?? '#ffffff';
   const stroke = obj.canvas_styles?.strokeStyle ?? '#2271b1';
-  console.log(obj);
   if (obj.icon_url) {
     const img = obj.icon_mime === 'image/svg+xml' ? await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.loadSvgWithColors)(obj.icon_url, fill, stroke) : await (0,_utils__WEBPACK_IMPORTED_MODULE_0__.loadImage)(obj.icon_url);
     if (img) {

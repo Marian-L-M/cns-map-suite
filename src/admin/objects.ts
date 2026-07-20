@@ -35,7 +35,6 @@ export async function drawObjectMarker(
 	const size = obj.canvas_styles?.size ?? 32;
 	const fill = obj.canvas_styles?.fillStyle ?? '#ffffff';
 	const stroke = obj.canvas_styles?.strokeStyle ?? '#2271b1';
-	console.log( obj );
 
 	if ( obj.icon_url ) {
 		const img =

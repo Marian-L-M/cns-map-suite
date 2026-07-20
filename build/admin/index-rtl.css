@@ -97,8 +97,8 @@
 }
 
 .cns-grid__row {
-  grid-column: 1/-1;
   flex-wrap: wrap;
+  grid-column: 1/-1;
 }
 
 .cns-grid__span-1 {
@@ -200,25 +200,12 @@
 }
 
 .cns-modal-section {
-  padding: 20px;
-  border-bottom: 1px solid #f0f0f1;
+  padding: 1rem 0.5rem;
+  border-bottom: 1px solid #e0e0e0;
 }
 
 .cns-modal-section:last-child {
   border-bottom: none;
-}
-
-.cns-modal-section h3 {
-  font-size: 13px;
-  font-weight: 600;
-  margin: 0 0 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #646970;
-}
-
-.cns-modal-section .cns-form-grid {
-  grid-template-columns: 1fr 1fr;
 }
 
 .cns-actions-row {
