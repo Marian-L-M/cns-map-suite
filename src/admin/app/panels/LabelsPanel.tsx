@@ -21,7 +21,6 @@ interface Props {
 	settings: MapSettings;
 	labels: MapLabel[];
 	selectedLabelId: number | null;
-	repositioningLabelId: number | null;
 	onLabelsLoaded: ( labels: MapLabel[] ) => void;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
@@ -32,7 +31,6 @@ interface Props {
 	) => Promise< void >;
 	onLocalUpdate: ( id: number, patch: Partial< MapLabel > ) => void;
 	onDuplicate: ( id: number ) => Promise< void >;
-	onRepositionComplete: () => void;
 	onDelete: ( id: number ) => Promise< void >;
 }
 
@@ -41,7 +39,6 @@ export default function LabelsPanel( {
 	settings,
 	labels,
 	selectedLabelId,
-	repositioningLabelId,
 	onLabelsLoaded,
 	onSelect,
 	onDeselect,
@@ -49,7 +46,6 @@ export default function LabelsPanel( {
 	onGeometryUpdate,
 	onLocalUpdate,
 	onDuplicate,
-	onRepositionComplete,
 	onDelete,
 }: Props ) {
 	useMapResource< MapLabel >( mapId, 'labels', onLabelsLoaded );
@@ -189,11 +185,9 @@ export default function LabelsPanel( {
 					drawState={ drawState }
 					labels={ labels }
 					selectedLabelId={ selectedLabelId }
-					repositioningLabelId={ repositioningLabelId }
 					onSelect={ onSelect }
 					onDeselect={ onDeselect }
 					onGeometryUpdate={ onGeometryUpdate }
-					onRepositionComplete={ onRepositionComplete }
 				/>
 				<LabelsList
 					labels={ labels }

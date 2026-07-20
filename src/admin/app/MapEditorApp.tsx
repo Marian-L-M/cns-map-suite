@@ -86,16 +86,10 @@ export default function MapEditorApp() {
 	const [ selectedLabelId, setSelectedLabelId ] = useState< number | null >(
 		null
 	);
-	const [ repositioningLabelId, setRepositioningLabelId ] = useState<
-		number | null
-	>( null );
 	const [ selectedRegionId, setSelectedRegionId ] = useState< number | null >(
 		null
 	);
 	const [ regionsList, setRegionsList ] = useState< HierarchyRegion[] >( [] );
-	const [ repositioningObjId, setRepositioningObjId ] = useState<
-		number | null
-	>( null );
 	const [ isSaving, setIsSaving ] = useState( false );
 	const { createSuccessNotice, createErrorNotice } =
 		useDispatch( noticesStore );
@@ -132,14 +126,8 @@ export default function MapEditorApp() {
 	// ── Tab switching ─────────────────────────────────────────────────────────
 
 	function handleTabChange( tab: Tab ) {
-		if ( tab !== 'objects' ) {
-			setSelectedObjectId( null );
-			setRepositioningObjId( null );
-		}
-		if ( tab !== 'labels' ) {
-			setSelectedLabelId( null );
-			setRepositioningLabelId( null );
-		}
+		if ( tab !== 'objects' ) setSelectedObjectId( null );
+		if ( tab !== 'labels' ) setSelectedLabelId( null );
 		if ( tab !== 'areas' ) setSelectedAreaId( null );
 		if ( tab !== 'hierarchy' ) setSelectedRegionId( null );
 		setActiveTab( tab );
@@ -585,7 +573,6 @@ export default function MapEditorApp() {
 								settings={ settings }
 								objects={ objectsList }
 								selectedObjectId={ selectedObjectId }
-								repositioningObjectId={ repositioningObjId }
 								onObjectsLoaded={ setObjectsList }
 								onSelect={ setSelectedObjectId }
 								onDeselect={ () => setSelectedObjectId( null ) }
@@ -593,12 +580,6 @@ export default function MapEditorApp() {
 								onPositionUpdate={ handleObjectPositionUpdate }
 								onLocalUpdate={ handleObjectLocalUpdate }
 								onDuplicate={ handleObjectDuplicate }
-								onRepositionStart={ ( id ) =>
-									setRepositioningObjId( id )
-								}
-								onRepositionComplete={ () =>
-									setRepositioningObjId( null )
-								}
 								onDelete={ handleObjectDeleteById }
 							/>
 						) }
@@ -622,7 +603,6 @@ export default function MapEditorApp() {
 								settings={ settings }
 								labels={ labelsList }
 								selectedLabelId={ selectedLabelId }
-								repositioningLabelId={ repositioningLabelId }
 								onLabelsLoaded={ setLabelsList }
 								onSelect={ setSelectedLabelId }
 								onDeselect={ () => setSelectedLabelId( null ) }
@@ -630,9 +610,6 @@ export default function MapEditorApp() {
 								onGeometryUpdate={ handleLabelGeometryUpdate }
 								onLocalUpdate={ handleLabelLocalUpdate }
 								onDuplicate={ handleLabelDuplicate }
-								onRepositionComplete={ () =>
-									setRepositioningLabelId( null )
-								}
 								onDelete={ handleLabelDeleteById }
 							/>
 						) }
@@ -682,9 +659,6 @@ export default function MapEditorApp() {
 						handleObjectDeleteById( selectedObjectId! )
 					}
 					onObjectClose={ () => setSelectedObjectId( null ) }
-					onObjectReposition={ () =>
-						setRepositioningObjId( selectedObjectId )
-					}
 					onObjectDuplicate={ () =>
 						handleObjectDuplicate( selectedObjectId! )
 					}
@@ -693,9 +667,6 @@ export default function MapEditorApp() {
 						handleLabelDeleteById( selectedLabelId! )
 					}
 					onLabelClose={ () => setSelectedLabelId( null ) }
-					onLabelReposition={ () =>
-						setRepositioningLabelId( selectedLabelId )
-					}
 					onLabelDuplicate={ () =>
 						handleLabelDuplicate( selectedLabelId! )
 					}

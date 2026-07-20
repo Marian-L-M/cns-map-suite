@@ -1,6 +1,11 @@
 import { useState, useRef, useEffect } from '@wordpress/element';
-import { Button } from '@wordpress/components';
-import { fullscreen as fullscreenIcon, close, plus, reset } from '@wordpress/icons';
+import { Button, Flex, FlexItem, FlexBlock } from '@wordpress/components';
+import {
+	fullscreen as fullscreenIcon,
+	close,
+	plus,
+	reset,
+} from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 import type { ReactNode } from 'react';
 
@@ -30,25 +35,35 @@ interface Props {
 	allowFullscreen?: boolean;
 }
 
-export default function CanvasZoomWrap( { children, allowFullscreen = false }: Props ) {
-	const [ zoom, setZoom ]             = useState( sharedZoom );
+export default function CanvasZoomWrap( {
+	children,
+	allowFullscreen = false,
+}: Props ) {
+	const [ zoom, setZoom ] = useState( sharedZoom );
 	const [ fullscreen, setFullscreen ] = useState( false );
-	const scrollRef = useRef<HTMLDivElement>( null );
+	const scrollRef = useRef< HTMLDivElement >( null );
 
 	function changeZoom( delta: number ) {
-		const next = Math.min( MAX_ZOOM, Math.max( MIN_ZOOM, Math.round( ( zoom + delta ) * 10 ) / 10 ) );
+		const next = Math.min(
+			MAX_ZOOM,
+			Math.max( MIN_ZOOM, Math.round( ( zoom + delta ) * 10 ) / 10 )
+		);
 		if ( next === zoom ) return;
 		sharedZoom = next;
 		const scroll = scrollRef.current;
 		// Map point currently at the viewport center, in zoom-1 units.
-		const cx = scroll ? ( scroll.scrollLeft + scroll.clientWidth / 2 ) / zoom : 0;
-		const cy = scroll ? ( scroll.scrollTop + scroll.clientHeight / 2 ) / zoom : 0;
+		const cx = scroll
+			? ( scroll.scrollLeft + scroll.clientWidth / 2 ) / zoom
+			: 0;
+		const cy = scroll
+			? ( scroll.scrollTop + scroll.clientHeight / 2 ) / zoom
+			: 0;
 		setZoom( next );
 		// After the re-render resized the canvas, restore that center point.
 		requestAnimationFrame( () => {
 			if ( ! scroll ) return;
 			scroll.scrollLeft = cx * next - scroll.clientWidth / 2;
-			scroll.scrollTop  = cy * next - scroll.clientHeight / 2;
+			scroll.scrollTop = cy * next - scroll.clientHeight / 2;
 		} );
 	}
 
@@ -73,7 +88,14 @@ export default function CanvasZoomWrap( { children, allowFullscreen = false }: P
 
 	return (
 		<div className={ rootClass }>
-			<div className="cns-canvas-zoom__controls">
+			<Flex
+				className="cns-canvas-zoom__controls"
+				gap={ 1 }
+				direction="column"
+				align="start"
+				justify="start"
+				style={ { height: 'fit-content' } }
+			>
 				{ allowFullscreen && (
 					<Button
 						variant="secondary"
@@ -87,28 +109,29 @@ export default function CanvasZoomWrap( { children, allowFullscreen = false }: P
 					/>
 				) }
 				<Button
-					variant="secondary"
+					variant="primary"
 					icon={ plus }
 					label={ __( 'Zoom in', 'cns-map-suite' ) }
 					onClick={ () => changeZoom( ZOOM_STEP ) }
 					disabled={ zoom >= MAX_ZOOM }
 				/>
-				<span className="cns-canvas-zoom__value">{ Math.round( zoom * 100 ) }%</span>
+				<span className="cns-canvas-zoom__value">
+					{ Math.round( zoom * 100 ) }%
+				</span>
 				<Button
-					variant="secondary"
+					variant="primary"
 					icon={ reset }
 					label={ __( 'Zoom out', 'cns-map-suite' ) }
 					onClick={ () => changeZoom( -ZOOM_STEP ) }
 					disabled={ zoom <= MIN_ZOOM }
 				/>
-			</div>
+			</Flex>
 			<div className="cns-canvas-zoom__scroll" ref={ scrollRef }>
-				{ /* Inline width only when zoomed, so fullscreen fit-to-screen
-				     rules can take over at 100%. Block width defaults to 100%
-				     anyway, so the normal view is unchanged. */ }
 				<div
 					className="cns-canvas-zoom__inner"
-					style={ zoom > 1 ? { width: `${ zoom * 100 }%` } : undefined }
+					style={
+						zoom > 1 ? { width: `${ zoom * 100 }%` } : undefined
+					}
 				>
 					{ children }
 				</div>

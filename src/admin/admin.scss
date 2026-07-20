@@ -1,4 +1,5 @@
 // CNS Map Suite — Admin styles
+$background-color: #fff;
 $border-color: #e0e0e0;
 $space-05: 0.5rem;
 $space-10: 1rem;
@@ -10,6 +11,11 @@ $bp-tab: 768px;
 $bp-md: 992px;
 $bp-spc: 1200px;
 $bp-lpc: 1400px;
+
+// L000000 Utilities
+.cns-hidden {
+	display: none !important;
+}
 
 // L1000 Editor Layout
 .cns-map-editor {
@@ -44,11 +50,7 @@ $bp-lpc: 1400px;
 	&__body {
 		flex: 3;
 	}
-	&__context,
-	.cns-editor-context {
-		// To do refactor to common namespace
-		flex: 1;
-	}
+
 	&__tabs {
 		display: flex;
 		gap: 0;
@@ -57,7 +59,7 @@ $bp-lpc: 1400px;
 	}
 
 	&__content {
-		background: #fff;
+		background: $background-color;
 		border: 1px solid $border-color;
 		border-top: none;
 	}
@@ -143,6 +145,96 @@ $bp-lpc: 1400px;
 		&__24 {
 			grid-template-columns: 1fr 1fr 1fr 1fr;
 		}
+	}
+}
+
+// L1120 Canvas Elements
+.cns-canvas-zoom {
+	position: relative;
+	width: 100%;
+	&__controls {
+		position: absolute;
+		top: 10px;
+		right: 10px;
+		z-index: 20;
+	}
+	&__value,
+	&__scroll {
+		border: 1px solid $border-color;
+	}
+	&__value {
+		width: 100%;
+		background: rgba(255, 255, 255, 0.9);
+	}
+	&__scroll {
+		overflow: auto;
+		max-height: 80vh;
+		background: rgb(246, 247, 247);
+	}
+	&__inner {
+		min-width: 100%;
+		canvas {
+			display: block;
+			width: 100%;
+			height: auto;
+		}
+	}
+}
+
+// L1130 Sidebar Elements
+.cns-map-editor {
+	&__context {
+		flex: 1;
+		max-height: calc(100vh - 140px);
+		overflow-y: scroll;
+
+		display: grid;
+		grid-template-columns: 1fr;
+		grid-template-rows: auto 1fr auto;
+		gap: $space-10;
+		padding: $space-05;
+
+		background-color: $background-color;
+		border: 1px solid $border-color;
+	}
+	&__context-header,
+	&__context-body,
+	&__context-footer {
+		box-sizing: border-box;
+		border: 1px solid $border-color;
+		padding: $space-05;
+	}
+	&__context-header {
+	}
+	&__context-title {
+	}
+	&__context-body {
+		height: 100%;
+		overflow-y: scroll;
+	}
+	&__context-footer {
+	}
+}
+
+.cns-modal-section {
+	padding: 20px;
+	border-bottom: 1px solid #f0f0f1;
+
+	&:last-child {
+		border-bottom: none;
+	}
+
+	h3 {
+		font-size: 13px;
+		font-weight: 600;
+		margin: 0 0 14px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		color: #646970;
+	}
+
+	.cns-form-grid {
+		grid-template-columns: 1fr 1fr;
 	}
 }
 
@@ -236,7 +328,7 @@ $thumb-size: 3em;
 			object-fit: cover;
 		}
 		.cns-thumb-placeholder {
-			background: #e0e0e0;
+			background: $border-color;
 		}
 	}
 }
@@ -289,6 +381,7 @@ $thumb-size: 3em;
 
 // ── Editor layout ─────────────────────────────────────────────────────────────
 
+// to do check or delete
 .cns-editor-layout {
 	display: grid;
 	grid-template-columns: 3fr 1fr;
@@ -349,7 +442,7 @@ $thumb-size: 3em;
 	gap: 8px;
 
 	canvas {
-		border: 1px solid #e0e0e0;
+		border: 1px solid $border-color;
 		border-radius: 3px;
 		max-width: 100%;
 		height: auto;
@@ -419,7 +512,7 @@ $thumb-size: 3em;
 }
 
 #cns-preview-canvas {
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-radius: 3px;
 	max-width: 100%;
 	height: auto;
@@ -431,7 +524,7 @@ $thumb-size: 3em;
 .cns-danger-zone {
 	margin-top: 40px;
 	padding: 20px 24px;
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-top: 3px solid #b32d2e;
 	background: #fff;
 
@@ -445,13 +538,8 @@ $thumb-size: 3em;
 
 // ── Objects tab ───────────────────────────────────────────────────────────────
 
-.cns-objects-canvas-wrap {
-	display: flex;
-	justify-content: center;
-}
-
 #cns-objects-canvas {
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-radius: 3px;
 	max-width: 100%;
 	height: auto;
@@ -491,30 +579,6 @@ $thumb-size: 3em;
 	font-style: italic;
 }
 
-// ── Form sections (context panel) ─────────────────────────────────────────────
-
-.cns-modal-section {
-	padding: 20px;
-	border-bottom: 1px solid #f0f0f1;
-
-	&:last-child {
-		border-bottom: none;
-	}
-
-	h3 {
-		font-size: 13px;
-		font-weight: 600;
-		margin: 0 0 14px;
-		text-transform: uppercase;
-		letter-spacing: 0.04em;
-		color: #646970;
-	}
-
-	.cns-form-grid {
-		grid-template-columns: 1fr 1fr;
-	}
-}
-
 // ── Icon picker grid ──────────────────────────────────────────────────────────
 
 .cns-icon-picker-grid {
@@ -524,7 +588,7 @@ $thumb-size: 3em;
 	max-height: 180px;
 	overflow-y: auto;
 	padding: 4px;
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-radius: 3px;
 	background: #f6f7f7;
 }
@@ -572,7 +636,7 @@ $thumb-size: 3em;
 	left: 0;
 	right: 0;
 	background: #fff;
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-top: none;
 	border-radius: 0 0 3px 3px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -655,7 +719,7 @@ $thumb-size: 3em;
 
 .cns-icon-library-item {
 	background: #fff;
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-radius: 4px;
 	padding: 12px;
 	display: flex;
@@ -705,13 +769,14 @@ $thumb-size: 3em;
 // ── Areas canvas ──────────────────────────────────────────────────────────────
 
 #cns-areas-canvas {
-	border: 1px solid #e0e0e0;
+	border: 1px solid $border-color;
 	border-radius: 3px;
 	max-width: 100%;
 	height: auto;
 	display: block;
 	cursor: crosshair;
 
+	// TO do check or delete
 	&.cns-canvas--repositioning {
 		cursor: grabbing;
 		outline: 2px solid #e75252;
@@ -842,66 +907,6 @@ $thumb-size: 3em;
 		display: flex;
 		gap: 4px;
 		flex-shrink: 0;
-	}
-}
-
-// ── Utility ───────────────────────────────────────────────────────────────────
-
-.cns-hidden {
-	display: none !important;
-}
-
-// ── Canvas zoom (shared wrapper around every editor canvas) ───────────────────
-
-.cns-canvas-zoom {
-	position: relative;
-	width: 100%;
-
-	&__controls {
-		position: absolute;
-		top: 10px;
-		right: 10px;
-		z-index: 20;
-		display: flex;
-		flex-direction: column;
-		align-items: stretch;
-		gap: 4px;
-
-		.button {
-			min-width: 32px;
-			padding: 0;
-			text-align: center;
-			font-size: 16px;
-			line-height: 28px;
-		}
-	}
-
-	&__value {
-		font-size: 11px;
-		text-align: center;
-		color: #1e1e1e;
-		background: rgba(255, 255, 255, 0.9);
-		border: 1px solid #e0e0e0;
-		border-radius: 3px;
-		padding: 2px 0;
-	}
-
-	&__scroll {
-		overflow: auto;
-		max-height: 78vh;
-		border: 1px solid #e0e0e0;
-		border-radius: 3px;
-		background: #f6f7f7;
-	}
-
-	&__inner {
-		min-width: 100%;
-
-		canvas {
-			display: block;
-			width: 100%;
-			height: auto;
-		}
 	}
 }
 

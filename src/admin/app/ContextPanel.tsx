@@ -1,21 +1,46 @@
 import { useState, useEffect } from '@wordpress/element';
-import { Button } from '@wordpress/components';
+import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
 import { store as noticesStore } from '@wordpress/notices';
 import { close, copy } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
-import ObjectForm,         { defaultObjectFormData, collectObjectPayload } from './forms/ObjectForm';
-import LabelForm,          { defaultLabelFormData, collectLabelPayload } from './forms/LabelForm';
-import AreaForm,           { defaultAreaFormData }   from './forms/AreaForm';
-import HierarchyRegionForm, { defaultHierarchyFormData } from './forms/HierarchyRegionForm';
-import NodeList            from './forms/NodeList';
-import RegionNodeList      from './forms/RegionNodeList';
+import ObjectForm, {
+	defaultObjectFormData,
+	collectObjectPayload,
+} from './forms/ObjectForm';
+import LabelForm, {
+	defaultLabelFormData,
+	collectLabelPayload,
+} from './forms/LabelForm';
+import AreaForm, { defaultAreaFormData } from './forms/AreaForm';
+import HierarchyRegionForm, {
+	defaultHierarchyFormData,
+} from './forms/HierarchyRegionForm';
+import NodeList from './forms/NodeList';
+import RegionNodeList from './forms/RegionNodeList';
 import { iconLibraryCache, loadIconLibraryIntoCache } from '../icons';
 import type {
-	Tab, MapObject, MapArea, MapLabel, HierarchyRegion, HierarchyFormData,
-	ObjectFormData, AreaFormData, LabelFormData,
-	ObjectSavePayload, LabelSavePayload, ShapeType, Node, LibraryIcon,
+	Tab,
+	MapObject,
+	MapArea,
+	MapLabel,
+	HierarchyRegion,
+	HierarchyFormData,
+	ObjectFormData,
+	AreaFormData,
+	LabelFormData,
+	ObjectSavePayload,
+	LabelSavePayload,
+	ShapeType,
+	Node,
+	LibraryIcon,
 } from '../../types';
+
+type Selection =
+	| { kind: 'object'; item: MapObject }
+	| { kind: 'label'; item: MapLabel }
+	| { kind: 'region'; item: HierarchyRegion }
+	| { kind: 'area'; item: MapArea };
 
 interface Props {
 	activeTab: Tab;
@@ -23,53 +48,85 @@ interface Props {
 	selectedArea: MapArea | null;
 	selectedLabel: MapLabel | null;
 	selectedRegion: HierarchyRegion | null;
-	onObjectSave: ( payload: ObjectSavePayload ) => Promise<MapObject | undefined>;
-	onObjectDelete: () => Promise<void>;
+	onObjectSave: (
+		payload: ObjectSavePayload
+	) => Promise< MapObject | undefined >;
+	onObjectDelete: () => Promise< void >;
 	onObjectClose: () => void;
-	onObjectReposition: () => void;
 	onObjectDuplicate: () => void;
-	onLabelSave: ( payload: LabelSavePayload ) => Promise<MapLabel | undefined>;
-	onLabelDelete: () => Promise<void>;
+	onLabelSave: (
+		payload: LabelSavePayload
+	) => Promise< MapLabel | undefined >;
+	onLabelDelete: () => Promise< void >;
 	onLabelClose: () => void;
-	onLabelReposition: () => void;
 	onLabelDuplicate: () => void;
-	onLabelLocalUpdate: ( id: number, patch: Partial<MapLabel> ) => void;
-	onAreaSave: ( formData: AreaFormData ) => Promise<MapArea | undefined>;
-	onAreaDelete: () => Promise<void>;
+	onLabelLocalUpdate: ( id: number, patch: Partial< MapLabel > ) => void;
+	onAreaSave: ( formData: AreaFormData ) => Promise< MapArea | undefined >;
+	onAreaDelete: () => Promise< void >;
 	onAreaClose: () => void;
 	onAreaDuplicate: () => void;
 	onAreaNodesUpdate: ( areaId: number, nodes: Node[] ) => void;
 	onAreaShapeTypeChange: ( areaId: number, shapeType: ShapeType ) => void;
-	onRegionSave: ( formData: HierarchyFormData ) => Promise<HierarchyRegion | undefined>;
-	onRegionDelete: () => Promise<void>;
+	onRegionSave: (
+		formData: HierarchyFormData
+	) => Promise< HierarchyRegion | undefined >;
+	onRegionDelete: () => Promise< void >;
 	onRegionClose: () => void;
 	onRegionNodesUpdate: ( regionId: number, nodes: Node[] ) => void;
 }
 
 export default function ContextPanel( {
 	activeTab,
-	selectedObject, selectedArea, selectedLabel, selectedRegion,
-	onObjectSave, onObjectDelete, onObjectClose, onObjectReposition,
+	selectedObject,
+	selectedArea,
+	selectedLabel,
+	selectedRegion,
+	onObjectSave,
+	onObjectDelete,
+	onObjectClose,
 	onObjectDuplicate,
-	onLabelSave,  onLabelDelete,  onLabelClose,  onLabelReposition,
-	onLabelDuplicate, onLabelLocalUpdate,
-	onAreaSave,   onAreaDelete,   onAreaClose,   onAreaDuplicate,
-	onAreaNodesUpdate, onAreaShapeTypeChange,
-	onRegionSave, onRegionDelete, onRegionClose, onRegionNodesUpdate,
+	onLabelSave,
+	onLabelDelete,
+	onLabelClose,
+	onLabelDuplicate,
+	onLabelLocalUpdate,
+	onAreaSave,
+	onAreaDelete,
+	onAreaClose,
+	onAreaDuplicate,
+	onAreaNodesUpdate,
+	onAreaShapeTypeChange,
+	onRegionSave,
+	onRegionDelete,
+	onRegionClose,
+	onRegionNodesUpdate,
 }: Props ) {
-	const [ objFormData,    setObjFormData    ] = useState<ObjectFormData | null>( null );
-	const [ areaFormData,   setAreaFormData   ] = useState<AreaFormData | null>( null );
-	const [ labelFormData,  setLabelFormData  ] = useState<LabelFormData | null>( null );
-	const [ regionFormData, setRegionFormData ] = useState<HierarchyFormData | null>( null );
-	const [ icons,          setIcons          ] = useState<LibraryIcon[]>( iconLibraryCache || [] );
-	const [ saving,         setSaving         ] = useState( false );
-	const { createSuccessNotice, createErrorNotice } = useDispatch( noticesStore );
+	const [ objFormData, setObjFormData ] = useState< ObjectFormData | null >(
+		null
+	);
+	const [ areaFormData, setAreaFormData ] = useState< AreaFormData | null >(
+		null
+	);
+	const [ labelFormData, setLabelFormData ] =
+		useState< LabelFormData | null >( null );
+	const [ regionFormData, setRegionFormData ] =
+		useState< HierarchyFormData | null >( null );
+	const [ icons, setIcons ] = useState< LibraryIcon[] >(
+		iconLibraryCache || []
+	);
+	const [ saving, setSaving ] = useState( false );
+	const { createSuccessNotice, createErrorNotice } =
+		useDispatch( noticesStore );
 
 	useEffect( () => {
 		if ( selectedObject ) {
-			setObjFormData( defaultObjectFormData( selectedObject, null, null ) );
+			setObjFormData(
+				defaultObjectFormData( selectedObject, null, null )
+			);
 			if ( ! iconLibraryCache ) {
-				loadIconLibraryIntoCache().then( () => setIcons( iconLibraryCache || [] ) );
+				loadIconLibraryIntoCache().then( () =>
+					setIcons( iconLibraryCache || [] )
+				);
 			}
 		}
 	}, [ selectedObject?.id ] );
@@ -85,9 +142,17 @@ export default function ContextPanel( {
 	// values, so the reset is a no-op for them.
 	useEffect( () => {
 		if ( selectedLabel ) {
-			setLabelFormData( defaultLabelFormData( selectedLabel, null, null ) );
+			setLabelFormData(
+				defaultLabelFormData( selectedLabel, null, null )
+			);
 		}
-	}, [ selectedLabel?.id, selectedLabel?.x, selectedLabel?.y, selectedLabel?.offset_x, selectedLabel?.offset_y ] );
+	}, [
+		selectedLabel?.id,
+		selectedLabel?.x,
+		selectedLabel?.y,
+		selectedLabel?.offset_x,
+		selectedLabel?.offset_y,
+	] );
 
 	useEffect( () => {
 		if ( selectedRegion ) {
@@ -95,50 +160,101 @@ export default function ContextPanel( {
 		}
 	}, [ selectedRegion?.id ] );
 
-	const hasSelection = !! selectedObject || !! selectedArea || !! selectedLabel || !! selectedRegion;
+	// Priority when several are somehow set: object > label > region > area.
+	const maybeSelection: Selection | null = selectedObject
+		? { kind: 'object', item: selectedObject }
+		: selectedLabel
+		? { kind: 'label', item: selectedLabel }
+		: selectedRegion
+		? { kind: 'region', item: selectedRegion }
+		: selectedArea
+		? { kind: 'area', item: selectedArea }
+		: null;
 
-	if ( ! hasSelection ) {
+	if ( ! maybeSelection ) {
 		return (
-			<aside className="cns-editor-context" aria-label="Context panel">
-				<div className="cns-editor-context__empty">
-					<p>{ activeTab === 'areas'
-						? 'Select an area on the canvas to edit it here.'
-						: activeTab === 'labels'
-						? 'Select a label on the canvas to edit it here.'
-						: activeTab === 'hierarchy'
-						? 'Select a region on the canvas to edit it here.'
-						: 'Select an object on the canvas to edit it here.'
-					}</p>
-				</div>
+			<aside
+				className="cns-map-editor__context"
+				aria-label="Context panel"
+			>
+				<Flex
+					direction={ 'column' }
+					align={ 'center' }
+					justify={ 'center' }
+					className="cns-map-editor__context-empty"
+				>
+					<p>
+						{ __(
+							'Select on canvas to edit in sidebar',
+							'cns-map-suite'
+						) }
+					</p>
+				</Flex>
 			</aside>
 		);
 	}
 
-	const isObject = !! selectedObject;
-	const isLabel  = ! isObject && !! selectedLabel;
-	const isRegion = ! isObject && ! isLabel && !! selectedRegion;
-	const title    = isObject
-		? ( selectedObject!.title || '(no title)' )
-		: isLabel
-		? ( selectedLabel!.text || '(empty label)' )
-		: isRegion
-		? ( selectedRegion!.child_map_title || 'New Region' )
-		: ( selectedArea!.title || '(no title)' );
+	// Non-null past the guard; a plain rebind so nested handlers below
+	// see the narrowed type (TS drops early-return narrowing in closures).
+	const selection: Selection = maybeSelection;
+
+	const title =
+		selection.kind === 'object'
+			? selection.item.title || '(no title)'
+			: selection.kind === 'label'
+			? selection.item.text || '(empty label)'
+			: selection.kind === 'region'
+			? selection.item.child_map_title || 'New Region'
+			: selection.item.title || '(no title)';
+
+	// Region has no duplicate action; the others share one button.
+	const onDuplicate =
+		selection.kind === 'object'
+			? onObjectDuplicate
+			: selection.kind === 'label'
+			? onLabelDuplicate
+			: selection.kind === 'area'
+			? onAreaDuplicate
+			: null;
 
 	async function handleSave() {
 		setSaving( true );
 		try {
-			if ( isObject && objFormData ) {
-				const data = await onObjectSave( collectObjectPayload( objFormData ) );
-				if ( data?.title ) setObjFormData( ( prev ) => prev ? { ...prev, title: data.title } : prev );
-			} else if ( isLabel && labelFormData ) {
-				const data = await onLabelSave( collectLabelPayload( labelFormData ) );
-				if ( data ) setLabelFormData( defaultLabelFormData( data, null, null ) );
-			} else if ( isRegion && regionFormData ) {
-				const data = await onRegionSave( regionFormData );
-				if ( data ) setRegionFormData( defaultHierarchyFormData( data ) );
-			} else if ( areaFormData ) {
-				await onAreaSave( areaFormData );
+			switch ( selection.kind ) {
+				case 'object':
+					if ( objFormData ) {
+						const data = await onObjectSave(
+							collectObjectPayload( objFormData )
+						);
+						if ( data?.title )
+							setObjFormData( ( prev ) =>
+								prev ? { ...prev, title: data.title } : prev
+							);
+					}
+					break;
+				case 'label':
+					if ( labelFormData ) {
+						const data = await onLabelSave(
+							collectLabelPayload( labelFormData )
+						);
+						if ( data )
+							setLabelFormData(
+								defaultLabelFormData( data, null, null )
+							);
+					}
+					break;
+				case 'region':
+					if ( regionFormData ) {
+						const data = await onRegionSave( regionFormData );
+						if ( data )
+							setRegionFormData(
+								defaultHierarchyFormData( data )
+							);
+					}
+					break;
+				case 'area':
+					if ( areaFormData ) await onAreaSave( areaFormData );
+					break;
 			}
 			createSuccessNotice( __( 'Saved.', 'cns-map-suite' ), {
 				type: 'snackbar',
@@ -155,170 +271,189 @@ export default function ContextPanel( {
 	}
 
 	async function handleDelete() {
-		if ( isObject ) {
-			if ( ! confirm( 'Delete this object?' ) ) return;
-			await onObjectDelete();
-		} else if ( isLabel ) {
-			if ( ! confirm( 'Delete this label?' ) ) return;
-			await onLabelDelete();
-		} else if ( isRegion ) {
-			if ( ! confirm( 'Delete this hierarchy region?' ) ) return;
-			await onRegionDelete();
-		} else {
-			if ( ! confirm( 'Delete this area?' ) ) return;
-			await onAreaDelete();
+		switch ( selection.kind ) {
+			case 'object':
+				if ( ! confirm( 'Delete this object?' ) ) return;
+				await onObjectDelete();
+				break;
+			case 'label':
+				if ( ! confirm( 'Delete this label?' ) ) return;
+				await onLabelDelete();
+				break;
+			case 'region':
+				if ( ! confirm( 'Delete this hierarchy region?' ) ) return;
+				await onRegionDelete();
+				break;
+			case 'area':
+				if ( ! confirm( 'Delete this area?' ) ) return;
+				await onAreaDelete();
+				break;
 		}
 	}
 
 	function handleClose() {
-		if ( isObject ) onObjectClose();
-		else if ( isLabel ) onLabelClose();
-		else if ( isRegion ) onRegionClose();
-		else onAreaClose();
+		switch ( selection.kind ) {
+			case 'object':
+				onObjectClose();
+				break;
+			case 'label':
+				onLabelClose();
+				break;
+			case 'region':
+				onRegionClose();
+				break;
+			case 'area':
+				onAreaClose();
+				break;
+		}
 	}
 
 	return (
-		<aside className="cns-editor-context" aria-label="Context panel">
-			<div id="cns-context-form">
-				<div className="cns-editor-context__header">
-					<span className="cns-editor-context__title">{ title }</span>
-					{ isObject && (
-						<>
-							<Button variant="secondary" size="small" onClick={ onObjectReposition }>
-								{ __( 'Reposition', 'cns-map-suite' ) }
-							</Button>
+		<aside
+			className="cns-map-editor__context"
+			aria-label="Context panel"
+			id="cns-context-form"
+		>
+			<div className="cns-map-editor__context-header">
+				<Flex align="center" justify="space-between">
+					<FlexBlock className="cns-map-editor__context-title">
+						<h3>{ title }</h3>
+					</FlexBlock>
+					<FlexItem>
+						<Flex
+							gap={ 2 }
+							align="center"
+							className="cns-map-editor__context-title-actions"
+						>
+							{ onDuplicate && (
+								<Button
+									size="small"
+									icon={ copy }
+									label={ __( 'Duplicate', 'cns-map-suite' ) }
+									onClick={ onDuplicate }
+								/>
+							) }
 							<Button
 								size="small"
-								icon={ copy }
-								label={ __( 'Duplicate', 'cns-map-suite' ) }
-								onClick={ onObjectDuplicate }
+								icon={ close }
+								label={ __( 'Close', 'cns-map-suite' ) }
+								onClick={ handleClose }
 							/>
-						</>
-					) }
-					{ ! isObject && ! isLabel && ! isRegion && (
-						<Button
-							size="small"
-							icon={ copy }
-							label={ __( 'Duplicate', 'cns-map-suite' ) }
-							onClick={ onAreaDuplicate }
-						/>
-					) }
-					{ isLabel && (
-						<>
-							<Button variant="secondary" size="small" onClick={ onLabelReposition }>
-								{ __( 'Reposition', 'cns-map-suite' ) }
-							</Button>
-							<Button
-								size="small"
-								icon={ copy }
-								label={ __( 'Duplicate', 'cns-map-suite' ) }
-								onClick={ onLabelDuplicate }
-							/>
-						</>
-					) }
-					<Button
-						size="small"
-						icon={ close }
-						label={ __( 'Close', 'cns-map-suite' ) }
-						onClick={ handleClose }
-					/>
-				</div>
+						</Flex>
+					</FlexItem>
+				</Flex>
+			</div>
 
-				<div className="cns-editor-context__body">
-					{ isObject && objFormData && (
-						<ObjectForm
-							formData={ objFormData }
-							onChange={ setObjFormData }
-							icons={ icons }
-						/>
-					) }
-					{ isLabel && labelFormData && (
-						<LabelForm
-							formData={ labelFormData }
-							onChange={ ( fd ) => {
-								setLabelFormData( fd );
-								// Live preview: mirror every form change onto
-								// the in-memory label so the canvas updates
-								// immediately (Save persists it).
-								if ( selectedLabel ) {
-									onLabelLocalUpdate( selectedLabel.id, {
-										text:           fd.text,
-										placement:      fd.placement,
-										x:              fd.x,
-										y:              fd.y,
-										offset_x:       fd.offset_x,
-										offset_y:       fd.offset_y,
-										infobox_source: fd.infobox_source,
-										linked_post_id: fd.linked_post_id,
-										infobox_data: {
-											title:       fd.infobox_title,
-											description: fd.infobox_description,
-											image_id:    fd.infobox_image_id,
-										},
-										canvas_styles: {
-											bgColor:     fd.style_bg,
-											borderColor: fd.style_border,
-											textColor:   fd.style_text_color,
-											fontSize:    fd.style_font_size,
-										},
-									} );
-								}
+			<div className="cns-map-editor__context-body">
+				{ selection.kind === 'object' && objFormData && (
+					<ObjectForm
+						formData={ objFormData }
+						onChange={ setObjFormData }
+						icons={ icons }
+					/>
+				) }
+				{ selection.kind === 'label' && labelFormData && (
+					<LabelForm
+						formData={ labelFormData }
+						onChange={ ( fd ) => {
+							setLabelFormData( fd );
+							// Live preview: mirror every form change onto
+							// the in-memory label so the canvas updates
+							// immediately (Save persists it).
+							if ( selectedLabel ) {
+								onLabelLocalUpdate( selectedLabel.id, {
+									text: fd.text,
+									placement: fd.placement,
+									x: fd.x,
+									y: fd.y,
+									offset_x: fd.offset_x,
+									offset_y: fd.offset_y,
+									infobox_source: fd.infobox_source,
+									linked_post_id: fd.linked_post_id,
+									infobox_data: {
+										title: fd.infobox_title,
+										description: fd.infobox_description,
+										image_id: fd.infobox_image_id,
+									},
+									canvas_styles: {
+										bgColor: fd.style_bg,
+										borderColor: fd.style_border,
+										textColor: fd.style_text_color,
+										fontSize: fd.style_font_size,
+									},
+								} );
+							}
+						} }
+					/>
+				) }
+				{ selection.kind === 'area' && areaFormData && (
+					<>
+						<AreaForm
+							formData={ areaFormData }
+							onChange={ setAreaFormData }
+							onShapeTypeChange={ ( st ) => {
+								if ( selectedArea )
+									onAreaShapeTypeChange?.(
+										selectedArea.id,
+										st
+									);
+								setAreaFormData( ( prev ) =>
+									prev ? { ...prev, shape_type: st } : prev
+								);
 							} }
 						/>
-					) }
-					{ ! isObject && ! isLabel && ! isRegion && areaFormData && (
-						<>
-							<AreaForm
-								formData={ areaFormData }
-								onChange={ setAreaFormData }
-								onShapeTypeChange={ ( st ) => {
-									if ( selectedArea ) onAreaShapeTypeChange?.( selectedArea.id, st );
-									setAreaFormData( ( prev ) => prev ? { ...prev, shape_type: st } : prev );
-								} }
+						{ selectedArea && (
+							<NodeList
+								area={ selectedArea }
+								onNodesChange={ ( nodes ) =>
+									onAreaNodesUpdate?.(
+										selectedArea.id,
+										nodes
+									)
+								}
 							/>
-							{ selectedArea && (
-								<NodeList
-									area={ selectedArea }
-									onNodesChange={ ( nodes ) => onAreaNodesUpdate?.( selectedArea.id, nodes ) }
-								/>
-							) }
-						</>
-					) }
-					{ isRegion && regionFormData && (
-						<>
-							<HierarchyRegionForm
-								formData={ regionFormData }
-								onChange={ setRegionFormData }
+						) }
+					</>
+				) }
+				{ selection.kind === 'region' && regionFormData && (
+					<>
+						<HierarchyRegionForm
+							formData={ regionFormData }
+							onChange={ setRegionFormData }
+						/>
+						{ selectedRegion && (
+							<RegionNodeList
+								region={ selectedRegion }
+								onNodesChange={ ( nodes ) =>
+									onRegionNodesUpdate(
+										selectedRegion.id,
+										nodes
+									)
+								}
 							/>
-							{ selectedRegion && (
-								<RegionNodeList
-									region={ selectedRegion }
-									onNodesChange={ ( nodes ) => onRegionNodesUpdate( selectedRegion.id, nodes ) }
-								/>
-							) }
-						</>
-					) }
-				</div>
+						) }
+					</>
+				) }
+			</div>
 
-				<div className="cns-editor-context__footer">
-					<Button
-						variant="primary"
-						size="small"
-						isBusy={ saving }
-						disabled={ saving }
-						onClick={ handleSave }
-					>
-						{ __( 'Save', 'cns-map-suite' ) }
-					</Button>
-					<Button
-						variant="secondary"
-						size="small"
-						isDestructive
-						onClick={ handleDelete }
-					>
-						{ __( 'Delete', 'cns-map-suite' ) }
-					</Button>
-				</div>
+			<div className="cns-map-editor__context-footer">
+				<Button
+					variant="primary"
+					size="small"
+					isBusy={ saving }
+					disabled={ saving }
+					onClick={ handleSave }
+				>
+					{ __( 'Save', 'cns-map-suite' ) }
+				</Button>
+				<Button
+					variant="secondary"
+					size="small"
+					isDestructive
+					onClick={ handleDelete }
+				>
+					{ __( 'Delete', 'cns-map-suite' ) }
+				</Button>
 			</div>
 		</aside>
 	);

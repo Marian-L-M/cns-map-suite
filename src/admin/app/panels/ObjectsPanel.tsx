@@ -23,7 +23,6 @@ interface Props {
 	settings: MapSettings;
 	objects: MapObject[];
 	selectedObjectId: number | null;
-	repositioningObjectId: number | null;
 	onObjectsLoaded: ( objects: MapObject[] ) => void;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
@@ -31,8 +30,6 @@ interface Props {
 	onPositionUpdate: ( id: number, x: number, y: number ) => Promise< void >;
 	onLocalUpdate: ( id: number, patch: Partial< MapObject > ) => void;
 	onDuplicate: ( id: number ) => Promise< void >;
-	onRepositionStart: ( id: number ) => void;
-	onRepositionComplete: () => void;
 	onDelete: ( id: number ) => Promise< void >;
 }
 
@@ -41,7 +38,6 @@ export default function ObjectsPanel( {
 	settings,
 	objects,
 	selectedObjectId,
-	repositioningObjectId,
 	onObjectsLoaded,
 	onSelect,
 	onDeselect,
@@ -49,8 +45,6 @@ export default function ObjectsPanel( {
 	onPositionUpdate,
 	onLocalUpdate,
 	onDuplicate,
-	onRepositionStart,
-	onRepositionComplete,
 	onDelete,
 }: Props ) {
 	useMapResource< MapObject >( mapId, 'objects', onObjectsLoaded );
@@ -208,11 +202,9 @@ export default function ObjectsPanel( {
 					drawState={ drawState }
 					objects={ objects }
 					selectedObjectId={ selectedObjectId }
-					repositioningObjectId={ repositioningObjectId }
 					onSelect={ onSelect }
 					onDeselect={ onDeselect }
 					onPositionUpdate={ onPositionUpdate }
-					onRepositionComplete={ onRepositionComplete }
 					onPlace={ ( x, y ) => void handleCreateAt( x, y ) }
 				/>
 

@@ -1,14 +1,11 @@
+import { Flex, FlexBlock } from '@wordpress/components';
 import { useRef, useEffect } from '@wordpress/element';
-import { drawObjectsOnCanvas, findObjectAtPoint } from '../../objects';
-import { usePickupDrag } from './usePickupDrag';
+
 import CanvasZoomWrap from './CanvasZoomWrap';
+import { usePickupDrag } from './usePickupDrag';
+import { drawObjectsOnCanvas, findObjectAtPoint } from '../../objects';
 import type { DrawState, MapObject } from '../../../types';
 
-/**
- * Pick-up/drop interaction comes from usePickupDrag; here a drag payload is
- * simply the object id, and the preview draws the marker at the cursor.
- * Clicking empty canvas with nothing selected places a new object there.
- */
 interface ObjectDrag {
 	id: number;
 }
@@ -17,11 +14,9 @@ interface Props {
 	drawState: DrawState;
 	objects: MapObject[];
 	selectedObjectId: number | null;
-	repositioningObjectId: number | null;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
-	onPositionUpdate: ( id: number, x: number, y: number ) => Promise<void>;
-	onRepositionComplete: () => void;
+	onPositionUpdate: ( id: number, x: number, y: number ) => Promise< void >;
 	onPlace: ( x: number, y: number ) => void;
 }
 
@@ -31,11 +26,18 @@ interface CanvasState {
 }
 
 export default function ObjectsCanvas( {
-	drawState, objects, selectedObjectId,
-	repositioningObjectId,
-	onSelect, onDeselect, onPositionUpdate, onRepositionComplete, onPlace,
+	drawState,
+	objects,
+	selectedObjectId,
+	onSelect,
+	onDeselect,
+	onPositionUpdate,
+	onPlace,
 }: Props ) {
-	const stateRef   = useRef<CanvasState>( { objects: [], selectedObjectId: null } );
+	const stateRef = useRef< CanvasState >( {
+		objects: [],
+		selectedObjectId: null,
+	} );
 	stateRef.current = { objects, selectedObjectId };
 
 	function redraw() {
@@ -43,22 +45,40 @@ export default function ObjectsCanvas( {
 		if ( ! canvas ) return;
 		const { objects: objs, selectedObjectId: selId } = stateRef.current;
 		const drag = dragRef.current;
-		drawObjectsOnCanvas( canvas, drawState, objs, selId, drag?.payload.id ?? null, drag?.cursor ?? null );
+		drawObjectsOnCanvas(
+			canvas,
+			drawState,
+			objs,
+			selId,
+			drag?.payload.id ?? null,
+			drag?.cursor ?? null
+		);
 	}
 
-	const { canvasRef, dragRef, startDrag } = usePickupDrag<ObjectDrag>( {
+	const { canvasRef, dragRef } = usePickupDrag< ObjectDrag >( {
 		hitTest: ( ctx, x, y ) => {
-			const hit = findObjectAtPoint( ctx, x, y, stateRef.current.objects );
+			const hit = findObjectAtPoint(
+				ctx,
+				x,
+				y,
+				stateRef.current.objects
+			);
 			return hit ? { id: hit.id } : null;
 		},
 		onPickup: ( drag ) => onSelect?.( drag.id ),
 		onDrop: ( drag, cursor ) => {
 			if ( cursor ) {
-				void onPositionUpdate?.( drag.id, Math.round( cursor.x ), Math.round( cursor.y ) );
+				void onPositionUpdate?.(
+					drag.id,
+					Math.round( cursor.x ),
+					Math.round( cursor.y )
+				);
 			}
 		},
 		dragFromSelection: () =>
-			stateRef.current.selectedObjectId ? { id: stateRef.current.selectedObjectId } : null,
+			stateRef.current.selectedObjectId
+				? { id: stateRef.current.selectedObjectId }
+				: null,
 		onEmptyClick: ( coords ) => {
 			if ( stateRef.current.selectedObjectId ) {
 				onDeselect?.();
@@ -69,7 +89,6 @@ export default function ObjectsCanvas( {
 		onEscapeIdle: () => {
 			if ( stateRef.current.selectedObjectId ) onDeselect?.();
 		},
-		onDragEnd: () => onRepositionComplete?.(),
 		redraw,
 	} );
 
@@ -77,16 +96,18 @@ export default function ObjectsCanvas( {
 		redraw();
 	} ); // run after every render
 
-	// The context panel's "Reposition" button starts a drag.
-	useEffect( () => {
-		if ( repositioningObjectId ) startDrag( { id: repositioningObjectId } );
-	}, [ repositioningObjectId ] );
-
 	return (
-		<div className="cns-objects-canvas-wrap">
-			<CanvasZoomWrap>
-				<canvas ref={ canvasRef } />
-			</CanvasZoomWrap>
-		</div>
+		<Flex
+			className={ 'cns-objects-canvas-wrap' }
+			gap={ 4 }
+			direction="column"
+			align="center"
+		>
+			<FlexBlock>
+				<CanvasZoomWrap>
+					<canvas ref={ canvasRef } />
+				</CanvasZoomWrap>
+			</FlexBlock>
+		</Flex>
 	);
 }

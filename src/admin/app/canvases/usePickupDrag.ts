@@ -38,8 +38,6 @@ export interface PickupDragConfig<D> {
 	onEmptyClick: ( coords: CanvasPoint ) => void;
 	/** Escape while not dragging (typically: deselect). */
 	onEscapeIdle: () => void;
-	/** Any drag end — drop or cancel (reposition-complete etc.). */
-	onDragEnd?: () => void;
 	redraw: () => void;
 }
 
@@ -66,7 +64,6 @@ export function usePickupDrag<D>( config: PickupDragConfig<D> ): {
 		function endDrag() {
 			dragRef.current = null;
 			canvas!.style.cursor = '';
-			cfgRef.current.onDragEnd?.();
 		}
 
 		function onMouseMove( e: MouseEvent ) {

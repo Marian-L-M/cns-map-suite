@@ -107,6 +107,7 @@ Chosen approach: **A — shared raw-SVG-string module** (not `@wordpress/icons` 
 -   [ ] CSS: add `.cns-map-zoom__btn svg { width: 1em; height: 1em; fill: currentColor; display: block; }` so icons inherit button color/size; drop any glyph `font-size` assumptions.
 -   [ ] Verify: `npm run build`, then confirm `build/blocks/map/view.asset.php` still lists **no** `wp-element`/React dependency (proves the frontend stayed React-free). Load `http://cns-theme.local/` map page and check icons render + fullscreen toggle swaps the icon.
 -   [ ] (Optional) If any editor code ends up importing `@wordpress/icons` directly, run `npm install @wordpress/icons` to declare it as a direct dependency (currently only present transitively via `@wordpress/components`).
+-   [ ] Enable panning when zoomed in
 
 ## Bug List
 

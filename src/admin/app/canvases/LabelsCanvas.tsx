@@ -11,8 +11,7 @@ import type { DrawState, MapLabel, CanvasPoint } from '../../../types';
  *  - 'box'    — the text box. Centered labels move their anchor; indicator
  *               labels move only the box (offset), the dot stays put.
  *  - 'anchor' — the indicator dot; moves only the dot, the box stays put.
- *  - 'whole'  — anchor + box together (offset kept). Used by the
- *               "Reposition" button and Enter-pick-up.
+ *  - 'whole'  — anchor + box together (offset kept). Used by Enter-pick-up.
  */
 type DragPart = 'box' | 'anchor' | 'whole';
 
@@ -32,11 +31,9 @@ interface Props {
 	drawState: DrawState;
 	labels: MapLabel[];
 	selectedLabelId: number | null;
-	repositioningLabelId: number | null;
 	onSelect: ( id: number ) => void;
 	onDeselect: () => void;
 	onGeometryUpdate: ( id: number, geometry: Partial<LabelGeometry> ) => Promise<void>;
-	onRepositionComplete: () => void;
 }
 
 interface CanvasState {
@@ -73,8 +70,7 @@ function applyDragCursor( label: MapLabel, part: DragPart, cursor: CanvasPoint )
 
 export default function LabelsCanvas( {
 	drawState, labels, selectedLabelId,
-	repositioningLabelId,
-	onSelect, onDeselect, onGeometryUpdate, onRepositionComplete,
+	onSelect, onDeselect, onGeometryUpdate,
 }: Props ) {
 	const stateRef   = useRef<CanvasState>( { labels: [], selectedLabelId: null } );
 	stateRef.current = { labels, selectedLabelId };
@@ -95,7 +91,7 @@ export default function LabelsCanvas( {
 		drawLabelsOnCanvas( canvas, drawState, list, selId );
 	}
 
-	const { canvasRef, dragRef, startDrag } = usePickupDrag<LabelDrag>( {
+	const { canvasRef, dragRef } = usePickupDrag<LabelDrag>( {
 		hitTest: ( ctx, x, y ) => {
 			const hit = findLabelPartAtPoint( ctx, x, y, stateRef.current.labels );
 			return hit ? { id: hit.label.id, part: hit.part } : null;
@@ -117,18 +113,12 @@ export default function LabelsCanvas( {
 		onEscapeIdle: () => {
 			if ( stateRef.current.selectedLabelId ) onDeselect?.();
 		},
-		onDragEnd: () => onRepositionComplete?.(),
 		redraw,
 	} );
 
 	useEffect( () => {
 		redraw();
 	} ); // run after every render
-
-	// The context panel's "Reposition" button starts a whole-label drag.
-	useEffect( () => {
-		if ( repositioningLabelId ) startDrag( { id: repositioningLabelId, part: 'whole' } );
-	}, [ repositioningLabelId ] );
 
 	return (
 		<div className="cns-objects-canvas-wrap">
