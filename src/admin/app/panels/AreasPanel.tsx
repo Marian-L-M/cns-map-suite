@@ -1,4 +1,10 @@
-import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
+import {
+	Button,
+	Flex,
+	FlexBlock,
+	FlexItem,
+	Popover,
+} from '@wordpress/components';
 import { useDispatch } from '@wordpress/data';
 import { useState, useEffect } from '@wordpress/element';
 import { plus } from '@wordpress/icons';
@@ -220,6 +226,13 @@ export default function AreasPanel( {
 
 	const drawState = settingsToDrawState( settings );
 
+	// Help information
+	const [ isVisibleHelpInformation, setIsVisibleHelpInformation ] =
+		useState( false );
+	const toggleVisibleHelpInformation = () => {
+		setIsVisibleHelpInformation( ( state: boolean ) => ! state );
+	};
+
 	return (
 		<div
 			className="cns-tab-panel cns-tab-panel--active"
@@ -230,50 +243,68 @@ export default function AreasPanel( {
 				<FlexBlock style={ { width: '100%' } }>
 					<Flex gap={ 4 } align="start" justify="space-between">
 						<FlexItem>
-							<ul className="description">
-								<li>
-									{ __(
-										'Click a node to pick it up — it follows the cursor.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Click or press Enter to place node.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Press Esc to cancel current placement.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Click empty space on a selected area to add a node. ',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'With an area selected: arrow keys move the whole area (Shift = 10 px).',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										' Tab/Shift+Tab cycles nodes; Arrows nudge node; Delete removes node.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.',
-										'cns-map-suite'
-									) }
-								</li>
-							</ul>
+							<Button
+								variant="tertiary"
+								onClick={ toggleVisibleHelpInformation }
+							>
+								Help Information
+								{ isVisibleHelpInformation && (
+									<Popover
+										headerTitle="Help Information"
+										expandOnMobile
+									>
+										<ol
+											style={ {
+												width: 320,
+												maxWidth: '100%',
+											} }
+										>
+											<li>
+												{ __(
+													'Click a node to pick it up — it follows the cursor.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Click or press Enter to place node.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Press Esc to cancel current placement.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Click empty space on a selected area to add a node. ',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'With an area selected: arrow keys move the whole area (Shift = 10 px).',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													' Tab/Shift+Tab cycles nodes; Arrows nudge node; Delete removes node.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.',
+													'cns-map-suite'
+												) }
+											</li>
+										</ol>
+									</Popover>
+								) }
+							</Button>
 						</FlexItem>
 						<Button
 							variant="primary"

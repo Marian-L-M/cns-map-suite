@@ -229,14 +229,14 @@ import {
 			drawer.className = 'cns-map-drawer';
 			drawer.setAttribute('role', 'dialog');
 			drawer.setAttribute('aria-modal', 'true');
-			drawer.innerHTML =
-				'<div class="cns-map-drawer__backdrop"></div>' +
-				'<div class="cns-map-drawer__panel">' +
-					'<div class="cns-map-drawer__header">' +
-						'<button class="cns-map-drawer__close" aria-label="Close">&times;</button>' +
-					'</div>' +
-					'<div class="cns-map-drawer__body"></div>' +
-				'</div>';
+			drawer.innerHTML = `
+				<div class="cns-map-drawer__backdrop"></div>
+				<div class="cns-map-drawer__panel">
+					<div class="cns-map-drawer__header">
+						<button class="cns-map-drawer__close" aria-label="Close">&times;</button>
+					</div>
+					<div class="cns-map-drawer__body"></div>
+				</div>`;
 			document.body.appendChild(drawer);
 
 			drawer.querySelector('.cns-map-drawer__backdrop').addEventListener('click', function () {
@@ -245,6 +245,7 @@ import {
 			drawer.querySelector('.cns-map-drawer__close').addEventListener('click', function () {
 				closeDrawer(drawer);
 			});
+			drawer.querySelector('.cns-map-drawer__body').addEventListener('click', handleInfoboxToggle);
 			document.addEventListener('keydown', function (e) {
 				if (e.key === 'Escape' && drawer.classList.contains('is-open')) closeDrawer(drawer);
 			});
@@ -253,25 +254,67 @@ import {
 	}
 
 	function showInfobox(wrap, item) {
-		const drawer   = getOrCreateDrawer();
-		const body     = drawer.querySelector('.cns-map-drawer__body');
-		const resolved = item.infobox_resolved || {};
-		const title    = resolved.title    || item.title || '';
-		const content  = resolved.content  || '';
-		const imgUrl   = resolved.image_url || '';
-		const postUrl  = resolved.post_url  || '';
+		const drawer    = getOrCreateDrawer();
+		const body      = drawer.querySelector('.cns-map-drawer__body');
+		const resolved  = item.infobox_resolved || {};
+		const title     = resolved.title     || item.title || '';
+		const excerpt   = resolved.excerpt   || '';
+		const content   = resolved.content   || '';
+		const imgUrl    = resolved.image_url || '';
+		const postUrl   = resolved.post_url  || '';
+		const infoboxes = resolved.infoboxes || [];
 
 		let html = '';
-		if (imgUrl)  html += '<img class="cns-map-drawer__image" src="' + escHtml(encodeURI(imgUrl)) + '" alt="" />';
-		if (title)   html += '<h2 class="cns-map-drawer__title">' + escHtml(title) + '</h2>';
-		// content is server-rendered WordPress block HTML, sanitized via wp_kses_post() before storage
-		if (content) html += '<div class="cns-map-drawer__content">' + content + '</div>';
-		if (postUrl) html += '<a class="cns-map-drawer__link" href="' + escHtml(encodeURI(postUrl)) + '">Read more &rarr;</a>';
+		if (imgUrl)  html += `<img class="cns-map-drawer__image" src="${escHtml(encodeURI(imgUrl))}" alt="" />`;
+		if (title)   html += `<h2 class="cns-map-drawer__title">${escHtml(title)}</h2>`;
+		// Prefer the excerpt (plain text → escaped); fall back to the block
+		// content only when there's no excerpt (e.g. manual infoboxes, whose
+		// content is server-rendered block HTML sanitized before storage).
+		if (excerpt) {
+			html += `<p class="cns-map-drawer__excerpt">${escHtml(excerpt)}</p>`;
+		} else if (content) {
+			html += `<div class="cns-map-drawer__content">${content}</div>`;
+		}
+		// Wiki-suite infoboxes: server-rendered block markup (render_block of
+		// trusted admin content), one wrapper per top-level infobox.
+		infoboxes.forEach(function (ib) {
+			html += `<div class="cns-map-drawer__infobox">${ib}</div>`;
+		});
+		if (postUrl) html += `<a class="cns-map-drawer__link" href="${escHtml(encodeURI(postUrl))}">Read more &rarr;</a>`;
 
 		body.innerHTML = html;
+		expandInfoboxes(body);
 		drawer.classList.add('is-open');
 		document.body.classList.add('cns-map-drawer-open');
 		drawer.querySelector('.cns-map-drawer__close').focus();
+	}
+
+	// The wiki-suite infobox collapse is normally driven by the WP Interactivity
+	// API at page load, which never hydrates markup injected into the drawer at
+	// click time. So we own it: start every infobox/group expanded (the CSS keys
+	// visibility off these classes), and a delegated handler on the drawer body
+	// (wired once in getOrCreateDrawer) toggles them when a title button is hit.
+	function expandInfoboxes(container) {
+		container.querySelectorAll('.infobox').forEach(function (el) {
+			el.classList.add('is-active');
+		});
+		container.querySelectorAll('.infobox-group__outer').forEach(function (el) {
+			el.classList.add('is-active-group');
+		});
+	}
+
+	function handleInfoboxToggle(e) {
+		const btn = e.target.closest('.toggle-btn');
+		if (!btn) return;
+		const groupTitle = btn.closest('.infobox-group__title');
+		if (groupTitle && groupTitle.parentElement) {
+			groupTitle.parentElement.classList.toggle('is-active-group');
+			return;
+		}
+		const boxTitle = btn.closest('.infobox__title');
+		if (boxTitle && boxTitle.parentElement) {
+			boxTitle.parentElement.classList.toggle('is-active');
+		}
 	}
 
 	function hideInfobox() {
@@ -297,13 +340,28 @@ import {
 	}
 
 	function showHierarchyTooltip(region, canvasRect, canvasX, canvasY, scaleX, scaleY) {
-		var tip     = getOrCreateHierarchyTooltip();
-		var imgHtml = region.child_map_thumbnail
-			? '<img class="cns-map-hierarchy-tip__thumb" src="' + encodeURI(region.child_map_thumbnail) + '" alt="" />'
-			: '';
-		var titleHtml   = region.child_map_title   ? '<strong class="cns-map-hierarchy-tip__title">'   + escHtml(region.child_map_title)   + '</strong>' : '';
-		var excerptHtml = region.child_map_excerpt  ? '<p class="cns-map-hierarchy-tip__excerpt">' + escHtml(region.child_map_excerpt) + '</p>'       : '';
-		tip.innerHTML = imgHtml + titleHtml + excerptHtml;
+		var tip = getOrCreateHierarchyTooltip();
+		tip.replaceChildren();
+
+		if (region.child_map_thumbnail) {
+			var thumb = document.createElement('img');
+			thumb.className = 'cns-map-hierarchy-tip__thumb';
+			thumb.src       = encodeURI(region.child_map_thumbnail);
+			thumb.alt       = '';
+			tip.appendChild(thumb);
+		}
+		if (region.child_map_title) {
+			var title = document.createElement('strong');
+			title.className   = 'cns-map-hierarchy-tip__title';
+			title.textContent = region.child_map_title;
+			tip.appendChild(title);
+		}
+		if (region.child_map_excerpt) {
+			var excerpt = document.createElement('p');
+			excerpt.className   = 'cns-map-hierarchy-tip__excerpt';
+			excerpt.textContent = region.child_map_excerpt;
+			tip.appendChild(excerpt);
+		}
 
 		// Position near cursor, offset so it doesn't obscure the pointer.
 		var clientX = canvasRect.left + canvasX * scaleX;

@@ -1,4 +1,5 @@
 import {
+	CheckboxControl,
 	RadioControl,
 	TextControl,
 	TextareaControl,
@@ -57,6 +58,20 @@ export default function InfoboxSection< T extends InfoboxFormFields >( {
 						}
 					/>
 				</div>
+				{ formData.linked_post_id ? (
+					<div className="cns-grid__group cns-grid__span-full">
+						<CheckboxControl
+							__nextHasNoMarginBottom
+							label={ __( 'Display infobox', 'cns-map-suite' ) }
+							help={ __(
+								'Show the connected post’s infobox blocks in the drawer — works even when the description is written manually.',
+								'cns-map-suite'
+							) }
+							checked={ formData.display_infobox }
+							onChange={ ( v ) => set( 'display_infobox', v ) }
+						/>
+					</div>
+				) : null }
 				<div className="cns-grid__group cns-grid__span-full">
 					<RadioControl
 						label={ __( 'Content source', 'cns-map-suite' ) }
@@ -124,12 +139,38 @@ export default function InfoboxSection< T extends InfoboxFormFields >( {
 						</div>
 					</>
 				) : (
-					<p className="description">
-						{ __(
-							'Title, description and image are pulled from the connected post.',
-							'cns-map-suite'
-						) }
-					</p>
+					<>
+						<p className="description cns-grid__span-full">
+							{ __(
+								'Title, excerpt and thumbnail are pulled from the connected post. Untick to hide any of them.',
+								'cns-map-suite'
+							) }
+						</p>
+						<div className="cns-grid__group cns-grid__span-full">
+							<CheckboxControl
+								__nextHasNoMarginBottom
+								label={ __( 'Show title', 'cns-map-suite' ) }
+								checked={ formData.show_title }
+								onChange={ ( v ) => set( 'show_title', v ) }
+							/>
+						</div>
+						<div className="cns-grid__group cns-grid__span-full">
+							<CheckboxControl
+								__nextHasNoMarginBottom
+								label={ __( 'Show excerpt', 'cns-map-suite' ) }
+								checked={ formData.show_excerpt }
+								onChange={ ( v ) => set( 'show_excerpt', v ) }
+							/>
+						</div>
+						<div className="cns-grid__group cns-grid__span-full">
+							<CheckboxControl
+								__nextHasNoMarginBottom
+								label={ __( 'Show thumbnail', 'cns-map-suite' ) }
+								checked={ formData.show_thumbnail }
+								onChange={ ( v ) => set( 'show_thumbnail', v ) }
+							/>
+						</div>
+					</>
 				) }
 			</div>
 		</section>
@@ -150,5 +191,10 @@ export function infoboxFormDefaults( item: {
 		infobox_image_url:   '',
 		linked_post_id:      item?.linked_post_id || 0,
 		linked_post_label:   item?.linked_post_id ? `Post ID: ${ item.linked_post_id }` : '',
+		// Display flags default on when absent (matches the server-side default).
+		display_infobox:     item?.infobox_data?.display_infobox ?? true,
+		show_title:          item?.infobox_data?.show_title    ?? true,
+		show_excerpt:        item?.infobox_data?.show_excerpt  ?? true,
+		show_thumbnail:      item?.infobox_data?.show_thumbnail ?? true,
 	};
 }

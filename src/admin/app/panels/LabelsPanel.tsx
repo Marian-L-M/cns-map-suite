@@ -1,5 +1,11 @@
-import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
-import { useEffect, useRef } from '@wordpress/element';
+import {
+	Button,
+	Flex,
+	FlexBlock,
+	FlexItem,
+	Popover,
+} from '@wordpress/components';
+import { useEffect, useRef, useState } from '@wordpress/element';
 import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 
@@ -135,6 +141,13 @@ export default function LabelsPanel( {
 
 	const drawState = settingsToDrawState( settings );
 
+	// Help information
+	const [ isVisibleHelpInformation, setIsVisibleHelpInformation ] =
+		useState( false );
+	const toggleVisibleHelpInformation = () => {
+		setIsVisibleHelpInformation( ( state: boolean ) => ! state );
+	};
+
 	return (
 		<div
 			className="cns-tab-panel cns-tab-panel--active"
@@ -145,32 +158,50 @@ export default function LabelsPanel( {
 				<FlexBlock style={ { width: '100%' } }>
 					<Flex gap={ 4 } align="start" justify="space-between">
 						<FlexItem>
-							<ul className="description">
-								<li>
-									{ __(
-										'Click a label to pick it up — it follows the cursor;',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Esc cancels placement.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'In indicator mode the dot and the text box move independently.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
-										'cns-map-suite'
-									) }
-								</li>
-							</ul>
+							<Button
+								variant="tertiary"
+								onClick={ toggleVisibleHelpInformation }
+							>
+								Help Information
+								{ isVisibleHelpInformation && (
+									<Popover
+										headerTitle="Help Information"
+										expandOnMobile
+									>
+										<ol
+											style={ {
+												width: 320,
+												maxWidth: '100%',
+											} }
+										>
+											<li>
+												{ __(
+													'Click a label to pick it up — it follows the cursor;',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Esc cancels placement.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'In indicator mode the dot and the text box move independently.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
+													'cns-map-suite'
+												) }
+											</li>
+										</ol>
+									</Popover>
+								) }
+							</Button>
 						</FlexItem>
 						<Button
 							variant="primary"

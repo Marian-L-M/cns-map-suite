@@ -482,6 +482,27 @@ function cns_map_suite_infobox_rest_args(): array {
 			'default'           => 0,
 			'sanitize_callback' => 'absint',
 		],
+		// Per-item display flags (default on to preserve pre-flag behaviour).
+		'display_infobox' => [
+			'type'              => 'boolean',
+			'default'           => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+		],
+		'show_title' => [
+			'type'              => 'boolean',
+			'default'           => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+		],
+		'show_excerpt' => [
+			'type'              => 'boolean',
+			'default'           => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+		],
+		'show_thumbnail' => [
+			'type'              => 'boolean',
+			'default'           => true,
+			'sanitize_callback' => 'rest_sanitize_boolean',
+		],
 	];
 }
 
@@ -500,9 +521,13 @@ function cns_map_suite_infobox_fields_from_request(WP_REST_Request $request): ar
 		'linked_post_id' => $linked_post_id,
 		'infobox_source' => $request->get_param('infobox_source'),
 		'infobox_data'   => wp_json_encode([
-			'title'       => (string) $request->get_param('infobox_title'),
-			'description' => wp_kses_post($request->get_param('infobox_description')),
-			'image_id'    => (int) $request->get_param('infobox_image_id'),
+			'title'           => (string) $request->get_param('infobox_title'),
+			'description'     => wp_kses_post($request->get_param('infobox_description')),
+			'image_id'        => (int) $request->get_param('infobox_image_id'),
+			'display_infobox' => (bool) $request->get_param('display_infobox'),
+			'show_title'      => (bool) $request->get_param('show_title'),
+			'show_excerpt'    => (bool) $request->get_param('show_excerpt'),
+			'show_thumbnail'  => (bool) $request->get_param('show_thumbnail'),
 		]),
 	];
 }

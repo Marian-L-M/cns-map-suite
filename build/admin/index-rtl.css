@@ -399,13 +399,6 @@
   display: block;
 }
 
-.cns-settings-canvas .description {
-  font-size: 12px;
-  color: #646970;
-  margin: 0;
-  text-align: center;
-}
-
 .cns-placeholder {
   display: flex;
   flex-direction: column;

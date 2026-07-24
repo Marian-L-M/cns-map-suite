@@ -39,8 +39,10 @@ require_once CNS_MAP_SUITE_DIR . 'includes/admin/api.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/admin/icons.php';
 
 // ── Infobox content helper ────────────────────────────────────────────────────
-// Shared by map/render.php and story/render.php. Parses the linked post's
-// blocks and renders the first few text-oriented blocks for a clean drawer preview.
+// Renders the first few text-oriented blocks of a post for a clean drawer
+// preview. The map infobox resolver now shows the post excerpt instead, but this
+// stays as the shared preview helper story-suite's inline substory reading will
+// use (see cns-story-suite/IMPROVEMENT-PLAN.md).
 
 function cns_map_suite_infobox_content(WP_Post $post, int $max_blocks = 3): string {
 	$blocks  = parse_blocks($post->post_content);
@@ -59,6 +61,39 @@ function cns_map_suite_infobox_content(WP_Post $post, int $max_blocks = 3): stri
 		}
 	}
 	return $output;
+}
+
+/**
+ * Renders every cns-wiki-suite Infobox block found in a post's content.
+ *
+ * Returns an array of rendered HTML strings (one per top-level infobox), or an
+ * empty array when the cns-wiki-suite plugin is inactive or the post has none.
+ * Nested infoboxes (e.g. inside columns) are picked up recursively; render_block
+ * renders the whole infobox subtree, so groups/rows come along for free.
+ */
+function cns_map_suite_extract_infoboxes(WP_Post $post): array {
+	if (! WP_Block_Type_Registry::get_instance()->is_registered('cns-wiki-suite/infobox')) {
+		return [];
+	}
+
+	$found = [];
+	$walk  = static function (array $blocks) use (&$walk, &$found): void {
+		foreach ($blocks as $block) {
+			if (($block['blockName'] ?? '') === 'cns-wiki-suite/infobox') {
+				$html = render_block($block);
+				if (trim(wp_strip_all_tags($html)) !== '') {
+					$found[] = $html;
+				}
+				continue; // don't descend into an infobox we've already rendered whole
+			}
+			if (! empty($block['innerBlocks'])) {
+				$walk($block['innerBlocks']);
+			}
+		}
+	};
+	$walk(parse_blocks($post->post_content));
+
+	return $found;
 }
 
 // ── Internationalisation ──────────────────────────────────────────────────────

@@ -1,5 +1,11 @@
-import { Button, Flex, FlexBlock, FlexItem } from '@wordpress/components';
-import { useRef, useEffect } from '@wordpress/element';
+import {
+	Button,
+	Flex,
+	FlexBlock,
+	FlexItem,
+	Popover,
+} from '@wordpress/components';
+import { useRef, useEffect, useState } from '@wordpress/element';
 import { plus } from '@wordpress/icons';
 import { __ } from '@wordpress/i18n';
 
@@ -140,6 +146,13 @@ export default function ObjectsPanel( {
 
 	const drawState = settingsToDrawState( settings );
 
+	// Help information
+	const [ isVisibleHelpInformation, setIsVisibleHelpInformation ] =
+		useState( false );
+	const toggleVisibleHelpInformation = () => {
+		setIsVisibleHelpInformation( ( state: boolean ) => ! state );
+	};
+
 	return (
 		<div
 			className="cns-tab-panel cns-tab-panel--active"
@@ -150,44 +163,62 @@ export default function ObjectsPanel( {
 				<FlexBlock style={ { width: '100%' } }>
 					<Flex gap={ 4 } align="start" justify="space-between">
 						<FlexItem>
-							<ul className="description">
-								<li>
-									{ __(
-										'Click an object to pick it up — it follows the cursor;',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Click again or press Enter to place object',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Press Esc to cancel current placement.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'Click empty canvas to place a new object at position.',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										' Edit object contents it in the side panel. ',
-										'cns-map-suite'
-									) }
-								</li>
-								<li>
-									{ __(
-										'While object seleted, Enter picks it up, arrow keys nudge, Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
-										'cns-map-suite'
-									) }
-								</li>
-							</ul>
+							<Button
+								variant="tertiary"
+								onClick={ toggleVisibleHelpInformation }
+							>
+								Help Information
+								{ isVisibleHelpInformation && (
+									<Popover
+										headerTitle="Help Information"
+										expandOnMobile
+									>
+										<ol
+											style={ {
+												width: 320,
+												maxWidth: '100%',
+											} }
+										>
+											<li>
+												{ __(
+													'Click an object to pick it up — it follows the cursor.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Click again or press Enter to place object',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Press Esc to cancel current placement.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'Click empty canvas to place a new object at position.',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													' Edit object contents it in the side panel. ',
+													'cns-map-suite'
+												) }
+											</li>
+											<li>
+												{ __(
+													'While object seleted, Enter picks it up, arrow keys nudge, Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.',
+													'cns-map-suite'
+												) }
+											</li>
+										</ol>
+									</Popover>
+								) }
+							</Button>
 						</FlexItem>
 						<Button
 							variant="primary"

@@ -3125,6 +3125,10 @@ function collectObjectPayload(formData) {
     infobox_title: formData.infobox_title || '',
     infobox_description: formData.infobox_description || '',
     infobox_image_id: formData.infobox_image_id || 0,
+    display_infobox: formData.display_infobox,
+    show_title: formData.show_title,
+    show_excerpt: formData.show_excerpt,
+    show_thumbnail: formData.show_thumbnail,
     style_size: formData.style_size || 32,
     style_fill: formData.style_fill || '#ffffff',
     style_stroke: formData.style_stroke || '#2271b1'
@@ -3308,7 +3312,16 @@ function InfoboxSection({
             linked_post_label: item ? item.title : ''
           })
         })
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+      }), formData.linked_post_id ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+        className: "cns-grid__group cns-grid__span-full",
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CheckboxControl, {
+          __nextHasNoMarginBottom: true,
+          label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Display infobox', 'cns-map-suite'),
+          help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Show the connected post’s infobox blocks in the drawer — works even when the description is written manually.', 'cns-map-suite'),
+          checked: formData.display_infobox,
+          onChange: v => set('display_infobox', v)
+        })
+      }) : null, /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
         className: "cns-grid__group cns-grid__span-full",
         children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.RadioControl, {
           label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Content source', 'cns-map-suite'),
@@ -3355,9 +3368,35 @@ function InfoboxSection({
             })
           })
         })]
-      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
-        className: "description",
-        children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Title, description and image are pulled from the connected post.', 'cns-map-suite')
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.Fragment, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("p", {
+          className: "description cns-grid__span-full",
+          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Title, excerpt and thumbnail are pulled from the connected post. Untick to hide any of them.', 'cns-map-suite')
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+          className: "cns-grid__group cns-grid__span-full",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CheckboxControl, {
+            __nextHasNoMarginBottom: true,
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Show title', 'cns-map-suite'),
+            checked: formData.show_title,
+            onChange: v => set('show_title', v)
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+          className: "cns-grid__group cns-grid__span-full",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CheckboxControl, {
+            __nextHasNoMarginBottom: true,
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Show excerpt', 'cns-map-suite'),
+            checked: formData.show_excerpt,
+            onChange: v => set('show_excerpt', v)
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)("div", {
+          className: "cns-grid__group cns-grid__span-full",
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_4__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.CheckboxControl, {
+            __nextHasNoMarginBottom: true,
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_1__.__)('Show thumbnail', 'cns-map-suite'),
+            checked: formData.show_thumbnail,
+            onChange: v => set('show_thumbnail', v)
+          })
+        })]
       })]
     })]
   });
@@ -3372,7 +3411,12 @@ function infoboxFormDefaults(item) {
     infobox_image_id: item?.infobox_data?.image_id || 0,
     infobox_image_url: '',
     linked_post_id: item?.linked_post_id || 0,
-    linked_post_label: item?.linked_post_id ? `Post ID: ${item.linked_post_id}` : ''
+    linked_post_label: item?.linked_post_id ? `Post ID: ${item.linked_post_id}` : '',
+    // Display flags default on when absent (matches the server-side default).
+    display_infobox: item?.infobox_data?.display_infobox ?? true,
+    show_title: item?.infobox_data?.show_title ?? true,
+    show_excerpt: item?.infobox_data?.show_excerpt ?? true,
+    show_thumbnail: item?.infobox_data?.show_thumbnail ?? true
   };
 }
 
@@ -3964,6 +4008,12 @@ function AreasPanel({
     await onDelete(id);
   }
   const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_9__.settingsToDrawState)(settings);
+
+  // Help information
+  const [isVisibleHelpInformation, setIsVisibleHelpInformation] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_2__.useState)(false);
+  const toggleVisibleHelpInformation = () => {
+    setIsVisibleHelpInformation(state => !state);
+  };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "areas",
@@ -3981,22 +4031,33 @@ function AreasPanel({
           align: "start",
           justify: "space-between",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("ul", {
-              className: "description",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Click a node to pick it up — it follows the cursor.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Click or press Enter to place node.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Press Esc to cancel current placement.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Click empty space on a selected area to add a node. ', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('With an area selected: arrow keys move the whole area (Shift = 10 px).', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)(' Tab/Shift+Tab cycles nodes; Arrows nudge node; Delete removes node.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.', 'cns-map-suite')
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "tertiary",
+              onClick: toggleVisibleHelpInformation,
+              children: ["Help Information", isVisibleHelpInformation && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Popover, {
+                headerTitle: "Help Information",
+                expandOnMobile: true,
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsxs)("ol", {
+                  style: {
+                    width: 320,
+                    maxWidth: '100%'
+                  },
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Click a node to pick it up — it follows the cursor.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Click or press Enter to place node.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Press Esc to cancel current placement.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Click empty space on a selected area to add a node. ', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('With an area selected: arrow keys move the whole area (Shift = 10 px).', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)(' Tab/Shift+Tab cycles nodes; Arrows nudge node; Delete removes node.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_4__.__)('Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area.', 'cns-map-suite')
+                  })]
+                })
               })]
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_14__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
@@ -4121,8 +4182,11 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _canvas__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../../canvas */ "./src/admin/canvas.ts");
 /* harmony import */ var _areas__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ../../areas */ "./src/admin/areas.ts");
 /* harmony import */ var _useMapResource__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ../useMapResource */ "./src/admin/app/useMapResource.ts");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
-/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! @wordpress/element */ "@wordpress/element");
+/* harmony import */ var _wordpress_element__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(_wordpress_element__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__);
+
 
 
 
@@ -4191,48 +4255,85 @@ function HierarchyPanel({
     await onDelete(id);
   }
   const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_5__.settingsToDrawState)(settings);
-  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("div", {
+
+  // Help information
+  const [isVisibleHelpInformation, setIsVisibleHelpInformation] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_8__.useState)(false);
+  const toggleVisibleHelpInformation = () => {
+    setIsVisibleHelpInformation(state => !state);
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "hierarchy",
     role: "tabpanel",
-    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-      className: "cns-objects-layout",
-      children: [parentMaps.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-        className: "cns-hierarchy-parents",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("span", {
-          className: "cns-hierarchy-parents__label",
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Parent maps:', 'cns-map-suite')
-        }), parentMaps.map(p => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("a", {
-          href: p.url,
-          className: "cns-hierarchy-parents__link",
-          children: [p.thumbnail && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("img", {
-            src: p.thumbnail,
-            alt: ""
-          }), p.title]
-        }, p.map_id))]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsxs)("div", {
-        className: "cns-objects-toolbar",
-        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
-          variant: "primary",
-          icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_1__["default"],
-          onClick: handleAddRegion,
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Add Region', 'cns-map-suite')
-        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)("p", {
-          className: "description",
-          children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Draw a polygon region that links to a child map. Click a node to reposition it; click empty canvas on a selected region to add a node.', 'cns-map-suite')
+    children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Flex, {
+      gap: 2,
+      direction: "column",
+      align: "center",
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+        className: "cns-objects-layout",
+        children: [parentMaps.length > 0 && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("div", {
+          className: "cns-hierarchy-parents",
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("span", {
+            className: "cns-hierarchy-parents__label",
+            children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Parent maps:', 'cns-map-suite')
+          }), parentMaps.map(p => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("a", {
+            href: p.url,
+            className: "cns-hierarchy-parents__link",
+            children: [p.thumbnail && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("img", {
+              src: p.thumbnail,
+              alt: ""
+            }), p.title]
+          }, p.map_id))]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexBlock, {
+          style: {
+            width: '100%'
+          },
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Flex, {
+            gap: 4,
+            align: "start",
+            justify: "space-between",
+            children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+                variant: "tertiary",
+                onClick: toggleVisibleHelpInformation,
+                children: ["Help Information", isVisibleHelpInformation && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Popover, {
+                  headerTitle: "Help Information",
+                  expandOnMobile: true,
+                  children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsxs)("ol", {
+                    style: {
+                      width: 320,
+                      maxWidth: '100%'
+                    },
+                    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("li", {
+                      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Draw a polygon region that links to a child map.', 'cns-map-suite')
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("li", {
+                      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Click a node to reposition it.', 'cns-map-suite')
+                    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)("li", {
+                      children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Click empty canvas on a selected region to add a node.', 'cns-map-suite')
+                    })]
+                  })
+                })]
+              })
+            }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "primary",
+              icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_1__["default"],
+              onClick: handleAddRegion,
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_2__.__)('Add Region', 'cns-map-suite')
+            })]
+          })
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_canvases_HierarchyCanvas__WEBPACK_IMPORTED_MODULE_3__["default"], {
+          drawState: drawState,
+          regions: regions,
+          selectedRegionId: selectedRegionId,
+          onSelect: onSelect,
+          onDeselect: onDeselect,
+          onNodesChange: onNodesUpdate
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_9__.jsx)(_lists_HierarchyRegionList__WEBPACK_IMPORTED_MODULE_4__["default"], {
+          regions: regions.filter(r => r.id !== -1),
+          onSelect: onSelect,
+          onDelete: handleDelete
         })]
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_canvases_HierarchyCanvas__WEBPACK_IMPORTED_MODULE_3__["default"], {
-        drawState: drawState,
-        regions: regions,
-        selectedRegionId: selectedRegionId,
-        onSelect: onSelect,
-        onDeselect: onDeselect,
-        onNodesChange: onNodesUpdate
-      }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_8__.jsx)(_lists_HierarchyRegionList__WEBPACK_IMPORTED_MODULE_4__["default"], {
-        regions: regions.filter(r => r.id !== -1),
-        onSelect: onSelect,
-        onDelete: handleDelete
-      })]
+      })
     })
   });
 }
@@ -4378,6 +4479,12 @@ function LabelsPanel({
     await onDelete(id);
   }
   const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_6__.settingsToDrawState)(settings);
+
+  // Help information
+  const [isVisibleHelpInformation, setIsVisibleHelpInformation] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const toggleVisibleHelpInformation = () => {
+    setIsVisibleHelpInformation(state => !state);
+  };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "labels",
@@ -4395,16 +4502,27 @@ function LabelsPanel({
           align: "start",
           justify: "space-between",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("ul", {
-              className: "description",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click a label to pick it up — it follows the cursor;', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Esc cancels placement.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('In indicator mode the dot and the text box move independently.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.', 'cns-map-suite')
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "tertiary",
+              onClick: toggleVisibleHelpInformation,
+              children: ["Help Information", isVisibleHelpInformation && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Popover, {
+                headerTitle: "Help Information",
+                expandOnMobile: true,
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("ol", {
+                  style: {
+                    width: 320,
+                    maxWidth: '100%'
+                  },
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click a label to pick it up — it follows the cursor;', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Esc cancels placement.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('In indicator mode the dot and the text box move independently.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.', 'cns-map-suite')
+                  })]
+                })
               })]
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
@@ -4575,6 +4693,12 @@ function ObjectsPanel({
     await onDelete(id);
   }
   const drawState = (0,_canvas__WEBPACK_IMPORTED_MODULE_6__.settingsToDrawState)(settings);
+
+  // Help information
+  const [isVisibleHelpInformation, setIsVisibleHelpInformation] = (0,_wordpress_element__WEBPACK_IMPORTED_MODULE_1__.useState)(false);
+  const toggleVisibleHelpInformation = () => {
+    setIsVisibleHelpInformation(state => !state);
+  };
   return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("div", {
     className: "cns-tab-panel cns-tab-panel--active",
     "data-panel": "objects",
@@ -4592,20 +4716,31 @@ function ObjectsPanel({
           align: "start",
           justify: "space-between",
           children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.FlexItem, {
-            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("ul", {
-              className: "description",
-              children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click an object to pick it up — it follows the cursor;', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click again or press Enter to place object', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Press Esc to cancel current placement.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click empty canvas to place a new object at position.', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)(' Edit object contents it in the side panel. ', 'cns-map-suite')
-              }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
-                children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('While object seleted, Enter picks it up, arrow keys nudge, Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.', 'cns-map-suite')
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {
+              variant: "tertiary",
+              onClick: toggleVisibleHelpInformation,
+              children: ["Help Information", isVisibleHelpInformation && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Popover, {
+                headerTitle: "Help Information",
+                expandOnMobile: true,
+                children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsxs)("ol", {
+                  style: {
+                    width: 320,
+                    maxWidth: '100%'
+                  },
+                  children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click an object to pick it up — it follows the cursor.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click again or press Enter to place object', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Press Esc to cancel current placement.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('Click empty canvas to place a new object at position.', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)(' Edit object contents it in the side panel. ', 'cns-map-suite')
+                  }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)("li", {
+                    children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_3__.__)('While object seleted, Enter picks it up, arrow keys nudge, Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes.', 'cns-map-suite')
+                  })]
+                })
               })]
             })
           }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_10__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_0__.Button, {

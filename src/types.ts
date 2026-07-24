@@ -132,6 +132,13 @@ export interface InfoboxData {
 	title?: string;
 	description?: string;
 	image_id?: number;
+	// Per-item display flags (default on when absent). display_infobox pulls the
+	// connected post's wiki-suite infoboxes into the drawer, independent of the
+	// content source; show_* gate the connected post's own fields.
+	display_infobox?: boolean;
+	show_title?: boolean;
+	show_excerpt?: boolean;
+	show_thumbnail?: boolean;
 }
 
 // ── Domain: MapObject ─────────────────────────────────────────────────────────
@@ -311,6 +318,10 @@ export interface InfoboxFormFields {
 	infobox_image_url: string;
 	linked_post_id: number;
 	linked_post_label: string;
+	display_infobox: boolean;
+	show_title: boolean;
+	show_excerpt: boolean;
+	show_thumbnail: boolean;
 }
 
 export interface ObjectFormData extends InfoboxFormFields {
@@ -367,6 +378,10 @@ export interface ObjectSavePayload {
 	infobox_title: string;
 	infobox_description: string;
 	infobox_image_id: number;
+	display_infobox: boolean;
+	show_title: boolean;
+	show_excerpt: boolean;
+	show_thumbnail: boolean;
 	style_size: number;
 	style_fill: string;
 	style_stroke: string;

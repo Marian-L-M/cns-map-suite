@@ -72,6 +72,27 @@ $map_data = [
 	'parentMaps'       => $data['parent_maps'],
 ];
 
+// If any item resolves to cns-wiki-suite infoboxes, load that plugin's block
+// styles so the injected infobox markup renders correctly inside the drawer.
+// (The infobox collapse Interactivity runtime is intentionally not needed —
+// view.js drives the drawer's expand/collapse itself.)
+$has_infoboxes = false;
+foreach (['objects', 'areas', 'labels'] as $group) {
+	foreach ($data[$group] as $row) {
+		if (! empty($row['infobox_resolved']['infoboxes'])) {
+			$has_infoboxes = true;
+			break 2;
+		}
+	}
+}
+if ($has_infoboxes) {
+	foreach (['wp-block-cns-wiki-suite-infobox', 'wp-block-cns-wiki-suite-infobox-group', 'wp-block-cns-wiki-suite-infobox-row'] as $handle) {
+		if (wp_style_is($handle, 'registered')) {
+			wp_enqueue_style($handle);
+		}
+	}
+}
+
 // Map description (post_content, maintained via the editor's Description tab).
 // Rendered only here, beneath the block — contexts that use the map as a base
 // (story blocks, master-map regions) read map data through the shared API and
@@ -92,9 +113,14 @@ $wrapper_attrs = get_block_wrapper_attributes([
 			aria-label="<?php echo esc_attr($map->post_title); ?>"
 		></canvas>
 	</div>
-	<?php if ('' !== $description) : ?>
-		<div class="cns-map-description"><?php echo wp_kses_post(wpautop($description)); ?></div>
-	<?php endif; ?>
+	<div class="cns-map-contents-wrap">
+		<article>
+			<?php the_modified_date("Y.m.d")?>
+		<?php if ('' !== $description) : ?>
+			<div class="cns-map-description"><?php echo wp_kses_post(wpautop($description)); ?></div>
+		<?php endif; ?>
+		</article>
+	</div>
 	<script type="application/json" data-cns-map><?php echo wp_json_encode($map_data, JSON_HEX_TAG | JSON_HEX_AMP); ?></script>
 	<noscript>
 		<p><?php
