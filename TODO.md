@@ -139,3 +139,9 @@ Chosen approach: **A — shared raw-SVG-string module** (not `@wordpress/icons` 
 -   Cns Story Suite: Enable settings global & individual for active node marker color and size
 -   Cns Story Suite: Enable alternative display option for active node marker: Icon instead of outline, set on a per path level or per node level. The user should be able to select the size and position of the marker, however default should be above the node marker.
 -   Map how are post queried -> filter for infobox? parse_blocks() api endpoint
+
+## Fixes
+
+-   [ ] cns settings menu -> Register settings ->Show stories and and substories in menu sidebar
+-   [ ] Mastermaps do not display map image in stories (Consider fixing data structure for mastermap to match normal maps more?)
+-   [ ] Connect node modes is not working properly (Switches to select node mode)
