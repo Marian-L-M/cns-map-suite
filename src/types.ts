@@ -222,6 +222,7 @@ export interface HierarchyRegion {
 	id: number;
 	parent_map_id: number;
 	child_map_id: number;
+	shape_type: ShapeType;
 	nodes: Node[];
 	canvas_styles: HierarchyCanvasStyles | null;
 	title_override: string | null;
@@ -238,6 +239,7 @@ export interface HierarchyRegion {
 export interface HierarchyFormData {
 	child_map_id: number;
 	child_map_label: string;
+	shape_type: ShapeType;
 	title_override: string;
 	description_override: string;
 	style_fill: string;

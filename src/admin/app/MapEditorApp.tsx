@@ -468,6 +468,26 @@ export default function MapEditorApp() {
 		);
 	}
 
+	// Local-only, like node edits — persisted by the context panel's Save.
+	function handleRegionShapeTypeChange(
+		regionId: number,
+		shapeType: ShapeType
+	) {
+		setRegionsList( ( prev ) =>
+			prev.map( ( r ) => {
+				if ( r.id !== regionId ) return r;
+				return {
+					...r,
+					shape_type: shapeType,
+					nodes: normalizeNodesForShapeType(
+						r.nodes || [],
+						shapeType
+					),
+				};
+			} )
+		);
+	}
+
 	async function handleRegionSave(
 		formData: HierarchyFormData
 	): Promise< HierarchyRegion | undefined > {
@@ -480,6 +500,7 @@ export default function MapEditorApp() {
 
 		const payload = {
 			child_map_id: formData.child_map_id,
+			shape_type: region.shape_type || 'POLYGON',
 			nodes: JSON.stringify( region.nodes ),
 			style_fill: formData.style_fill,
 			style_fill_opacity: formData.style_fill_opacity,
@@ -682,6 +703,7 @@ export default function MapEditorApp() {
 					onAreaNodesUpdate={ handleAreaNodesUpdate }
 					onAreaShapeTypeChange={ handleAreaShapeTypeChange }
 					onRegionSave={ handleRegionSave }
+					onRegionShapeTypeChange={ handleRegionShapeTypeChange }
 					onRegionDelete={ () =>
 						handleRegionDeleteById( selectedRegionId! )
 					}

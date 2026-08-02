@@ -73,6 +73,7 @@ interface Props {
 	onRegionDelete: () => Promise< void >;
 	onRegionClose: () => void;
 	onRegionNodesUpdate: ( regionId: number, nodes: Node[] ) => void;
+	onRegionShapeTypeChange: ( regionId: number, shapeType: ShapeType ) => void;
 }
 
 export default function ContextPanel( {
@@ -100,6 +101,7 @@ export default function ContextPanel( {
 	onRegionDelete,
 	onRegionClose,
 	onRegionNodesUpdate,
+	onRegionShapeTypeChange,
 }: Props ) {
 	const [ objFormData, setObjFormData ] = useState< ObjectFormData | null >(
 		null
@@ -420,6 +422,16 @@ export default function ContextPanel( {
 						<HierarchyRegionForm
 							formData={ regionFormData }
 							onChange={ setRegionFormData }
+							onShapeTypeChange={ ( st ) => {
+								if ( selectedRegion )
+									onRegionShapeTypeChange?.(
+										selectedRegion.id,
+										st
+									);
+								setRegionFormData( ( prev ) =>
+									prev ? { ...prev, shape_type: st } : prev
+								);
+							} }
 						/>
 						{ selectedRegion && (
 							<RegionNodeList

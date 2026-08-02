@@ -2,7 +2,6 @@
 // paths, label boxes, and hit areas (see src/shared/map-geometry.ts).
 import {
 	buildAreaPathFromNodes,
-	buildPolygonPath,
 	drawLabelShape,
 	findAreaAtPoint,
 	findLabelPartAtPoint,
@@ -83,8 +82,9 @@ import {
 	}
 
 	function drawHierarchyRegion(ctx, region, W, H) {
-		const nodes = region.nodes || [];
-		if (nodes.length < 3) return;
+		const nodes     = region.nodes || [];
+		const shapeType = region.shape_type || 'POLYGON';
+		if (nodes.length < (shapeType === 'CIRCLE' ? 2 : 3)) return;
 
 		const styles      = region.canvas_styles || {};
 		const fill        = styles.fill        || '#e8a020';
@@ -92,8 +92,7 @@ import {
 		const stroke      = styles.stroke      || '#e8a020';
 		const strokeWidth = styles.strokeWidth || 2;
 
-		ctx.beginPath();
-		buildPolygonPath(ctx, nodes, W, H);
+		buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
 
 		ctx.save();
 		ctx.globalAlpha = fillOpacity;
@@ -106,8 +105,13 @@ import {
 		ctx.stroke();
 
 		if (region.child_map_title) {
-			const cx = nodes.reduce(function (s, n) { return s + n.x; }, 0) / nodes.length * W;
-			const cy = nodes.reduce(function (s, n) { return s + n.y; }, 0) / nodes.length * H;
+			// Circle labels sit on the center node; other shapes use the centroid.
+			const cx = shapeType === 'CIRCLE'
+				? nodes[0].x * W
+				: nodes.reduce(function (s, n) { return s + n.x; }, 0) / nodes.length * W;
+			const cy = shapeType === 'CIRCLE'
+				? nodes[0].y * H
+				: nodes.reduce(function (s, n) { return s + n.y; }, 0) / nodes.length * H;
 			ctx.save();
 			ctx.font         = 'bold 12px sans-serif';
 			ctx.textAlign    = 'center';
@@ -123,11 +127,11 @@ import {
 
 	function findHierarchyRegionAtPoint(ctx, x, y, regions, W, H) {
 		for (var i = regions.length - 1; i >= 0; i--) {
-			var region = regions[i];
-			var nodes  = region.nodes || [];
-			if (nodes.length < 3) continue;
-			ctx.beginPath();
-			buildPolygonPath(ctx, nodes, W, H);
+			var region    = regions[i];
+			var nodes     = region.nodes || [];
+			var shapeType = region.shape_type || 'POLYGON';
+			if (nodes.length < (shapeType === 'CIRCLE' ? 2 : 3)) continue;
+			buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
 			if (ctx.isPointInPath(x, y)) return region;
 		}
 		return null;

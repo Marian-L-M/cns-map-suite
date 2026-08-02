@@ -46,6 +46,21 @@ if (get_option('cns_map_suite_delete_on_uninstall')) {
 // Remove plugin options.
 delete_option('cns_map_suite_db_version');
 delete_option('cns_map_suite_delete_on_uninstall');
+delete_option('cns_map_suite_cache_ver');
+
+// Remove render-cache transients (includes/cache.php). Keys carry a version
+// suffix, so match by prefix; with an external object cache the rows aren't
+// in wp_options, but entries there expire via TTL on their own.
+// phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared
+$wpdb->query(
+	"DELETE FROM {$wpdb->options}
+	 WHERE option_name LIKE '\_transient\_cns\_map\_rows\_%'
+	    OR option_name LIKE '\_transient\_timeout\_cns\_map\_rows\_%'"
+);
+
+// Icon-library attachments are user media and stay, but the tag meta that
+// marked them as map icons is plugin data — remove it.
+delete_post_meta_by_key('_cns_map_icon');
 
 // Remove manage_maps capability from every role that holds it.
 foreach (wp_roles()->roles as $role_name => $unused) {

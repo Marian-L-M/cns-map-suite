@@ -95,6 +95,7 @@ function cns_map_suite_create_tables(): void {
 		id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
 		parent_map_id BIGINT UNSIGNED NOT NULL,
 		child_map_id BIGINT UNSIGNED NOT NULL,
+		shape_type VARCHAR(20) NOT NULL DEFAULT 'POLYGON',
 		nodes LONGTEXT NOT NULL,
 		canvas_styles LONGTEXT NULL DEFAULT NULL,
 		title_override VARCHAR(255) NULL DEFAULT NULL,
@@ -107,3 +108,23 @@ function cns_map_suite_create_tables(): void {
 		KEY idx_child_map (child_map_id)
 	) $charset_collate;");
 }
+
+// ── Row cleanup on permanent post deletion ────────────────────────────────────
+// Runs for every permanent deletion path (admin handler, wp-cli, REST), so a
+// deleted map can never leave orphaned object/area/label/hierarchy rows.
+
+function cns_map_suite_purge_map_rows(int $map_id): void {
+	global $wpdb;
+	$wpdb->delete($wpdb->prefix . 'cns_map_objects', ['map_id' => $map_id], ['%d']);
+	$wpdb->delete($wpdb->prefix . 'cns_map_areas',   ['map_id' => $map_id], ['%d']);
+	$wpdb->delete($wpdb->prefix . 'cns_map_labels',  ['map_id' => $map_id], ['%d']);
+	// Hierarchy rows reference the map from either side.
+	$wpdb->delete($wpdb->prefix . 'cns_map_hierarchy', ['parent_map_id' => $map_id], ['%d']);
+	$wpdb->delete($wpdb->prefix . 'cns_map_hierarchy', ['child_map_id'  => $map_id], ['%d']);
+}
+
+add_action('before_delete_post', function (int $post_id, WP_Post $post): void {
+	if ($post->post_type === 'maps') {
+		cns_map_suite_purge_map_rows($post_id);
+	}
+}, 10, 2);

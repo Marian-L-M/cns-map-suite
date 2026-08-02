@@ -39,12 +39,19 @@ export function getDefaultNodes( shapeType: ShapeType ): Node[] {
 	];
 }
 
+// Anything with a shape and nodes — areas and hierarchy regions both qualify,
+// so the constraint helpers below serve both editors.
+interface ShapedNodes {
+	shape_type?: ShapeType;
+	nodes?: Node[];
+}
+
 /**
- * Moves one node of an area to new normalized (0–1) coordinates, honoring
+ * Moves one node of a shape to new normalized (0–1) coordinates, honoring
  * the shape's constraints: rectangles keep their corners axis-aligned, and
  * moving a circle's center drags the radius node along. Returns a new array.
  */
-export function moveAreaNode( area: MapArea, idx: number, newX: number, newY: number ): Node[] {
+export function moveAreaNode( area: ShapedNodes, idx: number, newX: number, newY: number ): Node[] {
 	const st      = area.shape_type || 'POLYGON';
 	let   updated = ( area.nodes || [] ).map( ( n ) => ( { ...n } ) );
 
@@ -62,7 +69,7 @@ export function moveAreaNode( area: MapArea, idx: number, newX: number, newY: nu
 }
 
 /** Whether a node can be removed from the shape (fixed-node shapes can't shrink). */
-export function canRemoveAreaNode( area: MapArea ): boolean {
+export function canRemoveAreaNode( area: ShapedNodes ): boolean {
 	const st = area.shape_type || 'POLYGON';
 	return ( st === 'POLYGON' || st === 'BEZIER' ) && ( area.nodes || [] ).length > 3;
 }
@@ -79,7 +86,7 @@ export function normalizeNodesForShapeType( nodes: Node[], shapeType: ShapeType 
 	return nodes;
 }
 
-function getLiveNodes(
+export function getLiveNodes(
 	nodes: Node[],
 	shapeType: ShapeType,
 	movingIdx: number | null,

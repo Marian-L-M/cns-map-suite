@@ -62,6 +62,7 @@ export default function HierarchyPanel( {
 			id: -1,
 			parent_map_id: mapId,
 			child_map_id: 0,
+			shape_type: 'POLYGON',
 			nodes: getDefaultNodes( 'POLYGON' ),
 			canvas_styles: {
 				fill: '#e8a020',

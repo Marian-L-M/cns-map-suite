@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from '@wordpress/element';
-import { drawAreasOnCanvas, findAreaAtPoint, findNodeAtPoint, applyRectangleConstraint } from '../../areas';
+import { findNodeAtPoint, getLiveNodes, moveAreaNode } from '../../areas';
 import { drawMapCanvas, getCanvasCoords } from '../../canvas';
-import type { DrawState, HierarchyRegion, Node, CanvasPoint, HierarchyCanvasStyles } from '../../../types';
+import { buildAreaPathFromNodes } from '../../../shared/map-geometry';
+import type { DrawState, HierarchyRegion, Node, CanvasPoint, HierarchyCanvasStyles, ShapeType } from '../../../types';
 import CanvasZoomWrap from './CanvasZoomWrap';
 
 interface Props {
@@ -23,12 +24,8 @@ interface CanvasState {
 
 const NODE_HALF = 5;
 
-function buildPolygonPath( ctx: CanvasRenderingContext2D, nodes: Node[], W: number, H: number ) {
-	ctx.moveTo( nodes[ 0 ].x * W, nodes[ 0 ].y * H );
-	for ( let i = 1; i < nodes.length; i++ ) {
-		ctx.lineTo( nodes[ i ].x * W, nodes[ i ].y * H );
-	}
-	ctx.closePath();
+function minNodesFor( shapeType: ShapeType ): number {
+	return shapeType === 'CIRCLE' ? 2 : 3;
 }
 
 function drawRegion(
@@ -40,49 +37,55 @@ function drawRegion(
 	repoNodeIdx: number | null,
 	repoCursor: CanvasPoint | null,
 ): void {
-	const nodes = region.nodes || [];
-	if ( nodes.length < 3 ) return;
+	const nodes     = region.nodes || [];
+	if ( ! nodes.length ) return;
+	const shapeType = region.shape_type || 'POLYGON';
 
-	// Apply live cursor position for the node being dragged.
-	let liveNodes = nodes;
-	if ( isSelected && repoNodeIdx !== null && repoCursor ) {
-		liveNodes = nodes.map( ( n ) => ( { ...n } ) );
-		liveNodes[ repoNodeIdx ] = { x: repoCursor.x / W, y: repoCursor.y / H };
-	}
+	// Apply live cursor position for the node being dragged, honoring the
+	// shape's constraints (rectangle corners, circle center+edge).
+	const liveNodes = isSelected
+		? getLiveNodes( nodes, shapeType, repoNodeIdx, repoCursor, W, H )
+		: nodes;
 
-	const styles: HierarchyCanvasStyles = region.canvas_styles || {};
-	const fill        = styles.fill        || '#e8a020';
-	const fillOpacity = styles.fillOpacity ?? 0.25;
-	const stroke      = styles.stroke      || '#e8a020';
-	const strokeWidth = styles.strokeWidth || 2;
+	if ( liveNodes.length >= minNodesFor( shapeType ) ) {
+		const styles: HierarchyCanvasStyles = region.canvas_styles || {};
+		const fill        = styles.fill        || '#e8a020';
+		const fillOpacity = styles.fillOpacity ?? 0.25;
+		const stroke      = styles.stroke      || '#e8a020';
+		const strokeWidth = styles.strokeWidth || 2;
 
-	ctx.beginPath();
-	buildPolygonPath( ctx, liveNodes, W, H );
+		buildAreaPathFromNodes( ctx, liveNodes, shapeType, W, H );
 
-	ctx.save();
-	ctx.globalAlpha = fillOpacity;
-	ctx.fillStyle   = fill;
-	ctx.fill();
-	ctx.restore();
-
-	ctx.strokeStyle = stroke;
-	ctx.lineWidth   = isSelected ? Math.max( strokeWidth, 2 ) : strokeWidth;
-	ctx.stroke();
-
-	// Label: child map title centred inside region.
-	if ( region.child_map_title ) {
-		const cx = liveNodes.reduce( ( s, n ) => s + n.x, 0 ) / liveNodes.length * W;
-		const cy = liveNodes.reduce( ( s, n ) => s + n.y, 0 ) / liveNodes.length * H;
 		ctx.save();
-		ctx.font         = 'bold 12px sans-serif';
-		ctx.textAlign    = 'center';
-		ctx.textBaseline = 'middle';
-		ctx.fillStyle    = '#fff';
-		ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
-		ctx.lineWidth    = 3;
-		ctx.strokeText( region.child_map_title, cx, cy );
-		ctx.fillText( region.child_map_title, cx, cy );
+		ctx.globalAlpha = fillOpacity;
+		ctx.fillStyle   = fill;
+		ctx.fill();
 		ctx.restore();
+
+		ctx.strokeStyle = stroke;
+		ctx.lineWidth   = isSelected ? Math.max( strokeWidth, 2 ) : strokeWidth;
+		ctx.stroke();
+
+		// Label: child map title — circle labels sit on the center node, the
+		// other shapes use the node centroid.
+		if ( region.child_map_title ) {
+			const cx = shapeType === 'CIRCLE'
+				? liveNodes[ 0 ].x * W
+				: liveNodes.reduce( ( s, n ) => s + n.x, 0 ) / liveNodes.length * W;
+			const cy = shapeType === 'CIRCLE'
+				? liveNodes[ 0 ].y * H
+				: liveNodes.reduce( ( s, n ) => s + n.y, 0 ) / liveNodes.length * H;
+			ctx.save();
+			ctx.font         = 'bold 12px sans-serif';
+			ctx.textAlign    = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillStyle    = '#fff';
+			ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
+			ctx.lineWidth    = 3;
+			ctx.strokeText( region.child_map_title, cx, cy );
+			ctx.fillText( region.child_map_title, cx, cy );
+			ctx.restore();
+		}
 	}
 
 	if ( ! isSelected ) return;
@@ -127,30 +130,14 @@ function findRegionAtPoint(
 	H: number,
 ): HierarchyRegion | null {
 	for ( let i = regions.length - 1; i >= 0; i-- ) {
-		const r     = regions[ i ];
-		const nodes = r.nodes || [];
-		if ( nodes.length < 3 ) continue;
-		ctx.beginPath();
-		buildPolygonPath( ctx, nodes, W, H );
+		const r         = regions[ i ];
+		const nodes     = r.nodes || [];
+		const shapeType = r.shape_type || 'POLYGON';
+		if ( nodes.length < minNodesFor( shapeType ) ) continue;
+		buildAreaPathFromNodes( ctx, nodes, shapeType, W, H );
 		if ( ctx.isPointInPath( x, y ) ) return r;
 	}
 	return null;
-}
-
-function findNodeAtPointLocal(
-	ctx: CanvasRenderingContext2D,
-	x: number,
-	y: number,
-	nodes: Node[],
-	W: number,
-	H: number,
-): number {
-	for ( let i = nodes.length - 1; i >= 0; i-- ) {
-		ctx.beginPath();
-		ctx.rect( nodes[ i ].x * W - NODE_HALF, nodes[ i ].y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2 );
-		if ( ctx.isPointInPath( x, y ) ) return i;
-	}
-	return -1;
 }
 
 export default function HierarchyCanvas( {
@@ -189,9 +176,7 @@ export default function HierarchyCanvas( {
 		if ( repoNodeIdx !== null ) {
 			const region = regions.find( ( r ) => r.id === selectedRegionId );
 			if ( region && selectedRegionId !== null ) {
-				const updated = region.nodes.map( ( n ) => ( { ...n } ) );
-				updated[ repoNodeIdx ] = { x: x / W, y: y / H };
-				onNodesChange( selectedRegionId, updated );
+				onNodesChange( selectedRegionId, moveAreaNode( region, repoNodeIdx, x / W, y / H ) );
 			}
 			setRepoNodeIdx( null );
 			setRepoCursor( null );
@@ -200,7 +185,7 @@ export default function HierarchyCanvas( {
 
 		const selRegion = selectedRegionId ? regions.find( ( r ) => r.id === selectedRegionId ) : null;
 		if ( selRegion ) {
-			const nIdx = findNodeAtPointLocal( ctx, x, y, selRegion.nodes || [], W, H );
+			const nIdx = findNodeAtPoint( ctx, x, y, selRegion.nodes || [], W, H );
 			if ( nIdx !== -1 ) {
 				setRepoNodeIdx( nIdx );
 				setRepoCursor( { x, y } );
@@ -211,9 +196,13 @@ export default function HierarchyCanvas( {
 		const hitRegion = findRegionAtPoint( ctx, x, y, regions, W, H );
 		if ( hitRegion ) { onSelect( hitRegion.id ); return; }
 
-		// Click empty space on selected region: add node.
+		// Click empty space on selected region: add node (fixed-node shapes
+		// can't grow — mirrors the areas canvas).
 		if ( selRegion ) {
-			onNodesChange( selectedRegionId!, [ ...selRegion.nodes, { x: x / W, y: y / H } ] );
+			const st = selRegion.shape_type || 'POLYGON';
+			if ( st !== 'RECTANGLE' && st !== 'CIRCLE' ) {
+				onNodesChange( selectedRegionId!, [ ...selRegion.nodes, { x: x / W, y: y / H } ] );
+			}
 			return;
 		}
 
@@ -230,9 +219,11 @@ export default function HierarchyCanvas( {
 			if ( e.key === 'Enter' && nodeIdx !== null && cursor ) {
 				const region = regionList.find( ( r ) => r.id === selId );
 				if ( region && selId !== null ) {
-					const updated = region.nodes.map( ( n ) => ( { ...n } ) );
-					updated[ nodeIdx ] = { x: cursor.x / canvasRef.current!.width, y: cursor.y / canvasRef.current!.height };
-					onChange( selId, updated );
+					onChange( selId, moveAreaNode(
+						region, nodeIdx,
+						cursor.x / canvasRef.current!.width,
+						cursor.y / canvasRef.current!.height,
+					) );
 				}
 			}
 			if ( e.key === 'Escape' || e.key === 'Enter' ) {

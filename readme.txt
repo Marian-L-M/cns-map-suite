@@ -1,5 +1,5 @@
 === CNS Map Suite ===
-Contributors: Marian Maschke
+Contributors: namatamago.dev
 Tags: map, canvas, interactive, custom post type
 Requires at least: 6.8
 Tested up to: 6.8

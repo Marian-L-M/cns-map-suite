@@ -7,6 +7,7 @@
  * Requires at least: 6.8
  * Requires PHP:      8.0
  * Author:            Marian Maschke
+ * Author URI:        https://namatamago.dev/
  * License:           GPL-2.0-or-later
  * License URI:       https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:       cns-map-suite
@@ -19,7 +20,7 @@ if (! defined('ABSPATH')) {
 }
 
 define('CNS_MAP_SUITE_VERSION', '0.1.0');
-define('CNS_MAP_SUITE_DB_VERSION', '1.4.0');
+define('CNS_MAP_SUITE_DB_VERSION', '1.5.0');
 define('CNS_MAP_SUITE_DIR', plugin_dir_path(__FILE__));
 define('CNS_MAP_SUITE_URL', plugin_dir_url(__FILE__));
 define('CNS_MAP_SUITE_BASENAME', plugin_basename(__FILE__));

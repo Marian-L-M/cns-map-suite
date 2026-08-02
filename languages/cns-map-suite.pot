@@ -3,20 +3,20 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: CNS Map Suite 0.1.0\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/cns-map-suite\n"
+"Report-Msgid-Bugs-To: https://namatamago.dev/\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-05-18T14:04:59+00:00\n"
+"POT-Creation-Date: 2026-08-02T11:46:52+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: cns-map-suite\n"
 
 #. Plugin Name of the plugin
 #: cns-map-suite.php
-#: includes/admin/menu.php:24
+#: includes/admin/menu.php:30
 msgid "CNS Map Suite"
 msgstr ""
 
@@ -30,328 +30,956 @@ msgstr ""
 msgid "Marian Maschke"
 msgstr ""
 
-#: includes/admin/api.php:74
-#: includes/admin/views/editor.php:39
-#: includes/admin/views/overview.php:115
-#: src/blocks/map/edit.js:31
-msgid "(no title)"
-msgstr ""
-
-#: includes/admin/api.php:87
-msgid "Map not found."
-msgstr ""
-
-#: includes/admin/menu.php:23
-#: includes/admin/menu.php:49
-#: includes/admin/menu.php:50
-#: includes/admin/views/overview.php:60
-#: includes/post-type.php:14
-msgid "Maps"
-msgstr ""
-
-#: includes/admin/menu.php:35
-#: includes/admin/menu.php:36
-msgid "Map Editor"
-msgstr ""
-
-#: includes/admin/menu.php:60
-#: includes/admin/menu.php:61
-#: includes/admin/views/editor.php:34
-msgid "All Maps"
-msgstr ""
-
-#: includes/admin/menu.php:69
-#: includes/admin/menu.php:70
-#: includes/admin/views/editor.php:38
-#: includes/post-type.php:19
-msgid "New Map"
-msgstr ""
-
-#: includes/admin/views/editor.php:39
-#, php-format
-msgid "Edit: %s"
-msgstr ""
-
-#: includes/admin/views/editor.php:45
-msgid "Save Map"
-msgstr ""
-
-#: includes/admin/views/editor.php:53
-msgid "Editor modes"
-msgstr ""
-
-#: includes/admin/views/editor.php:55
-msgid "Settings"
-msgstr ""
-
-#: includes/admin/views/editor.php:58
-msgid "Objects"
-msgstr ""
-
-#: includes/admin/views/editor.php:61
-msgid "Areas"
-msgstr ""
-
-#: includes/admin/views/editor.php:64
-msgid "Hierarchy"
-msgstr ""
-
-#: includes/admin/views/editor.php:67
-msgid "Preview"
-msgstr ""
-
-#: includes/admin/views/editor.php:80
-msgid "Map Title"
-msgstr ""
-
-#: includes/admin/views/editor.php:86
-msgid "Enter map title…"
-msgstr ""
-
-#: includes/admin/views/editor.php:91
-msgid "Max Width (px)"
-msgstr ""
-
-#: includes/admin/views/editor.php:96
-msgid "Aspect Ratio"
-msgstr ""
-
-#: includes/admin/views/editor.php:98
-msgid "Width ÷ Height (e.g. 1.77 for 16∶9)"
-msgstr ""
-
-#: includes/admin/views/editor.php:102
-msgid "Map Time"
-msgstr ""
-
-#: includes/admin/views/editor.php:104
-msgid "In-world timeline value."
-msgstr ""
-
-#: includes/admin/views/editor.php:108
-msgid "Base Map Image"
-msgstr ""
-
-#: includes/admin/views/editor.php:115
-msgid "No image selected"
-msgstr ""
-
-#: includes/admin/views/editor.php:119
-msgid "Select Image"
-msgstr ""
-
-#: includes/admin/views/editor.php:122
-msgid "Remove"
-msgstr ""
-
-#: includes/admin/views/editor.php:128
-msgid "Image X offset (0–1)"
-msgstr ""
-
-#: includes/admin/views/editor.php:133
-msgid "Image Y offset (0–1)"
-msgstr ""
-
-#: includes/admin/views/editor.php:138
-msgid "Image Width (0–1 relative)"
-msgstr ""
-
-#: includes/admin/views/editor.php:140
-msgid "1.0 = full canvas width. Height follows image ratio."
-msgstr ""
-
-#: includes/admin/views/editor.php:146
-msgid "MasterMap mode"
-msgstr ""
-
-#: includes/admin/views/editor.php:148
-msgid "Links to child maps instead of posts. Switches Objects/Areas tabs to Hierarchy."
-msgstr ""
-
-#: includes/admin/views/editor.php:154
-#: includes/admin/views/overview.php:119
-msgid "Featured"
-msgstr ""
-
-#: includes/admin/views/editor.php:166
-msgid "Map Objects"
-msgstr ""
-
-#: includes/admin/views/editor.php:167
-msgid "Place clickable SVG icon markers on the map. Each icon can link to a post or display manual infobox content. Clicking opens an infobox drawer."
-msgstr ""
-
-#: includes/admin/views/editor.php:168
-#: includes/admin/views/editor.php:178
-#: includes/admin/views/editor.php:188
-msgid "— Coming soon —"
-msgstr ""
-
-#: includes/admin/views/editor.php:176
-msgid "Map Areas"
-msgstr ""
-
-#: includes/admin/views/editor.php:177
-msgid "Draw polygon, bezier, or circular areas on the map canvas. Clicking an area opens an infobox and optionally links to a related post."
-msgstr ""
-
-#: includes/admin/views/editor.php:186
-msgid "Map Hierarchy"
-msgstr ""
-
-#: includes/admin/views/editor.php:187
-msgid "Define regions on this MasterMap that link to child maps. Hovering a region shows the child map's thumbnail and excerpt; clicking navigates to it."
-msgstr ""
-
-#: includes/admin/views/editor.php:196
-msgid "Interactive canvas preview — Coming soon"
-msgstr ""
-
-#: includes/admin/views/overview.php:49
-msgid "Map deleted."
-msgstr ""
-
-#: includes/admin/views/overview.php:55
-msgid "Settings saved."
-msgstr ""
-
-#: includes/admin/views/overview.php:62
-msgid "+ New Map"
-msgstr ""
-
-#: includes/admin/views/overview.php:68
-msgid "No maps yet."
-msgstr ""
-
-#: includes/admin/views/overview.php:70
-msgid "Create your first map"
-msgstr ""
-
-#: includes/admin/views/overview.php:78
-msgid "Title"
-msgstr ""
-
-#: includes/admin/views/overview.php:79
-msgid "Mode"
-msgstr ""
-
-#: includes/admin/views/overview.php:80
-msgid "Status"
-msgstr ""
-
-#: includes/admin/views/overview.php:81
-msgid "Date"
-msgstr ""
-
-#: includes/admin/views/overview.php:82
-msgid "Actions"
-msgstr ""
-
-#: includes/admin/views/overview.php:124
-msgid "MasterMap"
-msgstr ""
-
-#: includes/admin/views/overview.php:124
-#: includes/post-type.php:15
-msgid "Map"
-msgstr ""
-
-#: includes/admin/views/overview.php:130
-msgid "Edit"
-msgstr ""
-
-#: includes/admin/views/overview.php:135
-msgid "Permanently delete this map?"
-msgstr ""
-
-#: includes/admin/views/overview.php:136
-msgid "Delete"
-msgstr ""
-
-#: includes/admin/views/overview.php:146
-msgid "Plugin Settings"
-msgstr ""
-
-#: includes/admin/views/overview.php:153
-msgid "Uninstall behaviour"
-msgstr ""
-
-#: includes/admin/views/overview.php:162
-msgid "Delete all map posts and their data when this plugin is uninstalled"
-msgstr ""
-
-#: includes/admin/views/overview.php:165
-msgid "When unchecked (default), maps are kept after uninstall. Custom DB tables are always removed."
-msgstr ""
-
-#: includes/admin/views/overview.php:171
-msgid "Save Settings"
-msgstr ""
-
-#: includes/post-type.php:16
-#: includes/post-type.php:17
-msgid "Add New Map"
-msgstr ""
-
-#: includes/post-type.php:18
-msgid "Edit Map"
-msgstr ""
-
-#: includes/post-type.php:20
-msgid "View Map"
-msgstr ""
-
-#: includes/post-type.php:21
-msgid "Search Maps"
-msgstr ""
-
-#: includes/post-type.php:22
-msgid "No maps found"
-msgstr ""
-
-#: includes/post-type.php:23
-msgid "No maps found in trash"
+#. Author URI of the plugin
+#: cns-map-suite.php
+msgid "https://namatamago.dev/"
 msgstr ""
 
 #. translators: %s: map title
-#: src/blocks/map/render.php:41
+#: build/blocks/map/render.php:129
+#: src/blocks/map/render.php:129
 #, php-format
-msgid "Map: %s — interactive canvas coming soon."
+msgid "Map: %s — JavaScript is required to view this interactive map."
 msgstr ""
 
-#: src/blocks/map/edit.js:29
-msgid "— Select a map —"
+#: includes/admin/api.php:11
+msgid "You do not have permission to manage maps."
 msgstr ""
 
-#: src/blocks/map/edit.js:41
+#: includes/admin/api.php:312
+#: includes/admin/api.php:1311
+#: includes/admin/api.php:1489
+#: includes/admin/views/editor.php:57
+#: includes/admin/views/overview.php:88
+#: includes/admin/views/overview.php:97
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:17
+#: src/blocks/map/edit.js:99
+msgid "(no title)"
+msgstr ""
+
+#: includes/admin/api.php:324
+#: includes/admin/api.php:624
+#: includes/admin/api.php:640
+#: includes/admin/api.php:827
+#: includes/admin/api.php:843
+#: includes/admin/api.php:1105
+#: includes/admin/api.php:1121
+#: includes/admin/api.php:1331
+#: includes/admin/api.php:1348
+#: includes/admin/api.php:1473
+msgid "Map not found."
+msgstr ""
+
+#: includes/admin/api.php:411
+msgid "Attachment not found."
+msgstr ""
+
+#: includes/admin/api.php:414
+msgid "Only SVG files can be added to the icon library."
+msgstr ""
+
+#: includes/admin/api.php:429
+msgid "Icon not found."
+msgstr ""
+
+#: includes/admin/api.php:517
+msgid "Linked post not found."
+msgstr ""
+
+#: includes/admin/api.php:668
+msgid "Failed to save object."
+msgstr ""
+
+#: includes/admin/api.php:688
+#: includes/admin/api.php:736
+#: includes/admin/api.php:1510
+msgid "Object not found."
+msgstr ""
+
+#: includes/admin/api.php:716
+msgid "Failed to update object."
+msgstr ""
+
+#: includes/admin/api.php:873
+msgid "Failed to save area."
+msgstr ""
+
+#: includes/admin/api.php:893
+#: includes/admin/api.php:944
+#: includes/admin/api.php:996
+msgid "Area not found."
+msgstr ""
+
+#: includes/admin/api.php:924
+msgid "Failed to update area."
+msgstr ""
+
+#: includes/admin/api.php:953
+msgid "Nodes must be a JSON array."
+msgstr ""
+
+#: includes/admin/api.php:964
+msgid "Provide nodes and/or shape_type."
+msgstr ""
+
+#: includes/admin/api.php:976
+msgid "Failed to update area nodes."
+msgstr ""
+
+#: includes/admin/api.php:1141
+msgid "Failed to save label."
+msgstr ""
+
+#: includes/admin/api.php:1161
+#: includes/admin/api.php:1200
+#: includes/admin/api.php:1216
+msgid "Label not found."
+msgstr ""
+
+#: includes/admin/api.php:1180
+msgid "Failed to update label."
+msgstr ""
+
+#: includes/admin/api.php:1227
+msgid "Provide x/y and/or offset_x/offset_y."
+msgstr ""
+
+#: includes/admin/api.php:1351
+msgid "Child map not found."
+msgstr ""
+
+#: includes/admin/api.php:1354
+msgid "A map cannot link to itself."
+msgstr ""
+
+#: includes/admin/api.php:1395
+msgid "Failed to save hierarchy region."
+msgstr ""
+
+#: includes/admin/api.php:1414
+#: includes/admin/api.php:1461
+msgid "Hierarchy region not found."
+msgstr ""
+
+#: includes/admin/icons.php:51
+msgid "Could not read SVG file."
+msgstr ""
+
+#: includes/admin/icons.php:57
+msgid "SVG sanitization failed — ensure the file is valid XML."
+msgstr ""
+
+#: includes/admin/menu.php:29
+#: includes/admin/menu.php:62
+#: includes/admin/menu.php:63
+#: includes/admin/views/overview.php:33
+#: includes/post-type.php:13
+msgid "Maps"
+msgstr ""
+
+#: includes/admin/menu.php:36
+msgid "Icons"
+msgstr ""
+
+#: includes/admin/menu.php:37
+#: includes/admin/menu.php:82
+#: includes/admin/menu.php:83
+msgid "Icon Library"
+msgstr ""
+
+#: includes/admin/menu.php:48
+#: includes/admin/menu.php:49
+msgid "Map Editor"
+msgstr ""
+
+#: includes/admin/menu.php:73
+#: includes/admin/menu.php:74
+#: build/admin/index.js:1
+msgid "All Maps"
+msgstr ""
+
+#: includes/admin/menu.php:91
+#: includes/admin/menu.php:92
+#: includes/post-type.php:18
+msgid "New Map"
+msgstr ""
+
+#: includes/admin/views/icons.php:8
+msgid "SVG icons added here are available as object icons across all maps. Only SVG files are accepted and are sanitized on upload to remove executable content."
+msgstr ""
+
+#: includes/admin/views/overview.php:20
+msgid "Map deleted."
+msgstr ""
+
+#: includes/admin/views/overview.php:26
+msgid "Settings saved."
+msgstr ""
+
+#: includes/admin/views/overview.php:35
+msgid "+ New Map"
+msgstr ""
+
+#: includes/admin/views/overview.php:42
+msgid "Items per page:"
+msgstr ""
+
+#: includes/admin/views/overview.php:58
+#: build/admin/index.js:1
+msgid "Title"
+msgstr ""
+
+#: includes/admin/views/overview.php:59
+msgid "Mode"
+msgstr ""
+
+#: includes/admin/views/overview.php:60
+msgid "Status"
+msgstr ""
+
+#: includes/admin/views/overview.php:61
+msgid "Date"
+msgstr ""
+
+#: includes/admin/views/overview.php:62
+msgid "Actions"
+msgstr ""
+
+#: includes/admin/views/overview.php:101
+#: build/admin/index.js:1
+msgid "Featured"
+msgstr ""
+
+#: includes/admin/views/overview.php:106
+#: build/admin/index.js:1
+msgid "MasterMap"
+msgstr ""
+
+#: includes/admin/views/overview.php:106
+#: includes/post-type.php:14
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:65
+msgid "Map"
+msgstr ""
+
+#: includes/admin/views/overview.php:110
+msgid "Published"
+msgstr ""
+
+#: includes/admin/views/overview.php:110
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:10
+msgid "Draft"
+msgstr ""
+
+#: includes/admin/views/overview.php:110
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:11
+msgid "Private"
+msgstr ""
+
+#: includes/admin/views/overview.php:115
+#: build/admin/index.js:1
+msgid "Edit"
+msgstr ""
+
+#: includes/admin/views/overview.php:118
+msgid "View"
+msgstr ""
+
+#: includes/admin/views/overview.php:124
+msgid "Permanently delete this map?"
+msgstr ""
+
+#: includes/admin/views/overview.php:125
+#: build/admin/index.js:1
+msgid "Delete"
+msgstr ""
+
+#: includes/admin/views/overview.php:149
+msgid "Plugin Settings"
+msgstr ""
+
+#: includes/admin/views/overview.php:156
+msgid "Uninstall behaviour"
+msgstr ""
+
+#: includes/admin/views/overview.php:165
+msgid "Delete all map posts and their data when this plugin is uninstalled"
+msgstr ""
+
+#: includes/admin/views/overview.php:168
+msgid "When unchecked (default), maps are kept after uninstall. Custom DB tables are always removed."
+msgstr ""
+
+#: includes/admin/views/overview.php:174
+msgid "Save Settings"
+msgstr ""
+
+#: includes/post-type.php:15
+#: includes/post-type.php:16
+msgid "Add New Map"
+msgstr ""
+
+#: includes/post-type.php:17
+msgid "Edit Map"
+msgstr ""
+
+#: includes/post-type.php:19
+#: build/admin/index.js:1
+msgid "View Map"
+msgstr ""
+
+#: includes/post-type.php:20
+msgid "Search Maps"
+msgstr ""
+
+#: includes/post-type.php:21
+msgid "No maps found"
+msgstr ""
+
+#: includes/post-type.php:22
+msgid "No maps found in trash"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Post status"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Save Map"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No image selected"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Replace image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Remove image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Icon library"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No icons yet."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add icons"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Connected post"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Type to search…"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Infobox"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Optional — a connected post adds a “Read more” link to the infobox."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Display infobox"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Show the connected post’s infobox blocks in the drawer — works even when the description is written manually."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Content source"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Write content manually"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Use the connected post’s content"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Infobox Title"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Description"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Infobox Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select Infobox Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Title, excerpt and thumbnail are pulled from the connected post. Untick to hide any of them."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Show title"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Show excerpt"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Show thumbnail"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "From library"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Custom image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Icon"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Icon source"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Manage icon library"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select Icon Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Details"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Type"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Object Time"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "X (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Y (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Design"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Icon Size (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Fill Color"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Stroke Color"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Fill and stroke are applied to SVG icons only."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Label"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Text"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Label Time"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Placement"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Placement mode"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Centered on point"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Indicator (line & dot)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Label Offset X (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Label Offset Y (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "The dot marks the X/Y point; the label box sits at the offset, connected by a line."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Labels with infobox content open the infobox drawer when clicked on the map; labels without stay purely decorative."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Font Size (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Background Color"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Border Color"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Text Color"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Shape"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Fill Opacity"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Stroke Width (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Child Map"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Infobox Override"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Leave blank to use the child map's title and excerpt."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Child map title"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Child map excerpt"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Region Style"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Nodes"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add Node"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No nodes yet. Click the canvas to add nodes."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "X %"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Y %"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Remove node"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select on canvas to edit in sidebar"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Duplicate"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Close"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Saved."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Save failed."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Save"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Map Title"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Enter map title…"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Timeline value"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Aspect Ratio"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Width ÷ Height (1.77 = 16:9, 1.0 = square, 0.75 = portrait)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Max Width (px)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Base Map Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select Base Map Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Image Width"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "1.0 = full canvas width. Height follows the image ratio."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Image Y offset"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Image X offset"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Thumbnail"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select Map Thumbnail"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Map Background"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Color"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select Background Image"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid ""
+"Description of the current map.\n"
+" Displayed underneath map element."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Exit fullscreen"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "View fullscreen"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Zoom in"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Zoom out"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No objects yet. Click on the canvas to place one."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "New Object"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Delete this object?"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click an object to pick it up — it follows the cursor."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click again or press Enter to place object"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Press Esc to cancel current placement."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click empty canvas to place a new object at position."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid " Edit object contents it in the side panel. "
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "While object seleted, Enter picks it up, arrow keys nudge, Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add Object"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No areas yet. Click “Add Area” to create one."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Delete this area?"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click a node to pick it up — it follows the cursor."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click or press Enter to place node."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click empty space on a selected area to add a node. "
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "With an area selected: arrow keys move the whole area (Shift = 10 px)."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid " Tab/Shift+Tab cycles nodes; Arrows nudge node; Delete removes node."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes the area."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "New Area"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Failed to create area."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add Area"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No labels yet. Click on the canvas to place one."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Delete this label?"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click a label to pick it up — it follows the cursor;"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Esc cancels placement."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "In indicator mode the dot and the text box move independently."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "With a label selected: Enter picks it up, arrow keys nudge (Shift = 10 px), Ctrl/⌘+C & V copy & paste, Ctrl/⌘+D duplicates, Delete removes."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "New Label"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add Label"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No child-map regions yet. Click \"Add Region\" to draw one."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Parent maps:"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Draw a polygon region that links to a child map."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click a node to reposition it."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Click empty canvas on a selected region to add a node."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add Region"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Delete this hierarchy region?"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "View map page"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Map saved."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Select or Upload SVG Icon"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add to library"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Failed to add icon."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Add Icon"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "No icons yet. Click “Add Icon” to upload an SVG."
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Remove from library"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Remove this icon from the library? (The attachment itself is kept.)"
+msgstr ""
+
+#: build/admin/index.js:1
+msgid "Remove failed."
+msgstr ""
+
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:61
 msgid "Map Settings"
 msgstr ""
 
-#: src/blocks/map/edit.js:46
-msgid "Select Map"
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:66
+msgid "Search maps…"
 msgstr ""
 
-#: src/blocks/map/edit.js:61
-msgid "CNS Map"
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:76
+msgid "Searching…"
 msgstr ""
 
-#: src/blocks/map/edit.js:62
-msgid "Select a map from the block settings panel."
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:77
+msgid "Type to search maps by title."
 msgstr ""
 
-#: src/blocks/map/edit.js:73
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:100
 msgid "Map #"
 msgstr ""
 
-#: src/blocks/map/edit.js:76
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:102
 msgid "Rendered on the frontend."
 msgstr ""
 
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:87
+msgid "CNS Map"
+msgstr ""
+
+#: build/blocks/map/index.js:1
+#: src/blocks/map/edit.js:88
+msgid "Pick a map in the block settings panel."
+msgstr ""
+
+#: build/blocks/map/block.json
 #: src/blocks/map/block.json
 msgctxt "block title"
 msgid "CNS Map"
 msgstr ""
 
+#: build/blocks/map/block.json
 #: src/blocks/map/block.json
 msgctxt "block description"
 msgid "Embed an interactive canvas map created in the Maps admin."

@@ -218,7 +218,7 @@ function cns_map_suite_register_rest_routes(): void {
 			],
 			'shape_type' => [
 				'type' => 'string',
-				'enum' => ['POLYGON', 'BEZIER', 'CIRCLE'],
+				'enum' => ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'],
 			],
 		],
 	]);
@@ -757,7 +757,7 @@ function cns_map_suite_area_rest_args(): array {
 		'shape_type' => [
 			'type'    => 'string',
 			'default' => 'POLYGON',
-			'enum'    => ['POLYGON', 'BEZIER', 'CIRCLE'],
+			'enum'    => ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'],
 		],
 		'object_time' => [
 			'type'    => 'integer',
@@ -1252,6 +1252,11 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'required'          => true,
 			'sanitize_callback' => 'absint',
 		],
+		'shape_type' => [
+			'type'    => 'string',
+			'default' => 'POLYGON',
+			'enum'    => ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'],
+		],
 		'nodes' => [
 			'type'    => 'string',
 			'default' => '[]',
@@ -1294,6 +1299,7 @@ function cns_map_suite_hierarchy_rest_args(): array {
 function cns_map_suite_normalize_hierarchy_row(array $row): array {
 	$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
 	$row['canvas_styles'] = $row['canvas_styles']  ? json_decode($row['canvas_styles'], true) : (object) [];
+	$row['shape_type']    = (string) (($row['shape_type'] ?? '') ?: 'POLYGON');
 	foreach (['id', 'parent_map_id', 'child_map_id'] as $k) {
 		$row[$k] = (int) ($row[$k] ?? 0);
 	}
@@ -1367,12 +1373,13 @@ function cns_map_suite_rest_create_hierarchy_region(WP_REST_Request $request): W
 		[
 			'parent_map_id'        => $map_id,
 			'child_map_id'         => $child_map_id,
+			'shape_type'           => $request->get_param('shape_type'),
 			'nodes'                => wp_json_encode($nodes_decoded),
 			'canvas_styles'        => $canvas_styles,
 			'title_override'       => $title_override !== '' ? $title_override : null,
 			'description_override' => $description_override !== '' ? $description_override : null,
 		],
-		['%d', '%d', '%s', '%s', '%s', '%s']
+		['%d', '%d', '%s', '%s', '%s', '%s', '%s']
 	);
 
 	if (!$inserted) {
@@ -1424,13 +1431,14 @@ function cns_map_suite_rest_update_hierarchy_region(WP_REST_Request $request): W
 	$wpdb->update(
 		$wpdb->prefix . 'cns_map_hierarchy',
 		[
+			'shape_type'           => $request->get_param('shape_type'),
 			'nodes'                => wp_json_encode($nodes_decoded),
 			'canvas_styles'        => $canvas_styles,
 			'title_override'       => $title_override !== '' ? $title_override : null,
 			'description_override' => $description_override !== '' ? $description_override : null,
 		],
 		['id' => $id],
-		['%s', '%s', '%s', '%s'],
+		['%s', '%s', '%s', '%s', '%s'],
 		['%d']
 	);
 

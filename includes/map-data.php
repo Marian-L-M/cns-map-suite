@@ -218,6 +218,7 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 		$data['hierarchy_regions'] = array_map(function ($row) {
 			$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
 			$row['canvas_styles'] = $row['canvas_styles'] ? json_decode($row['canvas_styles'], true) : (object) [];
+			$row['shape_type']    = (string) (($row['shape_type'] ?? '') ?: 'POLYGON');
 			foreach (['id', 'parent_map_id', 'child_map_id'] as $k) {
 				$row[$k] = (int) ($row[$k] ?? 0);
 			}
