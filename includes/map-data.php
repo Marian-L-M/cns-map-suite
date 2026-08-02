@@ -156,11 +156,24 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 		}
 	};
 
+	// Raw table rows come from the render cache (includes/cache.php); everything
+	// derived from posts/meta below stays live so cached rows never carry
+	// user- or status-dependent data.
+	$row_cache   = cns_map_suite_cache_get($map_id);
+	$cache_dirty = false;
+	$cached_rows = static function (string $kind, callable $query) use (&$row_cache, &$cache_dirty): array {
+		if (! array_key_exists($kind, $row_cache)) {
+			$row_cache[$kind] = $query();
+			$cache_dirty      = true;
+		}
+		return $row_cache[$kind];
+	};
+
 	if ($opts['objects']) {
-		$rows = $wpdb->get_results(
+		$rows = $cached_rows('objects', static fn(): array => $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_objects WHERE map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		) ?: [];
+		) ?: []);
 		$prime_rows($rows, $opts['resolve_infoboxes'] ? ['linked_post_id', 'icon_image_id'] : ['icon_image_id']);
 		$data['objects'] = array_map(
 			fn($row) => $attach_infobox(cns_map_suite_normalize_object_row($row)),
@@ -169,10 +182,10 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 	}
 
 	if ($opts['areas']) {
-		$rows = $wpdb->get_results(
+		$rows = $cached_rows('areas', static fn(): array => $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_areas WHERE map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		) ?: [];
+		) ?: []);
 		if ($opts['resolve_infoboxes']) {
 			$prime_rows($rows, ['linked_post_id']);
 		}
@@ -183,10 +196,10 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 	}
 
 	if ($opts['labels']) {
-		$rows = $wpdb->get_results(
+		$rows = $cached_rows('labels', static fn(): array => $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_labels WHERE map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		) ?: [];
+		) ?: []);
 		if ($opts['resolve_infoboxes']) {
 			$prime_rows($rows, ['linked_post_id']);
 		}
@@ -197,10 +210,10 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 	}
 
 	if ($opts['hierarchy']) {
-		$rows = $wpdb->get_results(
+		$rows = $cached_rows('hierarchy', static fn(): array => $wpdb->get_results(
 			$wpdb->prepare("SELECT * FROM {$wpdb->prefix}cns_map_hierarchy WHERE parent_map_id = %d ORDER BY id ASC", $map_id),
 			ARRAY_A
-		) ?: [];
+		) ?: []);
 		$prime_rows($rows, ['child_map_id']);
 		$data['hierarchy_regions'] = array_map(function ($row) {
 			$row['nodes']         = $row['nodes']         ? json_decode($row['nodes'], true) : [];
@@ -225,10 +238,10 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 	}
 
 	if ($opts['parents']) {
-		$rows = $wpdb->get_results(
+		$rows = $cached_rows('parents', static fn(): array => $wpdb->get_results(
 			$wpdb->prepare("SELECT parent_map_id FROM {$wpdb->prefix}cns_map_hierarchy WHERE child_map_id = %d", $map_id),
 			ARRAY_A
-		);
+		) ?: []);
 		$data['parent_maps'] = array_values(array_filter(array_map(function ($row) {
 			$parent = get_post((int) $row['parent_map_id']);
 			if (! $parent || $parent->post_type !== 'maps') return null;
@@ -240,6 +253,10 @@ function cns_map_suite_get_map_data(int $map_id, array $opts = []): ?array {
 				'url'       => get_permalink($parent) ?: '',
 			];
 		}, $rows ?: [])));
+	}
+
+	if ($cache_dirty) {
+		cns_map_suite_cache_set($map_id, $row_cache);
 	}
 
 	return $data;

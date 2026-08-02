@@ -9,7 +9,7 @@
 -   [x] Add `languages/` directory and generate `.pot` file with `wp i18n make-pot`
 -   [x] Add `readme.txt` for WordPress.org / plugin documentation
 -   [x] Add opt-in setting to delete map posts on uninstall
--   [ ] Static sites/chaching to take load off of database
+-   [x] Static sites/caching to take load off of database — `includes/cache.php` caches raw `cns_map_*` table rows in transients (picked up by persistent object caches automatically); invalidated by a global version bump on any REST write or map deletion. Post/meta lookups and per-user filtering stay live; page caching stays with dedicated caching plugins.
 
 ## Editor — Save
 
@@ -144,4 +144,4 @@ Chosen approach: **A — shared raw-SVG-string module** (not `@wordpress/icons` 
 
 -   [ ] cns settings menu -> Register settings ->Show stories and and substories in menu sidebar
 -   [ ] Mastermaps do not display map image in stories (Consider fixing data structure for mastermap to match normal maps more?)
--   [ ] Connect node modes is not working properly (Switches to select node mode)
+-   [ ] Connecting nodes within a path is tedious by canvas only
