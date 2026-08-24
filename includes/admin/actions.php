@@ -16,7 +16,7 @@ if (
 		wp_delete_post($map_id, true);
 	}
 	wp_safe_redirect(add_query_arg(
-		['page' => sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_MAPS), 'deleted' => '1'],
+		['page' => sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_SETTINGS_MAPS), 'deleted' => '1'],
 		admin_url('admin.php')
 	));
 	exit;
@@ -31,7 +31,7 @@ if (
 ) {
 	update_option('cns_map_suite_delete_on_uninstall', isset($_POST['delete_on_uninstall']) ? 1 : 0, false);
 	wp_safe_redirect(add_query_arg(
-		['page' => sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_MAPS), 'settings-saved' => '1'],
+		['page' => sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_SETTINGS_MAPS), 'settings-saved' => '1'],
 		admin_url('admin.php')
 	));
 	exit;

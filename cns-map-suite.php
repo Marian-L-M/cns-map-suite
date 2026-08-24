@@ -25,9 +25,7 @@ define('CNS_MAP_SUITE_DIR', plugin_dir_path(__FILE__));
 define('CNS_MAP_SUITE_URL', plugin_dir_url(__FILE__));
 define('CNS_MAP_SUITE_BASENAME', plugin_basename(__FILE__));
 
-define('CNS_MAP_PAGE_MAPS', 'cns-maps');
 define('CNS_MAP_PAGE_EDITOR', 'cns-map-editor');
-define('CNS_MAP_PAGE_ICONS', 'cns-map-icons');
 define('CNS_MAP_PAGE_SETTINGS_MAPS', 'cns-settings-maps');
 define('CNS_MAP_PAGE_SETTINGS_ICONS', 'cns-settings-icons');
 

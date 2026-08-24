@@ -9,7 +9,7 @@ $total_maps  = cns_map_suite_count_maps();
 $total_pages = (int) ceil($total_maps / $per_page);
 $maps        = cns_map_suite_get_all_maps($per_page, ($paged - 1) * $per_page);
 
-$return_page         = sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_MAPS);
+$return_page         = sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_SETTINGS_MAPS);
 $editor_url          = add_query_arg(['page' => CNS_MAP_PAGE_EDITOR], admin_url('admin.php'));
 $delete_on_uninstall = (bool) get_option('cns_map_suite_delete_on_uninstall', false);
 ?>

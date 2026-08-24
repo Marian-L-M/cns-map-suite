@@ -30,7 +30,7 @@ $bg_image_url   = $meta['bg_image_id'] ? wp_get_attachment_image_url($meta['bg_i
 $thumbnail_id   = $map_id ? (int) get_post_thumbnail_id($map_id) : 0;
 $thumbnail_url  = $thumbnail_id ? (wp_get_attachment_image_url($thumbnail_id, 'medium') ?: '') : '';
 $overview_url = add_query_arg(
-    ['page' => get_template() === 'clouds-and-spaceships' ? CNS_MAP_PAGE_SETTINGS_MAPS : CNS_MAP_PAGE_MAPS],
+    ['page' => CNS_MAP_PAGE_SETTINGS_MAPS],
     admin_url('admin.php')
 );
 $view_url = (! $is_new && $map && in_array($map->post_status, ['publish', 'private'], true))
