@@ -92,7 +92,7 @@ function cns_map_suite_register_rest_routes(): void {
 			'bg_color' => [
 				'type'              => 'string',
 				'default'           => '#1a1a2e',
-				'sanitize_callback' => 'sanitize_hex_color',
+				'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#1a1a2e'),
 			],
 			'bg_image_id' => [
 				'type'              => 'integer',
@@ -347,7 +347,7 @@ function cns_map_suite_rest_save_map(WP_REST_Request $request): WP_REST_Response
 		'_cns_map_is_master'    => (bool) $request->get_param('is_master'),
 		'_cns_map_featured'     => (bool) $request->get_param('featured'),
 		'_cns_map_bg_type'      => (string) $request->get_param('bg_type'),
-		'_cns_map_bg_color'     => sanitize_hex_color($request->get_param('bg_color')) ?: '#1a1a2e',
+		'_cns_map_bg_color'     => cns_map_suite_sanitize_color((string) $request->get_param('bg_color'), '#1a1a2e'),
 		'_cns_map_bg_image_id'  => (int) $request->get_param('bg_image_id'),
 	];
 
@@ -441,13 +441,41 @@ function cns_map_suite_rest_remove_icon(WP_REST_Request $request): WP_REST_Respo
  */
 function cns_map_suite_sanitize_color(string $value, string $default): string {
 	$value = trim($value);
-	if (sanitize_hex_color($value)) {
-		return $value;
+	// 3, 6, or 8 hex digits. Core's sanitize_hex_color() stops at 6, but colors
+	// carry their alpha in the value here, so #rrggbbaa has to pass too.
+	if (preg_match('/^#([A-Fa-f0-9]{3}|[A-Fa-f0-9]{6}|[A-Fa-f0-9]{8})$/', $value)) {
+		return strtolower($value);
 	}
 	if (preg_match('/^(rgb|rgba|hsl|hsla)\([\d\s.,%\/]+\)$/', $value)) {
 		return $value;
 	}
 	return $default;
+}
+
+/**
+ * Region label fonts. Canvas takes a CSS font shorthand, and an unrecognised
+ * family makes the whole `ctx.font` assignment silently no-op — so the family
+ * is matched against this list rather than passed through.
+ */
+function cns_map_suite_label_font_families(): array {
+	return [
+		'sans-serif',
+		'serif',
+		'monospace',
+		'Georgia, serif',
+		'"Times New Roman", serif',
+		'Arial, sans-serif',
+		'Verdana, sans-serif',
+		'"Trebuchet MS", sans-serif',
+		'"Courier New", monospace',
+	];
+}
+
+function cns_map_suite_sanitize_font_family(string $value): string {
+	$value = trim($value);
+	return in_array($value, cns_map_suite_label_font_families(), true)
+		? $value
+		: 'sans-serif';
 }
 
 // ── Shared infobox / row helpers ──────────────────────────────────────────────
@@ -769,14 +797,8 @@ function cns_map_suite_area_rest_args(): array {
 		],
 		'style_fill' => [
 			'type'              => 'string',
-			'default'           => '#2271b1',
-			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#2271b1'),
-		],
-		'style_fill_opacity' => [
-			'type'    => 'number',
-			'default' => 0.3,
-			'minimum' => 0.0,
-			'maximum' => 1.0,
+			'default'           => '#2271b14d',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#2271b14d'),
 		],
 		'style_stroke' => [
 			'type'              => 'string',
@@ -797,7 +819,6 @@ function cns_map_suite_area_rest_args(): array {
 function cns_map_suite_area_styles_from_args(WP_REST_Request $request): string {
 	return wp_json_encode([
 		'fill'        => (string) $request->get_param('style_fill'),
-		'fillOpacity' => (float)  $request->get_param('style_fill_opacity'),
 		'stroke'      => (string) $request->get_param('style_stroke'),
 		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
 	]);
@@ -1053,6 +1074,7 @@ function cns_map_suite_label_rest_args(): array {
 			'default'           => '#1e1e1e',
 			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#1e1e1e'),
 		],
+
 		'style_font_size' => [
 			'type'    => 'integer',
 			'default' => 14,
@@ -1263,14 +1285,8 @@ function cns_map_suite_hierarchy_rest_args(): array {
 		],
 		'style_fill' => [
 			'type'              => 'string',
-			'default'           => '#e8a020',
-			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#e8a020'),
-		],
-		'style_fill_opacity' => [
-			'type'    => 'number',
-			'default' => 0.25,
-			'minimum' => 0.0,
-			'maximum' => 1.0,
+			'default'           => '#e8a02040',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#e8a02040'),
 		],
 		'style_stroke' => [
 			'type'              => 'string',
@@ -1282,6 +1298,22 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'default' => 2,
 			'minimum' => 1,
 			'maximum' => 10,
+		],
+		'style_label_font_family' => [
+			'type'              => 'string',
+			'default'           => 'sans-serif',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_font_family((string) $v),
+		],
+		'style_label_font_size' => [
+			'type'    => 'integer',
+			'default' => 12,
+			'minimum' => 6,
+			'maximum' => 96,
+		],
+		'style_label_color' => [
+			'type'              => 'string',
+			'default'           => '#ffffff',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff'),
 		],
 		'title_override' => [
 			'type'    => 'string',
@@ -1359,10 +1391,12 @@ function cns_map_suite_rest_create_hierarchy_region(WP_REST_Request $request): W
 	if (!is_array($nodes_decoded)) $nodes_decoded = [];
 
 	$canvas_styles = wp_json_encode([
-		'fill'        => (string) $request->get_param('style_fill'),
-		'fillOpacity' => (float)  $request->get_param('style_fill_opacity'),
-		'stroke'      => (string) $request->get_param('style_stroke'),
-		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
+		'fill'            => (string) $request->get_param('style_fill'),
+		'stroke'          => (string) $request->get_param('style_stroke'),
+		'strokeWidth'     => (int)    $request->get_param('style_stroke_width'),
+		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
+		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
+		'labelColor'      => (string) $request->get_param('style_label_color'),
 	]);
 
 	$title_override       = (string) $request->get_param('title_override');
@@ -1419,10 +1453,12 @@ function cns_map_suite_rest_update_hierarchy_region(WP_REST_Request $request): W
 	if (!is_array($nodes_decoded)) $nodes_decoded = [];
 
 	$canvas_styles = wp_json_encode([
-		'fill'        => (string) $request->get_param('style_fill'),
-		'fillOpacity' => (float)  $request->get_param('style_fill_opacity'),
-		'stroke'      => (string) $request->get_param('style_stroke'),
-		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
+		'fill'            => (string) $request->get_param('style_fill'),
+		'stroke'          => (string) $request->get_param('style_stroke'),
+		'strokeWidth'     => (int)    $request->get_param('style_stroke_width'),
+		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
+		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
+		'labelColor'      => (string) $request->get_param('style_label_color'),
 	]);
 
 	$title_override       = (string) $request->get_param('title_override');

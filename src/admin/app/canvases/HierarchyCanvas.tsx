@@ -1,7 +1,8 @@
 import { useRef, useEffect, useState } from '@wordpress/element';
-import { findNodeAtPoint, getLiveNodes, moveAreaNode } from '../../areas';
+import { canRemoveAreaNode, drawNodeHandle, findNodeAtPoint, getLiveNodes, moveAreaNode } from '../../areas';
 import { drawMapCanvas, getCanvasCoords } from '../../canvas';
-import { buildAreaPathFromNodes } from '../../../shared/map-geometry';
+import { isTypingTarget } from '../../utils';
+import { buildAreaPathFromNodes, drawRegionLabel } from '../../../shared/map-geometry';
 import type { DrawState, HierarchyRegion, Node, CanvasPoint, HierarchyCanvasStyles, ShapeType } from '../../../types';
 import CanvasZoomWrap from './CanvasZoomWrap';
 
@@ -22,7 +23,6 @@ interface CanvasState {
 	repoCursor: CanvasPoint | null;
 }
 
-const NODE_HALF = 5;
 
 function minNodesFor( shapeType: ShapeType ): number {
 	return shapeType === 'CIRCLE' ? 2 : 3;
@@ -49,54 +49,27 @@ function drawRegion(
 
 	if ( liveNodes.length >= minNodesFor( shapeType ) ) {
 		const styles: HierarchyCanvasStyles = region.canvas_styles || {};
-		const fill        = styles.fill        || '#e8a020';
-		const fillOpacity = styles.fillOpacity ?? 0.25;
+		const fill        = styles.fill        || '#e8a02040';
 		const stroke      = styles.stroke      || '#e8a020';
 		const strokeWidth = styles.strokeWidth || 2;
 
 		buildAreaPathFromNodes( ctx, liveNodes, shapeType, W, H );
 
-		ctx.save();
-		ctx.globalAlpha = fillOpacity;
-		ctx.fillStyle   = fill;
+		ctx.fillStyle = fill;
 		ctx.fill();
-		ctx.restore();
 
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = isSelected ? Math.max( strokeWidth, 2 ) : strokeWidth;
 		ctx.stroke();
 
-		// Label: child map title — circle labels sit on the center node, the
-		// other shapes use the node centroid.
-		if ( region.child_map_title ) {
-			const cx = shapeType === 'CIRCLE'
-				? liveNodes[ 0 ].x * W
-				: liveNodes.reduce( ( s, n ) => s + n.x, 0 ) / liveNodes.length * W;
-			const cy = shapeType === 'CIRCLE'
-				? liveNodes[ 0 ].y * H
-				: liveNodes.reduce( ( s, n ) => s + n.y, 0 ) / liveNodes.length * H;
-			ctx.save();
-			ctx.font         = 'bold 12px sans-serif';
-			ctx.textAlign    = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillStyle    = '#fff';
-			ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
-			ctx.lineWidth    = 3;
-			ctx.strokeText( region.child_map_title, cx, cy );
-			ctx.fillText( region.child_map_title, cx, cy );
-			ctx.restore();
-		}
+		drawRegionLabel( ctx, region, liveNodes, shapeType, W, H );
 	}
 
 	if ( ! isSelected ) return;
 
 	// Node handles.
 	liveNodes.forEach( ( node, idx ) => {
-		ctx.beginPath();
-		ctx.rect( node.x * W - NODE_HALF, node.y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2 );
-		ctx.strokeStyle = repoNodeIdx === idx ? '#e75252' : '#e8a020';
-		ctx.lineWidth   = 2;
-		ctx.stroke();
+		drawNodeHandle( ctx, node.x * W, node.y * H, repoNodeIdx === idx );
 	} );
 }
 
@@ -148,6 +121,17 @@ export default function HierarchyCanvas( {
 
 	const [ repoNodeIdx, setRepoNodeIdx ] = useState<number | null>( null );
 	const [ repoCursor,  setRepoCursor  ] = useState<CanvasPoint | null>( null );
+
+	// Adding or removing a node invalidates a pickup already in flight: the
+	// index would then address a different node, so deleting node 2 left the
+	// old node 3 following the cursor (and a click committed it there).
+	// Dropping the pickup whenever the node set changes keeps index and node
+	// in agreement. Moving a node keeps the count, so commits are unaffected.
+	const selectedNodeCount = ( regions.find( ( r ) => r.id === selectedRegionId )?.nodes || [] ).length;
+	useEffect( () => {
+		setRepoNodeIdx( null );
+		setRepoCursor( null );
+	}, [ selectedNodeCount, selectedRegionId ] );
 
 	const stateRef = useRef<CanvasState>( {
 		regions: [], selectedRegionId: null, onNodesChange,
@@ -215,6 +199,21 @@ export default function HierarchyCanvas( {
 			if ( ! hierarchyActive ) return;
 			const { regions: regionList, selectedRegionId: selId, onNodesChange: onChange,
 				repoNodeIdx: nodeIdx, repoCursor: cursor } = stateRef.current;
+
+			if ( e.key === 'Delete' || e.key === 'Backspace' ) {
+				if ( nodeIdx === null || selId === null || isTypingTarget( e ) ) return;
+				const region = regionList.find( ( r ) => r.id === selId );
+				if ( region && canRemoveAreaNode( region ) ) {
+					e.preventDefault();
+					onChange(
+						selId,
+						( region.nodes || [] ).filter( ( _, i ) => i !== nodeIdx ),
+					);
+				}
+				setRepoNodeIdx( null );
+				setRepoCursor( null );
+				return;
+			}
 
 			if ( e.key === 'Enter' && nodeIdx !== null && cursor ) {
 				const region = regionList.find( ( r ) => r.id === selId );

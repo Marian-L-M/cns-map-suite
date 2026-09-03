@@ -294,7 +294,10 @@ body.cns-map-fullscreen-open {
 .cns-map-hierarchy-tip {
 	position: absolute;
 	z-index: 99995; // above the fullscreen overlay (99990)
-	max-width: 220px;
+	// Fixed width: the card should not resize itself around the title, so the
+	// thumbnail and the text below it keep one consistent column.
+	width: 280px;
+	box-sizing: border-box;
 	background: rgba(0, 0, 0, 0.82);
 	color: #fff;
 	border-radius: 6px;

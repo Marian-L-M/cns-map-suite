@@ -6,6 +6,8 @@ import {
 	findAreaAtPoint,
 	findLabelPartAtPoint,
 	findObjectAtPoint,
+	drawRegionLabel,
+	regionLabelText,
 } from '../../shared/map-geometry';
 
 (function () {
@@ -87,42 +89,20 @@ import {
 		if (nodes.length < (shapeType === 'CIRCLE' ? 2 : 3)) return;
 
 		const styles      = region.canvas_styles || {};
-		const fill        = styles.fill        || '#e8a020';
-		const fillOpacity = styles.fillOpacity ?? 0.25;
+		const fill        = styles.fill        || '#e8a02040';
 		const stroke      = styles.stroke      || '#e8a020';
 		const strokeWidth = styles.strokeWidth || 2;
 
 		buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
 
-		ctx.save();
-		ctx.globalAlpha = fillOpacity;
-		ctx.fillStyle   = fill;
+		ctx.fillStyle = fill;
 		ctx.fill();
-		ctx.restore();
 
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = strokeWidth;
 		ctx.stroke();
 
-		if (region.child_map_title) {
-			// Circle labels sit on the center node; other shapes use the centroid.
-			const cx = shapeType === 'CIRCLE'
-				? nodes[0].x * W
-				: nodes.reduce(function (s, n) { return s + n.x; }, 0) / nodes.length * W;
-			const cy = shapeType === 'CIRCLE'
-				? nodes[0].y * H
-				: nodes.reduce(function (s, n) { return s + n.y; }, 0) / nodes.length * H;
-			ctx.save();
-			ctx.font         = 'bold 12px sans-serif';
-			ctx.textAlign    = 'center';
-			ctx.textBaseline = 'middle';
-			ctx.fillStyle    = '#fff';
-			ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
-			ctx.lineWidth    = 3;
-			ctx.strokeText(region.child_map_title, cx, cy);
-			ctx.fillText(region.child_map_title, cx, cy);
-			ctx.restore();
-		}
+		drawRegionLabel(ctx, region, nodes, shapeType, W, H);
 	}
 
 	function findHierarchyRegionAtPoint(ctx, x, y, regions, W, H) {
@@ -146,18 +126,14 @@ import {
 		if (nodes.length < minNodes) return;
 
 		const styles      = area.canvas_styles || {};
-		const fill        = styles.fill        || '#2271b1';
-		const fillOpacity = styles.fillOpacity ?? 0.3;
+		const fill        = styles.fill        || '#2271b14d';
 		const stroke      = styles.stroke      || '#2271b1';
 		const strokeWidth = styles.strokeWidth || 2;
 
 		buildAreaPathFromNodes(ctx, nodes, shapeType, W, H);
 
-		ctx.save();
-		ctx.globalAlpha = fillOpacity;
-		ctx.fillStyle   = fill;
+		ctx.fillStyle = fill;
 		ctx.fill();
-		ctx.restore();
 
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = strokeWidth;
@@ -354,16 +330,21 @@ import {
 			thumb.alt       = '';
 			tip.appendChild(thumb);
 		}
-		if (region.child_map_title) {
+		// Infobox overrides win over the child map's own title/excerpt — the
+		// same precedence the canvas label uses.
+		var tipTitle   = regionLabelText(region);
+		var tipExcerpt = region.description_override || region.child_map_excerpt || '';
+
+		if (tipTitle) {
 			var title = document.createElement('strong');
 			title.className   = 'cns-map-hierarchy-tip__title';
-			title.textContent = region.child_map_title;
+			title.textContent = tipTitle;
 			tip.appendChild(title);
 		}
-		if (region.child_map_excerpt) {
+		if (tipExcerpt) {
 			var excerpt = document.createElement('p');
 			excerpt.className   = 'cns-map-hierarchy-tip__excerpt';
-			excerpt.textContent = region.child_map_excerpt;
+			excerpt.textContent = tipExcerpt;
 			tip.appendChild(excerpt);
 		}
 

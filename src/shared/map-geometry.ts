@@ -1,4 +1,4 @@
-import type { MapArea, MapObject, MapLabel, Node, ShapeType } from '../types';
+import type { MapArea, MapObject, MapLabel, Node, ShapeType, HierarchyCanvasStyles } from '../types';
 
 /**
  * Canvas geometry shared between the admin editor (src/admin) and the
@@ -7,6 +7,70 @@ import type { MapArea, MapObject, MapLabel, Node, ShapeType } from '../types';
  * pixel-identical by construction — any change to hit areas, label boxes, or
  * shape paths lands in both automatically.
  */
+
+// ── Hierarchy region labels ───────────────────────────────────────────────────
+
+export const REGION_LABEL_FONT_FAMILY = 'sans-serif';
+export const REGION_LABEL_FONT_SIZE   = 12;
+export const REGION_LABEL_COLOR       = '#ffffff';
+
+/**
+ * The text a region shows on the canvas. The infobox title override wins over
+ * the child map's own title, so relabelling a region on the parent map does
+ * not require renaming the map it points at.
+ */
+export function regionLabelText( region: {
+	title_override?: string | null;
+	child_map_title?: string | null;
+} ): string {
+	return ( region.title_override || region.child_map_title || '' ).trim();
+}
+
+/**
+ * Draws a hierarchy region's label at the shape's center. Circles label the
+ * center node; every other shape uses the node centroid.
+ *
+ * The dark halo is deliberately not configurable: it is what keeps the label
+ * readable over arbitrary map artwork, whatever color the text is given.
+ */
+export function drawRegionLabel(
+	ctx: CanvasRenderingContext2D,
+	region: {
+		title_override?: string | null;
+		child_map_title?: string | null;
+		canvas_styles?: HierarchyCanvasStyles | null;
+	},
+	nodes: Node[],
+	shapeType: ShapeType,
+	W: number,
+	H: number,
+): void {
+	const text = regionLabelText( region );
+	if ( ! text || ! nodes.length ) return;
+
+	const styles = region.canvas_styles || {};
+	const family = styles.labelFontFamily || REGION_LABEL_FONT_FAMILY;
+	const size   = styles.labelFontSize   || REGION_LABEL_FONT_SIZE;
+	const color  = styles.labelColor      || REGION_LABEL_COLOR;
+
+	const cx = shapeType === 'CIRCLE'
+		? nodes[ 0 ].x * W
+		: ( nodes.reduce( ( t, n ) => t + n.x, 0 ) / nodes.length ) * W;
+	const cy = shapeType === 'CIRCLE'
+		? nodes[ 0 ].y * H
+		: ( nodes.reduce( ( t, n ) => t + n.y, 0 ) / nodes.length ) * H;
+
+	ctx.save();
+	ctx.font         = `bold ${ size }px ${ family }`;
+	ctx.textAlign    = 'center';
+	ctx.textBaseline = 'middle';
+	ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
+	ctx.lineWidth    = 3;
+	ctx.strokeText( text, cx, cy );
+	ctx.fillStyle    = color;
+	ctx.fillText( text, cx, cy );
+	ctx.restore();
+}
 
 // ── Area / region paths ───────────────────────────────────────────────────────
 
@@ -157,9 +221,10 @@ export function drawLabelShape(
 	label: MapLabel,
 	opts: DrawLabelOptions = {},
 ): void {
-	const bg        = label.canvas_styles?.bgColor     || '#ffffff';
-	const border    = label.canvas_styles?.borderColor || '#1e1e1e';
-	const textColor = label.canvas_styles?.textColor   || '#1e1e1e';
+	const styles    = label.canvas_styles;
+	const bg        = styles?.bgColor     || '#ffffff';
+	const border    = styles?.borderColor || '#1e1e1e';
+	const textColor = styles?.textColor   || '#1e1e1e';
 	const box       = measureLabelBox( ctx, label );
 
 	ctx.save();

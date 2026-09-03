@@ -1,5 +1,4 @@
 import {
-	RangeControl,
 	SelectControl,
 	TextControl,
 	__experimentalNumberControl as NumberControl,
@@ -108,16 +107,6 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							onChange={ ( v ) => set( 'style_stroke', v ) }
 						/>
 					</div>
-					<div className="cns-grid__group cns-grid__span-full">
-						<RangeControl
-							__next40pxDefaultSize
-							__nextHasNoMarginBottom
-							label={ __( 'Fill Opacity', 'cns-map-suite' ) }
-							min={ 0 } max={ 1 } step={ 0.05 }
-							value={ parseFloat( String( formData.style_fill_opacity ) ) }
-							onChange={ ( v ) => set( 'style_fill_opacity', v ?? 0.3 ) }
-						/>
-					</div>
 					<div className="cns-grid__group">
 						<NumberControl
 							__next40pxDefaultSize
@@ -146,7 +135,6 @@ export function defaultAreaFormData( area?: MapArea ): AreaFormData {
 		object_time:         area?.object_time         ?? 0,
 		...infoboxFormDefaults( area ?? null ),
 		style_fill:          styles.fill               || '#2271b1',
-		style_fill_opacity:  styles.fillOpacity        ?? 0.3,
 		style_stroke:        styles.stroke             || '#2271b1',
 		style_stroke_width:  styles.strokeWidth        || 2,
 	};

@@ -6,7 +6,30 @@ import type { MapArea, Node, ShapeType, DrawState, CanvasPoint } from '../types'
 // the editor and the frontend map block trace identical shapes.
 export { findAreaAtPoint } from '../shared/map-geometry';
 
-const NODE_HALF = 5;
+// Node handles: half-width in canvas px, and a fixed palette that ignores the
+// shape's own colors so a handle stays legible over any fill or stroke.
+export const NODE_HALF = 7.5;
+
+const NODE_FILL          = 'rgba(255,255,255,0.75)';
+const NODE_STROKE        = '#000000';
+const NODE_ACTIVE_FILL   = '#e75252';
+const NODE_ACTIVE_STROKE = '#ffffff';
+
+/** Draws one draggable node handle centered on canvas pixel ( x, y ). */
+export function drawNodeHandle(
+	ctx: CanvasRenderingContext2D,
+	x: number,
+	y: number,
+	isActive: boolean,
+): void {
+	ctx.beginPath();
+	ctx.rect( x - NODE_HALF, y - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2 );
+	ctx.fillStyle   = isActive ? NODE_ACTIVE_FILL   : NODE_FILL;
+	ctx.fill();
+	ctx.strokeStyle = isActive ? NODE_ACTIVE_STROKE : NODE_STROKE;
+	ctx.lineWidth   = 2;
+	ctx.stroke();
+}
 
 // ── Shape helpers ─────────────────────────────────────────────────────────────
 
@@ -138,18 +161,14 @@ export function drawAreaShape(
 
 	if ( liveNodes.length >= minNodes ) {
 		const styles      = area.canvas_styles || {};
-		const fill        = styles.fill        || '#2271b1';
-		const fillOpacity = styles.fillOpacity ?? 0.3;
+		const fill        = styles.fill        || '#2271b14d';
 		const stroke      = styles.stroke      || '#2271b1';
 		const strokeWidth = styles.strokeWidth || 2;
 
 		buildAreaPathFromNodes( ctx, liveNodes, shapeType, W, H );
 
-		ctx.save();
-		ctx.globalAlpha = fillOpacity;
-		ctx.fillStyle   = fill;
+		ctx.fillStyle = fill;
 		ctx.fill();
-		ctx.restore();
 
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = isSelected ? Math.max( strokeWidth, 2 ) : strokeWidth;
@@ -159,17 +178,12 @@ export function drawAreaShape(
 	if ( ! isSelected ) return;
 
 	liveNodes.forEach( ( node, idx ) => {
-		const isRepoNode    = ( repoNodeIdx === idx );
-		const isFocusedNode = ! isRepoNode && repoNodeIdx === null && focusedNodeIdx === idx;
-		ctx.beginPath();
-		ctx.rect( node.x * W - NODE_HALF, node.y * H - NODE_HALF, NODE_HALF * 2, NODE_HALF * 2 );
-		if ( isFocusedNode ) {
-			ctx.fillStyle = '#2271b1';
-			ctx.fill();
-		}
-		ctx.strokeStyle = isRepoNode ? '#e75252' : '#2271b1';
-		ctx.lineWidth   = 2;
-		ctx.stroke();
+		// "Active" is the node being moved, or the keyboard-focused one when
+		// nothing is being moved — the node Delete and the arrow keys act on.
+		const isActive =
+			repoNodeIdx === idx ||
+			( repoNodeIdx === null && focusedNodeIdx === idx );
+		drawNodeHandle( ctx, node.x * W, node.y * H, isActive );
 	} );
 }
 

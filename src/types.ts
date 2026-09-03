@@ -121,7 +121,6 @@ export interface ObjectCanvasStyles {
 
 export interface AreaCanvasStyles {
 	fill?: string;
-	fillOpacity?: number;
 	stroke?: string;
 	strokeWidth?: number;
 }
@@ -213,9 +212,11 @@ export interface MapLabel {
 
 export interface HierarchyCanvasStyles {
 	fill?: string;
-	fillOpacity?: number;
 	stroke?: string;
 	strokeWidth?: number;
+	labelFontFamily?: string;
+	labelFontSize?: number;
+	labelColor?: string;
 }
 
 export interface HierarchyRegion {
@@ -243,9 +244,11 @@ export interface HierarchyFormData {
 	title_override: string;
 	description_override: string;
 	style_fill: string;
-	style_fill_opacity: number;
 	style_stroke: string;
 	style_stroke_width: number;
+	style_label_font_family: string;
+	style_label_font_size: number;
+	style_label_color: string;
 }
 
 // ── Domain: LibraryIcon ───────────────────────────────────────────────────────
@@ -347,7 +350,6 @@ export interface AreaFormData extends InfoboxFormFields {
 	shape_type: ShapeType;
 	object_time: number;
 	style_fill: string;
-	style_fill_opacity: number;
 	style_stroke: string;
 	style_stroke_width: number;
 }

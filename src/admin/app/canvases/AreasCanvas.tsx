@@ -60,6 +60,17 @@ export default function AreasCanvas( {
 		null
 	);
 
+	// Adding or removing a node invalidates a pickup already in flight: the
+	// index would then address a different node, so deleting node 2 left the
+	// old node 3 following the cursor (and a click committed it there).
+	// Dropping the pickup whenever the node set changes keeps index and node
+	// in agreement. Moving a node keeps the count, so commits are unaffected.
+	const selectedNodeCount = ( areas.find( ( a ) => a.id === selectedAreaId )?.nodes || [] ).length;
+	useEffect( () => {
+		setRepoNodeIdx( null );
+		setRepoCursor( null );
+	}, [ selectedNodeCount, selectedAreaId ] );
+
 	const stateRef = useRef< AreasCanvasState >( {
 		areas: [],
 		selectedAreaId: null,

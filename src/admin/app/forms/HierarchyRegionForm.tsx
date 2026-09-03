@@ -1,5 +1,4 @@
 import {
-	RangeControl,
 	SelectControl,
 	TextControl,
 	TextareaControl,
@@ -9,6 +8,20 @@ import { __ } from '@wordpress/i18n';
 import ColorField from '../shared/ColorField';
 import PostSearch from '../shared/PostSearch';
 import type { HierarchyFormData, HierarchyRegion, ShapeType } from '../../../types';
+
+// Keep in sync with cns_map_suite_label_font_families() in includes/admin/api.php —
+// the REST layer rejects any family not on that list.
+const LABEL_FONTS: { value: string; label: string }[] = [
+	{ value: 'sans-serif',                label: 'Sans-serif' },
+	{ value: 'serif',                     label: 'Serif' },
+	{ value: 'monospace',                 label: 'Monospace' },
+	{ value: 'Georgia, serif',            label: 'Georgia' },
+	{ value: '"Times New Roman", serif',  label: 'Times New Roman' },
+	{ value: 'Arial, sans-serif',         label: 'Arial' },
+	{ value: 'Verdana, sans-serif',       label: 'Verdana' },
+	{ value: '"Trebuchet MS", sans-serif', label: 'Trebuchet MS' },
+	{ value: '"Courier New", monospace',  label: 'Courier New' },
+];
 
 const SHAPES: { value: ShapeType; label: string }[] = [
 	{ value: 'POLYGON',   label: 'Polygon (Nodes)' },
@@ -111,16 +124,6 @@ export default function HierarchyRegionForm( { formData, onChange, onShapeTypeCh
 							onChange={ ( v ) => set( 'style_stroke', v ) }
 						/>
 					</div>
-					<div className="cns-grid__group cns-grid__span-full">
-						<RangeControl
-							__next40pxDefaultSize
-							__nextHasNoMarginBottom
-							label={ __( 'Fill Opacity', 'cns-map-suite' ) }
-							min={ 0 } max={ 1 } step={ 0.05 }
-							value={ parseFloat( String( formData.style_fill_opacity ) ) }
-							onChange={ ( v ) => set( 'style_fill_opacity', v ?? 0.25 ) }
-						/>
-					</div>
 					<div className="cns-grid__group">
 						<NumberControl
 							__next40pxDefaultSize
@@ -132,6 +135,46 @@ export default function HierarchyRegionForm( { formData, onChange, onShapeTypeCh
 							onChange={ ( v ) =>
 								set( 'style_stroke_width', parseInt( v ?? '', 10 ) || 2 )
 							}
+						/>
+					</div>
+				</div>
+
+				<h4>{ __( 'Label', 'cns-map-suite' ) }</h4>
+				<p className="description">
+					{ __(
+						'The region label uses the Infobox Override title, falling back to the child map’s own title.',
+						'cns-map-suite'
+					) }
+				</p>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group">
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Font Family', 'cns-map-suite' ) }
+							value={ formData.style_label_font_family }
+							options={ LABEL_FONTS }
+							onChange={ ( v ) => set( 'style_label_font_family', v ) }
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Font Size (px)', 'cns-map-suite' ) }
+							min={ 6 }
+							max={ 96 }
+							step={ 1 }
+							value={ formData.style_label_font_size }
+							onChange={ ( v ) =>
+								set( 'style_label_font_size', parseInt( v ?? '', 10 ) || 12 )
+							}
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Font Color', 'cns-map-suite' ) }
+							value={ formData.style_label_color }
+							onChange={ ( v ) => set( 'style_label_color', v ) }
 						/>
 					</div>
 				</div>
@@ -148,9 +191,11 @@ export function defaultHierarchyFormData( region?: HierarchyRegion ): HierarchyF
 		shape_type:           region?.shape_type            || 'POLYGON',
 		title_override:       region?.title_override        || '',
 		description_override: region?.description_override  || '',
-		style_fill:           styles.fill                  || '#e8a020',
-		style_fill_opacity:   styles.fillOpacity           ?? 0.25,
-		style_stroke:         styles.stroke                || '#e8a020',
-		style_stroke_width:   styles.strokeWidth           || 2,
+		style_fill:              styles.fill            || '#e8a02040',
+		style_stroke:            styles.stroke          || '#e8a020',
+		style_stroke_width:      styles.strokeWidth     || 2,
+		style_label_font_family: styles.labelFontFamily || 'sans-serif',
+		style_label_font_size:   styles.labelFontSize   || 12,
+		style_label_color:       styles.labelColor      || '#ffffff',
 	};
 }

@@ -203,7 +203,6 @@ export default function AreasPanel( {
 					title: __( 'New Area', 'cns-map-suite' ),
 					nodes: JSON.stringify( defaultNodes ),
 					style_fill: '#2271b1',
-					style_fill_opacity: 0.3,
 					style_stroke: '#2271b1',
 					style_stroke_width: 2,
 				}

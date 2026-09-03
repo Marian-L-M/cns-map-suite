@@ -66,7 +66,6 @@ export default function HierarchyPanel( {
 			nodes: getDefaultNodes( 'POLYGON' ),
 			canvas_styles: {
 				fill: '#e8a020',
-				fillOpacity: 0.25,
 				stroke: '#e8a020',
 				strokeWidth: 2,
 			},

@@ -503,9 +503,11 @@ export default function MapEditorApp() {
 			shape_type: region.shape_type || 'POLYGON',
 			nodes: JSON.stringify( region.nodes ),
 			style_fill: formData.style_fill,
-			style_fill_opacity: formData.style_fill_opacity,
 			style_stroke: formData.style_stroke,
 			style_stroke_width: formData.style_stroke_width,
+			style_label_font_family: formData.style_label_font_family,
+			style_label_font_size: formData.style_label_font_size,
+			style_label_color: formData.style_label_color,
 			title_override: formData.title_override,
 			description_override: formData.description_override,
 		};
