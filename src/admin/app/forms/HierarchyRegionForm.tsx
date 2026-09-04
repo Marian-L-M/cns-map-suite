@@ -178,6 +178,30 @@ export default function HierarchyRegionForm( { formData, onChange, onShapeTypeCh
 						/>
 					</div>
 				</div>
+
+				<h4>{ __( 'Hover Card', 'cns-map-suite' ) }</h4>
+				<p className="description">
+					{ __(
+						'Shown on the published map when a visitor hovers this region.',
+						'cns-map-suite'
+					) }
+				</p>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Background Color', 'cns-map-suite' ) }
+							value={ formData.style_tip_bg }
+							onChange={ ( v ) => set( 'style_tip_bg', v ) }
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Border Color', 'cns-map-suite' ) }
+							value={ formData.style_tip_border }
+							onChange={ ( v ) => set( 'style_tip_border', v ) }
+						/>
+					</div>
+				</div>
 			</section>
 		</>
 	);
@@ -197,5 +221,7 @@ export function defaultHierarchyFormData( region?: HierarchyRegion ): HierarchyF
 		style_label_font_family: styles.labelFontFamily || 'sans-serif',
 		style_label_font_size:   styles.labelFontSize   || 12,
 		style_label_color:       styles.labelColor      || '#ffffff',
+		style_tip_bg:            styles.tipBgColor      || '#000000d1',
+		style_tip_border:        styles.tipBorderColor  || '#ffffff26',
 	};
 }

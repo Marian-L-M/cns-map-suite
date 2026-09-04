@@ -217,6 +217,8 @@ export interface HierarchyCanvasStyles {
 	labelFontFamily?: string;
 	labelFontSize?: number;
 	labelColor?: string;
+	tipBgColor?: string;
+	tipBorderColor?: string;
 }
 
 export interface HierarchyRegion {
@@ -249,6 +251,8 @@ export interface HierarchyFormData {
 	style_label_font_family: string;
 	style_label_font_size: number;
 	style_label_color: string;
+	style_tip_bg: string;
+	style_tip_border: string;
 }
 
 // ── Domain: LibraryIcon ───────────────────────────────────────────────────────

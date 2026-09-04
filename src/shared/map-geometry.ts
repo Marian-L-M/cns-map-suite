@@ -30,8 +30,8 @@ export function regionLabelText( region: {
  * Draws a hierarchy region's label at the shape's center. Circles label the
  * center node; every other shape uses the node centroid.
  *
- * The dark halo is deliberately not configurable: it is what keeps the label
- * readable over arbitrary map artwork, whatever color the text is given.
+ * The text is drawn flat, with no halo behind it — contrast against the map
+ * artwork is the author's to choose via the label color.
  */
 export function drawRegionLabel(
 	ctx: CanvasRenderingContext2D,
@@ -64,9 +64,6 @@ export function drawRegionLabel(
 	ctx.font         = `bold ${ size }px ${ family }`;
 	ctx.textAlign    = 'center';
 	ctx.textBaseline = 'middle';
-	ctx.strokeStyle  = 'rgba(0,0,0,0.6)';
-	ctx.lineWidth    = 3;
-	ctx.strokeText( text, cx, cy );
 	ctx.fillStyle    = color;
 	ctx.fillText( text, cx, cy );
 	ctx.restore();

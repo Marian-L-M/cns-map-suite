@@ -508,6 +508,8 @@ export default function MapEditorApp() {
 			style_label_font_family: formData.style_label_font_family,
 			style_label_font_size: formData.style_label_font_size,
 			style_label_color: formData.style_label_color,
+			style_tip_bg: formData.style_tip_bg,
+			style_tip_border: formData.style_tip_border,
 			title_override: formData.title_override,
 			description_override: formData.description_override,
 		};

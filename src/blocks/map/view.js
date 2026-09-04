@@ -323,6 +323,16 @@ import {
 		var tip = getOrCreateHierarchyTooltip();
 		tip.replaceChildren();
 
+		// One tooltip element is reused for every region, so per-region colors
+		// must be cleared as well as set — otherwise the previously hovered
+		// region's palette sticks. Removing the property falls back to the
+		// stylesheet's default rather than to an empty value.
+		var styles = region.canvas_styles || {};
+		if (styles.tipBgColor) tip.style.setProperty('--cns-tip-bg', styles.tipBgColor);
+		else                   tip.style.removeProperty('--cns-tip-bg');
+		if (styles.tipBorderColor) tip.style.setProperty('--cns-tip-border', styles.tipBorderColor);
+		else                       tip.style.removeProperty('--cns-tip-border');
+
 		if (region.child_map_thumbnail) {
 			var thumb = document.createElement('img');
 			thumb.className = 'cns-map-hierarchy-tip__thumb';

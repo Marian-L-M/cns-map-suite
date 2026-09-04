@@ -296,9 +296,14 @@ body.cns-map-fullscreen-open {
 	z-index: 99995; // above the fullscreen overlay (99990)
 	// Fixed width: the card should not resize itself around the title, so the
 	// thumbnail and the text below it keep one consistent column.
-	width: 280px;
+	width: 240px;
 	box-sizing: border-box;
-	background: rgba(0, 0, 0, 0.82);
+	// Per-region overrides arrive as custom properties set by view.js; the
+	// values here are the fallback when a region sets no colors of its own.
+	--cns-tip-bg: #{rgba(0, 0, 0, 0.82)};
+	--cns-tip-border: #{rgba(255, 255, 255, 0.15)};
+	background: var(--cns-tip-bg);
+	border: 1px solid var(--cns-tip-border);
 	color: #fff;
 	border-radius: 6px;
 	padding: 10px 12px;
@@ -315,7 +320,7 @@ body.cns-map-fullscreen-open {
 	&__thumb {
 		display: block;
 		width: 100%;
-		height: 80px;
+		aspect-ratio: 3 / 2;
 		object-fit: cover;
 		border-radius: 4px;
 		margin-bottom: 8px;

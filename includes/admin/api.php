@@ -1315,6 +1315,16 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'default'           => '#ffffff',
 			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff'),
 		],
+		'style_tip_bg' => [
+			'type'              => 'string',
+			'default'           => '#000000d1',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#000000d1'),
+		],
+		'style_tip_border' => [
+			'type'              => 'string',
+			'default'           => '#ffffff26',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff26'),
+		],
 		'title_override' => [
 			'type'    => 'string',
 			'default' => '',
@@ -1397,6 +1407,8 @@ function cns_map_suite_rest_create_hierarchy_region(WP_REST_Request $request): W
 		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
 		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
 		'labelColor'      => (string) $request->get_param('style_label_color'),
+		'tipBgColor'      => (string) $request->get_param('style_tip_bg'),
+		'tipBorderColor'  => (string) $request->get_param('style_tip_border'),
 	]);
 
 	$title_override       = (string) $request->get_param('title_override');
@@ -1459,6 +1471,8 @@ function cns_map_suite_rest_update_hierarchy_region(WP_REST_Request $request): W
 		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
 		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
 		'labelColor'      => (string) $request->get_param('style_label_color'),
+		'tipBgColor'      => (string) $request->get_param('style_tip_bg'),
+		'tipBorderColor'  => (string) $request->get_param('style_tip_border'),
 	]);
 
 	$title_override       = (string) $request->get_param('title_override');
