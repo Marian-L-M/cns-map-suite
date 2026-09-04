@@ -8,6 +8,10 @@ function cns_map_suite_register_post_type(): void {
 		return;
 	}
 
+	// An enabled archive also means maps should be findable: a listing nobody
+	// can search or link to from a menu would be half a feature.
+	$archive_enabled = cns_map_suite_archive_enabled();
+
 	register_post_type('maps', [
 		'labels' => [
 			'name'               => __('Maps', 'cns-map-suite'),
@@ -25,11 +29,13 @@ function cns_map_suite_register_post_type(): void {
 		'publicly_queryable'  => true,
 		'show_in_rest'        => true,   // Required for block editor REST queries.
 		'show_ui'             => true,
-		'show_in_menu'        => false,  // Managed via custom admin menu.
-		'show_in_nav_menus'   => false,
-		'exclude_from_search' => true,
-		'has_archive'         => false,
-		'rewrite'             => ['slug' => 'maps'],
+		// Off by default: maps are managed from the CNS editor pages. The
+		// setting adds the standard WP list screen to the sidebar as well.
+		'show_in_menu'        => (bool) get_option('cns_map_suite_show_maps_menu', false),
+		'show_in_nav_menus'   => $archive_enabled,
+		'exclude_from_search' => ! $archive_enabled,
+		'has_archive'         => $archive_enabled,
+		'rewrite'             => ['slug' => cns_map_suite_archive_slug()],
 		'supports'            => ['title', 'editor', 'thumbnail', 'custom-fields', 'excerpt'],
 		'capability_type'     => 'post',
 	]);

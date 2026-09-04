@@ -12,6 +12,13 @@ $maps        = cns_map_suite_get_all_maps($per_page, ($paged - 1) * $per_page);
 $return_page         = sanitize_key($_GET['page'] ?? CNS_MAP_PAGE_SETTINGS_MAPS);
 $editor_url          = add_query_arg(['page' => CNS_MAP_PAGE_EDITOR], admin_url('admin.php'));
 $delete_on_uninstall = (bool) get_option('cns_map_suite_delete_on_uninstall', false);
+$show_maps_menu      = (bool) get_option('cns_map_suite_show_maps_menu', false);
+$archive_enabled     = cns_map_suite_archive_enabled();
+$archive_slug        = cns_map_suite_archive_slug();
+$archive_per_page    = cns_map_suite_archive_per_page();
+$archive_order       = cns_map_suite_archive_order();
+$archive_order_opts  = cns_map_suite_archive_order_options();
+$archive_url         = $archive_enabled ? get_post_type_archive_link('maps') : '';
 ?>
 <div class="cns-maps-overview">
 	<!-- System notices start -->
@@ -152,6 +159,89 @@ $delete_on_uninstall = (bool) get_option('cns_map_suite_delete_on_uninstall', fa
 			<input type="hidden" name="cns_map_action" value="save_settings" />
 
 			<table class="form-table" role="presentation">
+				<tr>
+					<th scope="row">
+						<?php esc_html_e('Map archive', 'cns-map-suite'); ?>
+						<?php if ($archive_url) : ?>
+							<a href="<?php echo esc_url($archive_url); ?>" target="_blank"
+							   style="display:block;font-size:12px;font-weight:normal;">
+								<?php esc_html_e('View archive ↗', 'cns-map-suite'); ?>
+							</a>
+						<?php endif; ?>
+					</th>
+					<td>
+						<label>
+							<input type="checkbox" name="archive_enabled" value="1" <?php checked($archive_enabled); ?> />
+							<?php esc_html_e('Enable the public map archive', 'cns-map-suite'); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e('Publishes a listing of all maps at the slug below, and lets maps appear in search and nav menus. Off by default.', 'cns-map-suite'); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cns_map_archive_slug"><?php esc_html_e('URL slug', 'cns-map-suite'); ?></label>
+					</th>
+					<td>
+						<input
+							type="text"
+							id="cns_map_archive_slug"
+							name="archive_slug"
+							value="<?php echo esc_attr($archive_slug); ?>"
+							class="regular-text"
+							pattern="[a-z0-9\-]+"
+							placeholder="<?php echo esc_attr(CNS_MAP_ARCHIVE_DEFAULT_SLUG); ?>"
+						/>
+						<p class="description">
+							<?php esc_html_e('Lowercase letters, numbers, and hyphens only. Changes the archive URL and every single map URL — existing links will break.', 'cns-map-suite'); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cns_map_archive_per_page"><?php esc_html_e('Maps per page', 'cns-map-suite'); ?></label>
+					</th>
+					<td>
+						<input
+							type="number"
+							id="cns_map_archive_per_page"
+							name="archive_per_page"
+							value="<?php echo esc_attr($archive_per_page); ?>"
+							min="1" step="1"
+							class="small-text"
+						/>
+						<p class="description">
+							<?php esc_html_e('Overrides the global Reading Settings value for the map archive only.', 'cns-map-suite'); ?>
+						</p>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row">
+						<label for="cns_map_archive_order"><?php esc_html_e('Default sort order', 'cns-map-suite'); ?></label>
+					</th>
+					<td>
+						<select id="cns_map_archive_order" name="archive_order">
+							<?php foreach ($archive_order_opts as $value => $label) : ?>
+								<option value="<?php echo esc_attr($value); ?>" <?php selected($archive_order, $value); ?>>
+									<?php echo esc_html($label); ?>
+								</option>
+							<?php endforeach; ?>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<th scope="row"><?php esc_html_e('Admin menu visibility', 'cns-map-suite'); ?></th>
+					<td>
+						<label>
+							<input type="checkbox" name="show_maps_menu" value="1" <?php checked($show_maps_menu); ?> />
+							<?php esc_html_e('Show Maps in the WordPress admin sidebar', 'cns-map-suite'); ?>
+						</label>
+						<p class="description">
+							<?php esc_html_e('Adds the standard WordPress list screen for maps to the sidebar. The CNS editor pages here stay the primary management UI.', 'cns-map-suite'); ?>
+						</p>
+					</td>
+				</tr>
 				<tr>
 					<th scope="row"><?php esc_html_e('Uninstall behaviour', 'cns-map-suite'); ?></th>
 					<td>

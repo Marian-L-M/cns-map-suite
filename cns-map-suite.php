@@ -30,6 +30,7 @@ define('CNS_MAP_PAGE_SETTINGS_MAPS', 'cns-settings-maps');
 define('CNS_MAP_PAGE_SETTINGS_ICONS', 'cns-settings-icons');
 
 require_once CNS_MAP_SUITE_DIR . 'includes/capabilities.php';
+require_once CNS_MAP_SUITE_DIR . 'includes/archive.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/post-type.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/database.php';
 require_once CNS_MAP_SUITE_DIR . 'includes/cache.php';

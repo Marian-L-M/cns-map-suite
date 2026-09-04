@@ -498,21 +498,16 @@ export default function MapEditorApp() {
 		const region = regionsList.find( ( r ) => r.id === selectedRegionId );
 		if ( ! region ) return;
 
+		// Spread the form rather than listing fields: an omitted field falls back
+		// to its REST default, so a hand-maintained list silently resets any
+		// control added to the form but forgotten here. child_map_label is
+		// editor-only (PostSearch's display text) and has no REST arg; shape
+		// type comes from the region, which already applied the change.
+		const { child_map_label: _label, ...styleFields } = formData;
 		const payload = {
-			child_map_id: formData.child_map_id,
+			...styleFields,
 			shape_type: region.shape_type || 'POLYGON',
 			nodes: JSON.stringify( region.nodes ),
-			style_fill: formData.style_fill,
-			style_stroke: formData.style_stroke,
-			style_stroke_width: formData.style_stroke_width,
-			style_label_font_family: formData.style_label_font_family,
-			style_label_font_size: formData.style_label_font_size,
-			style_label_color: formData.style_label_color,
-			style_tip_bg: formData.style_tip_bg,
-			style_tip_border: formData.style_tip_border,
-			style_tip_text: formData.style_tip_text,
-			title_override: formData.title_override,
-			description_override: formData.description_override,
 		};
 
 		const data =
