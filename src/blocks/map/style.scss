@@ -302,9 +302,10 @@ body.cns-map-fullscreen-open {
 	// values here are the fallback when a region sets no colors of its own.
 	--cns-tip-bg: #{rgba(0, 0, 0, 0.82)};
 	--cns-tip-border: #{rgba(255, 255, 255, 0.15)};
+	--cns-tip-text: #fff;
 	background: var(--cns-tip-bg);
 	border: 1px solid var(--cns-tip-border);
-	color: #fff;
+	color: var(--cns-tip-text);
 	border-radius: 6px;
 	padding: 10px 12px;
 	pointer-events: none;

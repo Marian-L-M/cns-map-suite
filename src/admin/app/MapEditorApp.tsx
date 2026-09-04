@@ -510,6 +510,7 @@ export default function MapEditorApp() {
 			style_label_color: formData.style_label_color,
 			style_tip_bg: formData.style_tip_bg,
 			style_tip_border: formData.style_tip_border,
+			style_tip_text: formData.style_tip_text,
 			title_override: formData.title_override,
 			description_override: formData.description_override,
 		};

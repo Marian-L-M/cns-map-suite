@@ -1,10 +1,12 @@
 import {
 	SelectControl,
 	TextControl,
+	ToggleControl,
 	__experimentalNumberControl as NumberControl,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import ColorField from '../shared/ColorField';
+import { LABEL_FONTS } from '../shared/labelFonts';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
 import type { AreaFormData, AreaType, ShapeType, MapArea } from '../../../types';
 
@@ -121,6 +123,54 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 						/>
 					</div>
 				</div>
+
+				<h4>{ __( 'Label', 'cns-map-suite' ) }</h4>
+				<p className="description">
+					{ __(
+						'The canvas label uses the Infobox title, falling back to the area’s own title.',
+						'cns-map-suite'
+					) }
+				</p>
+				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<ToggleControl
+							__nextHasNoMarginBottom
+							label={ __( 'Hide label on canvas', 'cns-map-suite' ) }
+							checked={ formData.style_label_hidden }
+							onChange={ ( v ) => set( 'style_label_hidden', v ) }
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Font Family', 'cns-map-suite' ) }
+							value={ formData.style_label_font_family }
+							options={ LABEL_FONTS }
+							onChange={ ( v ) => set( 'style_label_font_family', v ) }
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<NumberControl
+							__next40pxDefaultSize
+							label={ __( 'Font Size (px)', 'cns-map-suite' ) }
+							min={ 6 }
+							max={ 96 }
+							step={ 1 }
+							value={ formData.style_label_font_size }
+							onChange={ ( v ) =>
+								set( 'style_label_font_size', parseInt( v ?? '', 10 ) || 12 )
+							}
+						/>
+					</div>
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Font Color', 'cns-map-suite' ) }
+							value={ formData.style_label_color }
+							onChange={ ( v ) => set( 'style_label_color', v ) }
+						/>
+					</div>
+				</div>
 			</section>
 		</>
 	);
@@ -134,8 +184,12 @@ export function defaultAreaFormData( area?: MapArea ): AreaFormData {
 		shape_type:          area?.shape_type          || 'POLYGON',
 		object_time:         area?.object_time         ?? 0,
 		...infoboxFormDefaults( area ?? null ),
-		style_fill:          styles.fill               || '#2271b1',
-		style_stroke:        styles.stroke             || '#2271b1',
-		style_stroke_width:  styles.strokeWidth        || 2,
+		style_fill:              styles.fill            || '#2271b14d',
+		style_stroke:            styles.stroke          || '#2271b1',
+		style_stroke_width:      styles.strokeWidth     || 2,
+		style_label_hidden:      styles.labelHidden     ?? false,
+		style_label_font_family: styles.labelFontFamily || 'sans-serif',
+		style_label_font_size:   styles.labelFontSize   || 12,
+		style_label_color:       styles.labelColor      || '#ffffff',
 	};
 }

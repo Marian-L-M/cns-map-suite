@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from '@wordpress/element';
 import { canRemoveAreaNode, drawNodeHandle, findNodeAtPoint, getLiveNodes, moveAreaNode } from '../../areas';
 import { drawMapCanvas, getCanvasCoords } from '../../canvas';
 import { isTypingTarget } from '../../utils';
-import { buildAreaPathFromNodes, drawRegionLabel } from '../../../shared/map-geometry';
+import { buildAreaPathFromNodes, drawShapeLabel, regionLabelText } from '../../../shared/map-geometry';
 import type { DrawState, HierarchyRegion, Node, CanvasPoint, HierarchyCanvasStyles, ShapeType } from '../../../types';
 import CanvasZoomWrap from './CanvasZoomWrap';
 
@@ -62,7 +62,7 @@ function drawRegion(
 		ctx.lineWidth   = isSelected ? Math.max( strokeWidth, 2 ) : strokeWidth;
 		ctx.stroke();
 
-		drawRegionLabel( ctx, region, liveNodes, shapeType, W, H );
+		drawShapeLabel( ctx, regionLabelText( region ), styles, liveNodes, shapeType, W, H );
 	}
 
 	if ( ! isSelected ) return;

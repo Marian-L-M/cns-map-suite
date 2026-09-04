@@ -1,27 +1,15 @@
 import {
 	SelectControl,
 	TextControl,
+	ToggleControl,
 	TextareaControl,
 	__experimentalNumberControl as NumberControl,
 } from '@wordpress/components';
 import { __ } from '@wordpress/i18n';
 import ColorField from '../shared/ColorField';
 import PostSearch from '../shared/PostSearch';
+import { LABEL_FONTS } from '../shared/labelFonts';
 import type { HierarchyFormData, HierarchyRegion, ShapeType } from '../../../types';
-
-// Keep in sync with cns_map_suite_label_font_families() in includes/admin/api.php —
-// the REST layer rejects any family not on that list.
-const LABEL_FONTS: { value: string; label: string }[] = [
-	{ value: 'sans-serif',                label: 'Sans-serif' },
-	{ value: 'serif',                     label: 'Serif' },
-	{ value: 'monospace',                 label: 'Monospace' },
-	{ value: 'Georgia, serif',            label: 'Georgia' },
-	{ value: '"Times New Roman", serif',  label: 'Times New Roman' },
-	{ value: 'Arial, sans-serif',         label: 'Arial' },
-	{ value: 'Verdana, sans-serif',       label: 'Verdana' },
-	{ value: '"Trebuchet MS", sans-serif', label: 'Trebuchet MS' },
-	{ value: '"Courier New", monospace',  label: 'Courier New' },
-];
 
 const SHAPES: { value: ShapeType; label: string }[] = [
 	{ value: 'POLYGON',   label: 'Polygon (Nodes)' },
@@ -34,9 +22,72 @@ interface Props {
 	formData: HierarchyFormData;
 	onChange: ( data: HierarchyFormData ) => void;
 	onShapeTypeChange: ( shapeType: ShapeType ) => void;
+	/** Selected region — supplies the child map's thumbnail and excerpt, which
+	 *  are read-only preview data and so live outside the form state. */
+	region?: HierarchyRegion | null;
 }
 
-export default function HierarchyRegionForm( { formData, onChange, onShapeTypeChange }: Props ) {
+/**
+ * Shown at true size (240px, the width the published card uses), because the
+ * point is to judge the real thing — colors, crop and clamped excerpt — not a
+ * scaled impression of it. Mirrors .cns-map-hierarchy-tip in
+ * src/blocks/map/style.scss; keep the two in step.
+ */
+function HoverCardPreview( {
+	formData,
+	region,
+}: {
+	formData: HierarchyFormData;
+	region?: HierarchyRegion | null;
+} ) {
+	// Same precedence the published card and the canvas label use.
+	const title = formData.title_override || formData.child_map_label;
+	const excerpt =
+		formData.description_override || region?.child_map_excerpt || '';
+	const thumb = region?.child_map_thumbnail || '';
+
+	if ( ! title && ! excerpt && ! thumb ) {
+		return (
+			<p className="description">
+				{ __(
+					'Choose a child map to preview its hover card.',
+					'cns-map-suite'
+				) }
+			</p>
+		);
+	}
+
+	return (
+		<div
+			className="cns-hovercard-preview"
+			style={
+				{
+					'--cns-tip-bg': formData.style_tip_bg,
+					'--cns-tip-border': formData.style_tip_border,
+					'--cns-tip-text': formData.style_tip_text,
+				} as React.CSSProperties
+			}
+		>
+			{ thumb && (
+				<img
+					className="cns-hovercard-preview__thumb"
+					src={ thumb }
+					alt=""
+				/>
+			) }
+			{ title && (
+				<strong className="cns-hovercard-preview__title">
+					{ title }
+				</strong>
+			) }
+			{ excerpt && (
+				<p className="cns-hovercard-preview__excerpt">{ excerpt }</p>
+			) }
+		</div>
+	);
+}
+
+export default function HierarchyRegionForm( { formData, onChange, onShapeTypeChange, region }: Props ) {
 	function set<K extends keyof HierarchyFormData>( key: K, val: HierarchyFormData[ K ] ) {
 		onChange( { ...formData, [ key ]: val } );
 	}
@@ -147,6 +198,14 @@ export default function HierarchyRegionForm( { formData, onChange, onShapeTypeCh
 					) }
 				</p>
 				<div className="cns-grid cns-grid__12">
+					<div className="cns-grid__group cns-grid__span-full">
+						<ToggleControl
+							__nextHasNoMarginBottom
+							label={ __( 'Hide label on canvas', 'cns-map-suite' ) }
+							checked={ formData.style_label_hidden }
+							onChange={ ( v ) => set( 'style_label_hidden', v ) }
+						/>
+					</div>
 					<div className="cns-grid__group">
 						<SelectControl
 							__next40pxDefaultSize
@@ -201,7 +260,15 @@ export default function HierarchyRegionForm( { formData, onChange, onShapeTypeCh
 							onChange={ ( v ) => set( 'style_tip_border', v ) }
 						/>
 					</div>
+					<div className="cns-grid__group">
+						<ColorField
+							label={ __( 'Text Color', 'cns-map-suite' ) }
+							value={ formData.style_tip_text }
+							onChange={ ( v ) => set( 'style_tip_text', v ) }
+						/>
+					</div>
 				</div>
+				<HoverCardPreview formData={ formData } region={ region } />
 			</section>
 		</>
 	);
@@ -218,10 +285,12 @@ export function defaultHierarchyFormData( region?: HierarchyRegion ): HierarchyF
 		style_fill:              styles.fill            || '#e8a02040',
 		style_stroke:            styles.stroke          || '#e8a020',
 		style_stroke_width:      styles.strokeWidth     || 2,
+		style_label_hidden:      styles.labelHidden     ?? false,
 		style_label_font_family: styles.labelFontFamily || 'sans-serif',
 		style_label_font_size:   styles.labelFontSize   || 12,
 		style_label_color:       styles.labelColor      || '#ffffff',
 		style_tip_bg:            styles.tipBgColor      || '#000000d1',
 		style_tip_border:        styles.tipBorderColor  || '#ffffff26',
+		style_tip_text:          styles.tipTextColor    || '#ffffff',
 	};
 }

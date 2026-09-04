@@ -119,7 +119,19 @@ export interface ObjectCanvasStyles {
 	strokeStyle?: string;
 }
 
-export interface AreaCanvasStyles {
+/**
+ * Canvas label styling, shared by map areas and hierarchy regions. `labelHidden`
+ * is stored rather than inferred so an author can keep a title for lists and
+ * infoboxes while leaving the shape unlabelled on the canvas.
+ */
+export interface LabelStyleFields {
+	labelHidden?: boolean;
+	labelFontFamily?: string;
+	labelFontSize?: number;
+	labelColor?: string;
+}
+
+export interface AreaCanvasStyles extends LabelStyleFields {
 	fill?: string;
 	stroke?: string;
 	strokeWidth?: number;
@@ -210,15 +222,13 @@ export interface MapLabel {
 
 // ── Domain: HierarchyRegion ───────────────────────────────────────────────────
 
-export interface HierarchyCanvasStyles {
+export interface HierarchyCanvasStyles extends LabelStyleFields {
 	fill?: string;
 	stroke?: string;
 	strokeWidth?: number;
-	labelFontFamily?: string;
-	labelFontSize?: number;
-	labelColor?: string;
 	tipBgColor?: string;
 	tipBorderColor?: string;
+	tipTextColor?: string;
 }
 
 export interface HierarchyRegion {
@@ -248,11 +258,13 @@ export interface HierarchyFormData {
 	style_fill: string;
 	style_stroke: string;
 	style_stroke_width: number;
+	style_label_hidden: boolean;
 	style_label_font_family: string;
 	style_label_font_size: number;
 	style_label_color: string;
 	style_tip_bg: string;
 	style_tip_border: string;
+	style_tip_text: string;
 }
 
 // ── Domain: LibraryIcon ───────────────────────────────────────────────────────
@@ -349,6 +361,10 @@ export interface ObjectFormData extends InfoboxFormFields {
 }
 
 export interface AreaFormData extends InfoboxFormFields {
+	style_label_hidden: boolean;
+	style_label_font_family: string;
+	style_label_font_size: number;
+	style_label_color: string;
 	title: string;
 	type: AreaType;
 	shape_type: ShapeType;

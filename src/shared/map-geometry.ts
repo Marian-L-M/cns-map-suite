@@ -1,4 +1,4 @@
-import type { MapArea, MapObject, MapLabel, Node, ShapeType, HierarchyCanvasStyles } from '../types';
+import type { MapArea, MapObject, MapLabel, Node, ShapeType, LabelStyleFields } from '../types';
 
 /**
  * Canvas geometry shared between the admin editor (src/admin) and the
@@ -8,16 +8,18 @@ import type { MapArea, MapObject, MapLabel, Node, ShapeType, HierarchyCanvasStyl
  * shape paths lands in both automatically.
  */
 
-// ── Hierarchy region labels ───────────────────────────────────────────────────
+// ── Shape labels ──────────────────────────────────────────────────────────────
+// Map areas and hierarchy regions both label themselves at the shape's center,
+// with the same styling controls, so the drawing lives here once.
 
-export const REGION_LABEL_FONT_FAMILY = 'sans-serif';
-export const REGION_LABEL_FONT_SIZE   = 12;
-export const REGION_LABEL_COLOR       = '#ffffff';
+export const LABEL_FONT_FAMILY = 'sans-serif';
+export const LABEL_FONT_SIZE   = 12;
+export const LABEL_COLOR       = '#ffffff';
 
 /**
- * The text a region shows on the canvas. The infobox title override wins over
- * the child map's own title, so relabelling a region on the parent map does
- * not require renaming the map it points at.
+ * A hierarchy region's label text: the infobox title override wins over the
+ * child map's own title, so relabelling a region on the parent map does not
+ * require renaming the map it points at.
  */
 export function regionLabelText( region: {
 	title_override?: string | null;
@@ -27,31 +29,39 @@ export function regionLabelText( region: {
 }
 
 /**
- * Draws a hierarchy region's label at the shape's center. Circles label the
- * center node; every other shape uses the node centroid.
+ * An area's label text: the infobox title override wins over the area's own
+ * title, mirroring how hierarchy regions resolve theirs.
+ */
+export function areaLabelText( area: {
+	infobox_data?: { title?: string } | null;
+	title?: string | null;
+} ): string {
+	return ( area.infobox_data?.title || area.title || '' ).trim();
+}
+
+/**
+ * Draws a shape's label at its center. Circles label the center node; every
+ * other shape uses the node centroid.
  *
  * The text is drawn flat, with no halo behind it — contrast against the map
  * artwork is the author's to choose via the label color.
  */
-export function drawRegionLabel(
+export function drawShapeLabel(
 	ctx: CanvasRenderingContext2D,
-	region: {
-		title_override?: string | null;
-		child_map_title?: string | null;
-		canvas_styles?: HierarchyCanvasStyles | null;
-	},
+	text: string,
+	styles: LabelStyleFields | null | undefined,
 	nodes: Node[],
 	shapeType: ShapeType,
 	W: number,
 	H: number,
 ): void {
-	const text = regionLabelText( region );
 	if ( ! text || ! nodes.length ) return;
+	const s = styles || {};
+	if ( s.labelHidden ) return;
 
-	const styles = region.canvas_styles || {};
-	const family = styles.labelFontFamily || REGION_LABEL_FONT_FAMILY;
-	const size   = styles.labelFontSize   || REGION_LABEL_FONT_SIZE;
-	const color  = styles.labelColor      || REGION_LABEL_COLOR;
+	const family = s.labelFontFamily || LABEL_FONT_FAMILY;
+	const size   = s.labelFontSize   || LABEL_FONT_SIZE;
+	const color  = s.labelColor      || LABEL_COLOR;
 
 	const cx = shapeType === 'CIRCLE'
 		? nodes[ 0 ].x * W

@@ -1,5 +1,5 @@
 import { drawMapCanvas } from './canvas';
-import { buildAreaPathFromNodes } from '../shared/map-geometry';
+import { areaLabelText, buildAreaPathFromNodes, drawShapeLabel } from '../shared/map-geometry';
 import type { MapArea, Node, ShapeType, DrawState, CanvasPoint } from '../types';
 
 // Path building and area hit-testing live in src/shared/map-geometry.ts so
@@ -173,6 +173,8 @@ export function drawAreaShape(
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = isSelected ? Math.max( strokeWidth, 2 ) : strokeWidth;
 		ctx.stroke();
+
+		drawShapeLabel( ctx, areaLabelText( area ), styles, liveNodes, shapeType, W, H );
 	}
 
 	if ( ! isSelected ) return;

@@ -421,6 +421,7 @@ export default function ContextPanel( {
 					<>
 						<HierarchyRegionForm
 							formData={ regionFormData }
+							region={ selectedRegion }
 							onChange={ setRegionFormData }
 							onShapeTypeChange={ ( st ) => {
 								if ( selectedRegion )

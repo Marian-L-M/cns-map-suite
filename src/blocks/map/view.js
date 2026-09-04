@@ -6,8 +6,9 @@ import {
 	findAreaAtPoint,
 	findLabelPartAtPoint,
 	findObjectAtPoint,
-	drawRegionLabel,
+	drawShapeLabel,
 	regionLabelText,
+	areaLabelText,
 } from '../../shared/map-geometry';
 
 (function () {
@@ -102,7 +103,7 @@ import {
 		ctx.lineWidth   = strokeWidth;
 		ctx.stroke();
 
-		drawRegionLabel(ctx, region, nodes, shapeType, W, H);
+		drawShapeLabel(ctx, regionLabelText(region), styles, nodes, shapeType, W, H);
 	}
 
 	function findHierarchyRegionAtPoint(ctx, x, y, regions, W, H) {
@@ -138,6 +139,8 @@ import {
 		ctx.strokeStyle = stroke;
 		ctx.lineWidth   = strokeWidth;
 		ctx.stroke();
+
+		drawShapeLabel(ctx, areaLabelText(area), styles, nodes, shapeType, W, H);
 	}
 
 	// ── Labels ────────────────────────────────────────────────────────────────
@@ -332,6 +335,8 @@ import {
 		else                   tip.style.removeProperty('--cns-tip-bg');
 		if (styles.tipBorderColor) tip.style.setProperty('--cns-tip-border', styles.tipBorderColor);
 		else                       tip.style.removeProperty('--cns-tip-border');
+		if (styles.tipTextColor) tip.style.setProperty('--cns-tip-text', styles.tipTextColor);
+		else                     tip.style.removeProperty('--cns-tip-text');
 
 		if (region.child_map_thumbnail) {
 			var thumb = document.createElement('img');

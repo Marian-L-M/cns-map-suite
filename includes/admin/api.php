@@ -811,6 +811,26 @@ function cns_map_suite_area_rest_args(): array {
 			'minimum' => 1,
 			'maximum' => 10,
 		],
+		'style_label_hidden' => [
+			'type'    => 'boolean',
+			'default' => false,
+		],
+		'style_label_font_family' => [
+			'type'              => 'string',
+			'default'           => 'sans-serif',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_font_family((string) $v),
+		],
+		'style_label_font_size' => [
+			'type'    => 'integer',
+			'default' => 12,
+			'minimum' => 6,
+			'maximum' => 96,
+		],
+		'style_label_color' => [
+			'type'              => 'string',
+			'default'           => '#ffffff',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff'),
+		],
 	]);
 }
 
@@ -818,9 +838,13 @@ function cns_map_suite_area_rest_args(): array {
 
 function cns_map_suite_area_styles_from_args(WP_REST_Request $request): string {
 	return wp_json_encode([
-		'fill'        => (string) $request->get_param('style_fill'),
-		'stroke'      => (string) $request->get_param('style_stroke'),
-		'strokeWidth' => (int)    $request->get_param('style_stroke_width'),
+		'fill'            => (string) $request->get_param('style_fill'),
+		'stroke'          => (string) $request->get_param('style_stroke'),
+		'strokeWidth'     => (int)    $request->get_param('style_stroke_width'),
+		'labelHidden'     => (bool)   $request->get_param('style_label_hidden'),
+		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
+		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
+		'labelColor'      => (string) $request->get_param('style_label_color'),
 	]);
 }
 
@@ -1299,6 +1323,10 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'minimum' => 1,
 			'maximum' => 10,
 		],
+		'style_label_hidden' => [
+			'type'    => 'boolean',
+			'default' => false,
+		],
 		'style_label_font_family' => [
 			'type'              => 'string',
 			'default'           => 'sans-serif',
@@ -1324,6 +1352,11 @@ function cns_map_suite_hierarchy_rest_args(): array {
 			'type'              => 'string',
 			'default'           => '#ffffff26',
 			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff26'),
+		],
+		'style_tip_text' => [
+			'type'              => 'string',
+			'default'           => '#ffffff',
+			'sanitize_callback' => fn($v) => cns_map_suite_sanitize_color((string) $v, '#ffffff'),
 		],
 		'title_override' => [
 			'type'    => 'string',
@@ -1404,11 +1437,13 @@ function cns_map_suite_rest_create_hierarchy_region(WP_REST_Request $request): W
 		'fill'            => (string) $request->get_param('style_fill'),
 		'stroke'          => (string) $request->get_param('style_stroke'),
 		'strokeWidth'     => (int)    $request->get_param('style_stroke_width'),
+		'labelHidden'     => (bool)   $request->get_param('style_label_hidden'),
 		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
 		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
 		'labelColor'      => (string) $request->get_param('style_label_color'),
 		'tipBgColor'      => (string) $request->get_param('style_tip_bg'),
 		'tipBorderColor'  => (string) $request->get_param('style_tip_border'),
+		'tipTextColor'    => (string) $request->get_param('style_tip_text'),
 	]);
 
 	$title_override       = (string) $request->get_param('title_override');
@@ -1468,11 +1503,13 @@ function cns_map_suite_rest_update_hierarchy_region(WP_REST_Request $request): W
 		'fill'            => (string) $request->get_param('style_fill'),
 		'stroke'          => (string) $request->get_param('style_stroke'),
 		'strokeWidth'     => (int)    $request->get_param('style_stroke_width'),
+		'labelHidden'     => (bool)   $request->get_param('style_label_hidden'),
 		'labelFontFamily' => (string) $request->get_param('style_label_font_family'),
 		'labelFontSize'   => (int)    $request->get_param('style_label_font_size'),
 		'labelColor'      => (string) $request->get_param('style_label_color'),
 		'tipBgColor'      => (string) $request->get_param('style_tip_bg'),
 		'tipBorderColor'  => (string) $request->get_param('style_tip_border'),
+		'tipTextColor'    => (string) $request->get_param('style_tip_text'),
 	]);
 
 	$title_override       = (string) $request->get_param('title_override');

@@ -215,6 +215,52 @@ $bp-lpc: 1400px;
 	}
 }
 
+// Editor-side preview of the published hierarchy hover card. Values mirror
+// .cns-map-hierarchy-tip in src/blocks/map/style.scss — keep the two in step.
+// Background and border colors are set inline from the form's live values.
+.cns-hovercard-preview {
+	box-sizing: border-box;
+	width: 240px;
+	max-width: 100%;
+	margin-top: $space-05;
+	padding: 10px 12px;
+	--cns-tip-bg: #{rgba(0, 0, 0, 0.82)};
+	--cns-tip-border: #{rgba(255, 255, 255, 0.15)};
+	--cns-tip-text: #fff;
+	background: var(--cns-tip-bg);
+	border: 1px solid var(--cns-tip-border);
+	border-radius: 6px;
+	color: var(--cns-tip-text);
+	font-size: 0.85rem;
+	line-height: 1.4;
+
+	&__thumb {
+		display: block;
+		width: 100%;
+		aspect-ratio: 3 / 2;
+		object-fit: cover;
+		border-radius: 4px;
+		margin-bottom: 8px;
+	}
+
+	&__title {
+		display: block;
+		font-size: 0.9rem;
+		font-weight: 600;
+		margin-bottom: 4px;
+	}
+
+	&__excerpt {
+		margin: 0;
+		font-size: 0.8rem;
+		opacity: 0.85;
+		display: -webkit-box;
+		-webkit-line-clamp: 3;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+}
+
 .cns-modal-section {
 	padding: $space-10 $space-05;
 	border-bottom: 1px solid $border-color;
