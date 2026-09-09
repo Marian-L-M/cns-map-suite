@@ -11,6 +11,7 @@ import MediaPicker from '../shared/MediaPicker';
 import IconPicker from '../shared/IconPicker';
 import ColorField from '../shared/ColorField';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
+import { OBJECT_TYPES, OBJECT_TYPE_DEFAULT } from '../../../choices';
 import type {
 	ObjectFormData,
 	ObjectSavePayload,
@@ -18,14 +19,6 @@ import type {
 	LibraryIcon,
 	MapObject,
 } from '../../../types';
-
-const TYPES: { value: ObjectType; label: string }[] = [
-	{ value: 'LOCATION', label: 'Location' },
-	{ value: 'HISTORY', label: 'History' },
-	{ value: 'NATURAL', label: 'Natural' },
-	{ value: 'EVENT', label: 'Event' },
-	{ value: 'OTHER', label: 'Other' },
-];
 
 interface Props {
 	formData: ObjectFormData;
@@ -59,7 +52,7 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 			{ /* ── Icon ── */ }
 			<section className="cns-modal-section">
 				<h3>{ __( 'Icon', 'cns-map-suite' ) }</h3>
-				<div className="cns-grid cns-grid__12">
+				<div className="cns-grid">
 					<div className="cns-grid__row">
 						<RadioControl
 							label={ __( 'Icon source', 'cns-map-suite' ) }
@@ -72,7 +65,7 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 						/>
 					</div>
 					{ isSvgSource && (
-						<div className="cns-grid__row">
+						<div className="cns-grid__row cns__fx-col">
 							<IconPicker
 								icons={ icons }
 								selectedIconId={ formData.icon_image_id_svg }
@@ -130,7 +123,7 @@ export default function ObjectForm( { formData, onChange, icons }: Props ) {
 						<SelectControl
 							label={ __( 'Type', 'cns-map-suite' ) }
 							value={ formData.type }
-							options={ TYPES }
+							options={ OBJECT_TYPES }
 							onChange={ ( v ) => set( 'type', v as ObjectType ) }
 						/>
 					</div>
@@ -232,7 +225,7 @@ export function defaultObjectFormData(
 			! isSvg && obj?.icon_image_id ? obj.icon_image_id : 0,
 		icon_image_url: obj?.icon_url && ! isSvg ? obj.icon_url : '',
 		title: obj?.title || '',
-		type: obj?.type || 'LOCATION',
+		type: obj?.type || OBJECT_TYPE_DEFAULT,
 		object_time: obj?.object_time ?? 0,
 		x: obj ? obj.x : x ?? 0,
 		y: obj ? obj.y : y ?? 0,
@@ -253,7 +246,7 @@ export function collectObjectPayload(
 	return {
 		icon_image_id: iconImageId,
 		title: formData.title || '',
-		type: formData.type || 'LOCATION',
+		type: formData.type || OBJECT_TYPE_DEFAULT,
 		x: formData.x || 0,
 		y: formData.y || 0,
 		object_time: formData.object_time || 0,

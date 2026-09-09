@@ -9,14 +9,8 @@ import { __ } from '@wordpress/i18n';
 import ColorField from '../shared/ColorField';
 import PostSearch from '../shared/PostSearch';
 import { LABEL_FONTS } from '../shared/labelFonts';
+import { SHAPE_TYPES, SHAPE_TYPE_DEFAULT } from '../../../choices';
 import type { HierarchyFormData, HierarchyRegion, ShapeType } from '../../../types';
-
-const SHAPES: { value: ShapeType; label: string }[] = [
-	{ value: 'POLYGON',   label: 'Polygon (Nodes)' },
-	{ value: 'RECTANGLE', label: 'Rectangle' },
-	{ value: 'BEZIER',    label: 'Bezier Curve' },
-	{ value: 'CIRCLE',    label: 'Circle / Oval' },
-];
 
 interface Props {
 	formData: HierarchyFormData;
@@ -118,7 +112,7 @@ export default function HierarchyRegionForm( { formData, onChange, onShapeTypeCh
 					__nextHasNoMarginBottom
 					label={ __( 'Shape', 'cns-map-suite' ) }
 					value={ formData.shape_type }
-					options={ SHAPES }
+					options={ SHAPE_TYPES }
 					onChange={ handleShapeChange }
 				/>
 			</section>
@@ -279,7 +273,7 @@ export function defaultHierarchyFormData( region?: HierarchyRegion ): HierarchyF
 	return {
 		child_map_id:         region?.child_map_id         || 0,
 		child_map_label:      region?.child_map_title       || '',
-		shape_type:           region?.shape_type            || 'POLYGON',
+		shape_type:           region?.shape_type            || SHAPE_TYPE_DEFAULT,
 		title_override:       region?.title_override        || '',
 		description_override: region?.description_override  || '',
 		style_fill:              styles.fill            || '#e8a02040',

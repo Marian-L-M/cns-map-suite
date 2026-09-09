@@ -1,13 +1,17 @@
+import type { AreaType, ObjectType, ShapeType } from './choices';
+
 // ── WordPress globals ─────────────────────────────────────────────────────────
 
 interface WpMediaSelection {
-	first(): { toJSON(): { id: number; url: string; [key: string]: unknown } };
+	first(): {
+		toJSON(): { id: number; url: string; [ key: string ]: unknown };
+	};
 }
 interface WpMediaState {
-	get(key: 'selection'): WpMediaSelection;
+	get( key: 'selection' ): WpMediaSelection;
 }
 interface WpMediaFrame {
-	on(event: string, handler: () => void): WpMediaFrame;
+	on( event: string, handler: () => void ): WpMediaFrame;
 	open(): void;
 	state(): WpMediaState;
 }
@@ -27,8 +31,8 @@ export interface CnsMapEditorExtensions {
 // wp.oldEditor when the block-editor's wp-editor package is also loaded,
 // wp.editor otherwise.
 export interface WpClassicEditor {
-	initialize(id: string, settings?: Record<string, unknown>): void;
-	remove(id: string): void;
+	initialize( id: string, settings?: Record< string, unknown > ): void;
+	remove( id: string ): void;
 }
 
 declare global {
@@ -37,7 +41,7 @@ declare global {
 		cnsMapSuite: CnsMapSuiteGlobal;
 		cnsMapEditorExtensions: CnsMapEditorExtensions;
 		wp: {
-			media: (options: WpMediaOptions) => WpMediaFrame;
+			media: ( options: WpMediaOptions ) => WpMediaFrame;
 			editor?: WpClassicEditor;
 			oldEditor?: WpClassicEditor;
 		};
@@ -87,14 +91,22 @@ export interface CnsMapSuiteGlobal {
 
 // ── Primitive unions ──────────────────────────────────────────────────────────
 
-export type PostStatus    = 'publish' | 'draft' | 'private';
-export type ShapeType     = 'POLYGON' | 'BEZIER' | 'CIRCLE' | 'RECTANGLE';
-export type ObjectType    = 'LOCATION' | 'HISTORY' | 'NATURAL' | 'EVENT' | 'OTHER';
-export type AreaType      = 'GEOGRAPHY' | 'HISTORY' | 'NATURAL' | 'EVENT' | 'OTHER';
+export type PostStatus = 'publish' | 'draft' | 'private';
+// AreaType, ObjectType and ShapeType are derived from the choice lists in
+// choices.ts, so each union and its form dropdown cannot drift apart.
+export type { AreaType, ObjectType, ShapeType };
 export type InfoboxSource = 'manual' | 'post';
-export type IconSource    = 'svg' | 'image';
-export type BgType        = 'color' | 'image';
-export type Tab           = 'settings' | 'description' | 'objects' | 'areas' | 'labels' | 'hierarchy' | 'preview' | 'stories';
+export type IconSource = 'svg' | 'image';
+export type BgType = 'color' | 'image';
+export type Tab =
+	| 'settings'
+	| 'description'
+	| 'objects'
+	| 'areas'
+	| 'labels'
+	| 'hierarchy'
+	| 'preview'
+	| 'stories';
 export type LabelPlacement = 'centered' | 'indicator';
 
 // ── Canvas ────────────────────────────────────────────────────────────────────
@@ -414,7 +426,10 @@ export interface ObjectSavePayload {
 export type AreaSavePayload = AreaFormData & { nodes: string };
 
 // Editor-only fields (image preview URL, post-search label) stay out of the payload.
-export type LabelSavePayload = Omit<LabelFormData, 'infobox_image_url' | 'linked_post_label'>;
+export type LabelSavePayload = Omit<
+	LabelFormData,
+	'infobox_image_url' | 'linked_post_label'
+>;
 
 // ── Canvas callback signatures (used to avoid circular imports) ───────────────
 
@@ -425,11 +440,11 @@ export type DrawAreaFn = (
 	H: number,
 	isSelected: boolean,
 	repoNodeIdx: number | null,
-	repoCursor: CanvasPoint | null,
+	repoCursor: CanvasPoint | null
 ) => void;
 
 export type DrawObjectFn = (
 	ctx: CanvasRenderingContext2D,
 	obj: MapObject,
-	isSelected: boolean,
-) => Promise<void>;
+	isSelected: boolean
+) => Promise< void >;

@@ -8,22 +8,18 @@ import { __ } from '@wordpress/i18n';
 import ColorField from '../shared/ColorField';
 import { LABEL_FONTS } from '../shared/labelFonts';
 import InfoboxSection, { infoboxFormDefaults } from './shared/InfoboxSection';
-import type { AreaFormData, AreaType, ShapeType, MapArea } from '../../../types';
-
-const TYPES: { value: AreaType; label: string }[] = [
-	{ value: 'GEOGRAPHY', label: 'Geography' },
-	{ value: 'HISTORY',   label: 'History' },
-	{ value: 'NATURAL',   label: 'Natural' },
-	{ value: 'EVENT',     label: 'Event' },
-	{ value: 'OTHER',     label: 'Other' },
-];
-
-const SHAPES: { value: ShapeType; label: string }[] = [
-	{ value: 'POLYGON',   label: 'Polygon (Nodes)' },
-	{ value: 'RECTANGLE', label: 'Rectangle' },
-	{ value: 'BEZIER',    label: 'Bezier Curve' },
-	{ value: 'CIRCLE',    label: 'Circle / Oval' },
-];
+import {
+	AREA_TYPES,
+	AREA_TYPE_DEFAULT,
+	SHAPE_TYPES,
+	SHAPE_TYPE_DEFAULT,
+} from '../../../choices';
+import type {
+	AreaFormData,
+	AreaType,
+	ShapeType,
+	MapArea,
+} from '../../../types';
 
 interface Props {
 	formData: AreaFormData;
@@ -31,8 +27,15 @@ interface Props {
 	onShapeTypeChange: ( shapeType: ShapeType ) => void;
 }
 
-export default function AreaForm( { formData, onChange, onShapeTypeChange }: Props ) {
-	function set<K extends keyof AreaFormData>( key: K, val: AreaFormData[ K ] ) {
+export default function AreaForm( {
+	formData,
+	onChange,
+	onShapeTypeChange,
+}: Props ) {
+	function set< K extends keyof AreaFormData >(
+		key: K,
+		val: AreaFormData[ K ]
+	) {
 		onChange( { ...formData, [ key ]: val } );
 	}
 
@@ -62,7 +65,7 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							__nextHasNoMarginBottom
 							label={ __( 'Type', 'cns-map-suite' ) }
 							value={ formData.type }
-							options={ TYPES }
+							options={ AREA_TYPES }
 							onChange={ ( v ) => set( 'type', v as AreaType ) }
 						/>
 					</div>
@@ -72,7 +75,7 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							__nextHasNoMarginBottom
 							label={ __( 'Shape', 'cns-map-suite' ) }
 							value={ formData.shape_type }
-							options={ SHAPES }
+							options={ SHAPE_TYPES }
 							onChange={ handleShapeChange }
 						/>
 					</div>
@@ -83,7 +86,10 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							value={ formData.object_time }
 							step={ 1 }
 							onChange={ ( v ) =>
-								set( 'object_time', parseInt( v ?? '', 10 ) || 0 )
+								set(
+									'object_time',
+									parseInt( v ?? '', 10 ) || 0
+								)
 							}
 						/>
 					</div>
@@ -118,7 +124,10 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							step={ 1 }
 							value={ formData.style_stroke_width }
 							onChange={ ( v ) =>
-								set( 'style_stroke_width', parseInt( v ?? '', 10 ) || 2 )
+								set(
+									'style_stroke_width',
+									parseInt( v ?? '', 10 ) || 2
+								)
 							}
 						/>
 					</div>
@@ -135,7 +144,10 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 					<div className="cns-grid__group cns-grid__span-full">
 						<ToggleControl
 							__nextHasNoMarginBottom
-							label={ __( 'Hide label on canvas', 'cns-map-suite' ) }
+							label={ __(
+								'Hide label on canvas',
+								'cns-map-suite'
+							) }
 							checked={ formData.style_label_hidden }
 							onChange={ ( v ) => set( 'style_label_hidden', v ) }
 						/>
@@ -147,7 +159,9 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							label={ __( 'Font Family', 'cns-map-suite' ) }
 							value={ formData.style_label_font_family }
 							options={ LABEL_FONTS }
-							onChange={ ( v ) => set( 'style_label_font_family', v ) }
+							onChange={ ( v ) =>
+								set( 'style_label_font_family', v )
+							}
 						/>
 					</div>
 					<div className="cns-grid__group">
@@ -159,7 +173,10 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 							step={ 1 }
 							value={ formData.style_label_font_size }
 							onChange={ ( v ) =>
-								set( 'style_label_font_size', parseInt( v ?? '', 10 ) || 12 )
+								set(
+									'style_label_font_size',
+									parseInt( v ?? '', 10 ) || 12
+								)
 							}
 						/>
 					</div>
@@ -179,17 +196,17 @@ export default function AreaForm( { formData, onChange, onShapeTypeChange }: Pro
 export function defaultAreaFormData( area?: MapArea ): AreaFormData {
 	const styles = area?.canvas_styles || {};
 	return {
-		title:               area?.title               || '',
-		type:                ( area?.type as AreaType | undefined ) || 'GEOGRAPHY',
-		shape_type:          area?.shape_type          || 'POLYGON',
-		object_time:         area?.object_time         ?? 0,
+		title: area?.title || '',
+		type: ( area?.type as AreaType | undefined ) || AREA_TYPE_DEFAULT,
+		shape_type: area?.shape_type || SHAPE_TYPE_DEFAULT,
+		object_time: area?.object_time ?? 0,
 		...infoboxFormDefaults( area ?? null ),
-		style_fill:              styles.fill            || '#2271b14d',
-		style_stroke:            styles.stroke          || '#2271b1',
-		style_stroke_width:      styles.strokeWidth     || 2,
-		style_label_hidden:      styles.labelHidden     ?? false,
+		style_fill: styles.fill || '#2271b14d',
+		style_stroke: styles.stroke || '#2271b1',
+		style_stroke_width: styles.strokeWidth || 2,
+		style_label_hidden: styles.labelHidden ?? false,
 		style_label_font_family: styles.labelFontFamily || 'sans-serif',
-		style_label_font_size:   styles.labelFontSize   || 12,
-		style_label_color:       styles.labelColor      || '#ffffff',
+		style_label_font_size: styles.labelFontSize || 12,
+		style_label_color: styles.labelColor || '#ffffff',
 	};
 }

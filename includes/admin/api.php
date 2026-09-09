@@ -218,7 +218,7 @@ function cns_map_suite_register_rest_routes(): void {
 			],
 			'shape_type' => [
 				'type' => 'string',
-				'enum' => ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'],
+				'enum' => cns_map_suite_shape_types(),
 			],
 		],
 	]);
@@ -457,6 +457,24 @@ function cns_map_suite_sanitize_color(string $value, string $default): string {
  * family makes the whole `ctx.font` assignment silently no-op — so the family
  * is matched against this list rather than passed through.
  */
+// ── Enumerated choices ────────────────────────────────────────────────────────
+// The allowed values for the enum-backed columns. Each list is mirrored by a
+// choice list in src/choices.ts, which derives the matching TypeScript union
+// and the form dropdown from it — keep the two sides in sync.
+
+function cns_map_suite_area_types(): array {
+	return ['POLITICAL', 'GEOGRAPHY', 'HISTORY', 'NATURAL', 'EVENT', 'OTHER'];
+}
+
+function cns_map_suite_object_types(): array {
+	return ['LOCATION', 'HISTORY', 'NATURAL', 'EVENT', 'OTHER'];
+}
+
+/** Shared by areas and hierarchy regions. */
+function cns_map_suite_shape_types(): array {
+	return ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'];
+}
+
 function cns_map_suite_label_font_families(): array {
 	return [
 		'sans-serif',
@@ -588,7 +606,7 @@ function cns_map_suite_object_rest_args(): array {
 		'type' => [
 			'type'    => 'string',
 			'default' => 'LOCATION',
-			'enum'    => ['LOCATION', 'HISTORY', 'NATURAL', 'EVENT', 'OTHER'],
+			'enum'    => cns_map_suite_object_types(),
 		],
 		'x' => [
 			'type'    => 'integer',
@@ -779,13 +797,13 @@ function cns_map_suite_area_rest_args(): array {
 		],
 		'type' => [
 			'type'    => 'string',
-			'default' => 'GEOGRAPHY',
-			'enum'    => ['GEOGRAPHY', 'HISTORY', 'NATURAL', 'EVENT', 'OTHER'],
+			'default' => 'POLITICAL',
+			'enum'    => cns_map_suite_area_types(),
 		],
 		'shape_type' => [
 			'type'    => 'string',
 			'default' => 'POLYGON',
-			'enum'    => ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'],
+			'enum'    => cns_map_suite_shape_types(),
 		],
 		'object_time' => [
 			'type'    => 'integer',
@@ -1301,7 +1319,7 @@ function cns_map_suite_hierarchy_rest_args(): array {
 		'shape_type' => [
 			'type'    => 'string',
 			'default' => 'POLYGON',
-			'enum'    => ['POLYGON', 'RECTANGLE', 'BEZIER', 'CIRCLE'],
+			'enum'    => cns_map_suite_shape_types(),
 		],
 		'nodes' => [
 			'type'    => 'string',

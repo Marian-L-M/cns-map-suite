@@ -12,6 +12,7 @@ import HierarchyRegionList from '../lists/HierarchyRegionList';
 import { settingsToDrawState } from '../../canvas';
 import { getDefaultNodes } from '../../areas';
 import { useMapResource } from '../useMapResource';
+import { SHAPE_TYPE_DEFAULT } from '../../../choices';
 import type {
 	MapSettings,
 	HierarchyRegion,
@@ -62,8 +63,8 @@ export default function HierarchyPanel( {
 			id: -1,
 			parent_map_id: mapId,
 			child_map_id: 0,
-			shape_type: 'POLYGON',
-			nodes: getDefaultNodes( 'POLYGON' ),
+			shape_type: SHAPE_TYPE_DEFAULT,
+			nodes: getDefaultNodes( SHAPE_TYPE_DEFAULT ),
 			canvas_styles: {
 				fill: '#e8a020',
 				stroke: '#e8a020',

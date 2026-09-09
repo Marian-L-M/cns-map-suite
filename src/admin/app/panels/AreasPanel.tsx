@@ -19,6 +19,7 @@ import { getDefaultNodes, moveAreaNode, canRemoveAreaNode } from '../../areas';
 import { defaultAreaFormData } from '../forms/AreaForm';
 import { useCanvasKeyboard } from '../useCanvasKeyboard';
 import { useMapResource } from '../useMapResource';
+import { SHAPE_TYPE_DEFAULT } from '../../../choices';
 import type { MapSettings, MapArea, AreaFormData, Node } from '../../../types';
 
 // Internal clipboard for ⌘/Ctrl+C/V. Module scope so it survives tab
@@ -194,7 +195,7 @@ export default function AreasPanel( {
 
 	async function handleAddArea() {
 		if ( ! mapId ) return;
-		const defaultNodes = getDefaultNodes( 'POLYGON' );
+		const defaultNodes = getDefaultNodes( SHAPE_TYPE_DEFAULT );
 		try {
 			const data = await apiFetch< MapArea >(
 				'POST',
